@@ -68,3 +68,5 @@ Always maintain clean separation between tiers and follow the domain client adap
 - **API Key Management**: Detailed implementation of API key management (storage, security, UI) will be addressed in MVP 2. For MVP 1, focus on the core architecture and health endpoints. Design the system with appropriate abstractions to make future enhancements straightforward.
 
 - **Error Handling**: Establish consistent error handling patterns for each milestone rather than implementing ad-hoc solutions. This includes standardized error objects, proper HTTP status codes, and clear error messages. Document the approach as we implement it to ensure consistency across the entire application.
+
+- **SQLite Compatibility**: Research showed that better-sqlite3 version 11.5.0 and later fully supports Node.js 23, including v23.11.0. The project will use better-sqlite3 v11.10.0+ for SQLite database connectivity. We've added Node.js version requirements (>=20.0.0) in package.json to ensure compatibility.
