@@ -1,7 +1,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/src'],
+  roots: ['<rootDir>/server/src'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
@@ -10,9 +10,9 @@ module.exports = {
   collectCoverage: true,
   coverageDirectory: 'coverage',
   collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/**/*.test.{ts,tsx}',
+    'server/src/**/*.{ts,tsx}',
+    '!server/src/**/*.d.ts',
+    '!server/src/**/*.test.{ts,tsx}',
   ],
   coverageThreshold: {
     global: {
@@ -21,7 +21,7 @@ module.exports = {
       lines: 80,
       statements: 80,
     },
-    './src/services/core/': {
+    './server/src/services/core/': {
       branches: 90,
       functions: 90,
       lines: 90,
