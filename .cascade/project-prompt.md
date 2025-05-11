@@ -5,6 +5,7 @@ activation_mode: always_on
 priority: high
 include_files:
   - project-plan.xml
+  - dev-journal-m1.md
   - dev-journal-m0.md
 ---
 
@@ -57,4 +58,5 @@ Always maintain clean separation between tiers and follow the domain client adap
 
 Implementation decisions, problem-solving approaches, and developer notes are tracked in milestone-specific development journals:
 
+- [Milestone 1 Development Journal](dev-journal-m1.md) - Basic HTTP Server & Domain Health Endpoint
 - [Milestone 0 Development Journal](dev-journal-m0.md) - Project Initialization

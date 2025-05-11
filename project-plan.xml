@@ -700,15 +700,62 @@
     <error_handling>
       <heading>Error Handling Standards</heading>
       <content>
+        - **Standardized Error Code System**:
+          - Hierarchical error codes grouped by category (1000-1999, 2000-2999, etc.)
+          - Each error code maps to exactly one HTTP status code
+          - One-to-many relationship between HTTP status codes and error codes
+          - Complete documentation in `/docs/ERROR_CODES.md`
+          - Categories include:
+            - 1000-1999: System/General Errors
+            - 2000-2999: Authentication/Authorization Errors
+            - 3000-3999: Validation Errors
+            - 4000-4999: Resource Errors
+            - 5000-5999: Data Access Errors
+            - 6000-6999: External Service Errors
+            - 7000-7999: Business Logic Errors
+
+        - **Standardized Error Response Format**:
+          ```json
+          {
+            "error": {
+              "code": 3000,
+              "message": "Validation failed"
+            }
+          }
+          ```
+          - Non-production environments include additional details:
+          ```json
+          {
+            "error": {
+              "code": 3000,
+              "message": "Validation failed",
+              "details": "Detailed error information",
+              "errorCode": "VALIDATION_FAILED"
+            }
+          }
+          ```
+          - Support for validation error collections:
+          ```json
+          {
+            "error": {
+              "code": 3000,
+              "message": "Validation failed",
+              "items": [
+                { "field": "email", "code": 3030, "message": "Invalid format" }
+              ]
+            }
+          }
+          ```
+
         - **Error Types**:
-          - Define domain-specific error classes extending Error
-          - Include error code, message, and contextual data
-          - Example categories: ValidationError, NotFoundError, ServiceError
+          - Define domain-specific error classes extending AppError base class
+          - Include error code, message, details, and validation items where applicable
+          - Standard error classes: ValidationError, NotFoundError, UnauthorizedError, etc.
 
         - **Error Propagation**:
           - Domain services should throw typed errors
-          - Edge layer translates errors to appropriate HTTP responses
-          - Always preserve stack traces (`new Error('message', { cause: originalError })`)
+          - Error handler middleware translates errors to standardized HTTP responses
+          - Always preserve stack traces for debugging
 
         - **Async Error Handling**:
           - Use try/catch with async/await
@@ -723,6 +770,7 @@
           - Log all errors with appropriate context
           - Debug-level logging for handled errors
           - Error-level logging for unexpected errors
+          - More verbose logging in non-production environments
       </content>
     </error_handling>
 

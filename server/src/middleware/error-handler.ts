@@ -2,44 +2,43 @@
  * Global error handling middleware
  */
 import { Request, Response, NextFunction } from 'express';
-import config from '../config';
+import { AppError } from '../utils/errors';
+import { SystemErrorCode } from '../utils/error-codes';
 
 /**
- * Error response structure
+ * Global error handling middleware
+ * @param err - Error object
+ * @param _req - Express request object (unused)
+ * @param res - Express response object
+ * @param _next - Express next function (unused)
  */
-interface ErrorResponse {
-  error: string;
-  message: string;
-  statusCode: number;
-  stack?: string;
-}
-
-/**
- * Global error handler middleware
- */
-export const errorHandler = (
-  err: Error & { statusCode?: number },
+export function errorHandler(
+  err: Error,
   _req: Request,
   res: Response,
   _next: NextFunction
-) => {
-  const statusCode = err.statusCode || 500;
-  
-  const errorResponse: ErrorResponse = {
-    error: statusCode === 500 ? 'Internal Server Error' : err.name,
-    message: err.message || 'Something went wrong',
-    statusCode,
-  };
-  
-  // Include stack trace in development mode
-  if (config.isDevelopment) {
-    errorResponse.stack = err.stack;
-  }
-  
-  console.error(`[Error] ${errorResponse.error}: ${errorResponse.message}`);
-  if (err.stack) {
+) {
+  // Log error (with stack trace in non-production environments)
+  if (process.env.NODE_ENV !== 'production') {
+    console.error(`Error: ${err.message}`);
     console.error(err.stack);
+  } else {
+    // In production, log less verbose details
+    console.error(`Error occurred: ${err.message}`);
   }
-  
-  res.status(statusCode).json(errorResponse);
-};
+
+  // Handle different error types
+  if (err instanceof AppError) {
+    // Return standardized error format for known application errors
+    return res.status(err.statusCode).json(err.toJSON());
+  }
+
+  // Handle unknown errors by wrapping them in an AppError
+  const unknownError = new AppError(
+    SystemErrorCode.UNKNOWN_ERROR,
+    'Internal server error',
+    process.env.NODE_ENV !== 'production' ? err.message : undefined
+  );
+
+  return res.status(unknownError.statusCode).json(unknownError.toJSON());
+}
