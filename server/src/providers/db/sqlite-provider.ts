@@ -188,6 +188,7 @@ export class SQLiteProvider implements DatabaseProvider {
     // Extract error message safely from unknown error type
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Database error: ${errorMessage}`);
-    return new DatabaseError(`${message}: ${errorMessage}`, undefined, error instanceof Error ? error : undefined);
+    const originalError = error instanceof Error ? error : undefined;
+    return new DatabaseError(`${message}: ${errorMessage}`, undefined, originalError);
   }
 }

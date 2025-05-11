@@ -4,7 +4,11 @@
  * with the domain health service
  */
 import { HealthServiceClient } from './health-service-client';
-import { DatabaseHealthStatus, HealthService, HealthStatus } from '../../services/core/health-service';
+import { 
+  DatabaseHealthStatus, 
+  HealthService, 
+  HealthStatus 
+} from '../../services/core/health-service';
 
 /**
  * Client for accessing health service functionality directly (in-process)

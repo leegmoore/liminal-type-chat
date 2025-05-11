@@ -34,10 +34,14 @@ export class HttpHealthServiceClient implements HealthServiceClient {
       error => {
         if (error.response) {
           // The request was made and the server responded with an error status
+          const statusInfo = `Status: ${error.response.status}`;  
+          const codeInfo = `Code: ${error.response.data?.code || 'unknown'}`;
+          const errorDetails = error.response.data?.details || `${statusInfo}, ${codeInfo}`;
+          
           throw new AppError(
             'EXTERNAL_SERVICE_ERROR', // Using a standard error code from error-codes.ts
             error.response.data?.message || 'API error',
-            error.response.data?.details || `Status: ${error.response.status}, Code: ${error.response.data?.code || 'unknown'}`
+            errorDetails
           );
         } else if (error.request) {
           // The request was made but no response was received

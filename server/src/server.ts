@@ -6,7 +6,8 @@ const startServer = async () => {
   try {
     const port = config.port;
     
-    console.log(`Starting server with configured port: ${port} (from env: ${process.env.PORT || 'using default'})`);
+    const portSource = process.env.PORT || 'using default';
+    console.log(`Starting server with configured port: ${port} (from env: ${portSource})`);
     const server = app.listen(port, () => {
       console.log(`Liminal Type Chat server listening on port ${port}`);
       console.log(`http://localhost:${port}`);

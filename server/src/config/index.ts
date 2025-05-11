@@ -24,10 +24,13 @@ const config = {
   /** Database configuration */
   db: {
     /** Path to SQLite database file */
+    // Use environment variable DB_PATH if defined, otherwise compute default path
     path: process.env.DB_PATH || (() => {
       // Check if we're already in the server directory
       const cwd = process.cwd();
-      const isInServerDir = cwd.endsWith('/server') || cwd.endsWith('\\server');
+      // Check if path ends with 'server' on either Unix or Windows
+      const isInServerDir = cwd.endsWith('/server') || 
+        cwd.endsWith('\\server');
       
       if (isInServerDir) {
         return path.join(cwd, 'db', 'liminal-chat.db');
@@ -38,7 +41,8 @@ const config = {
   },
   
   /** Client mode configuration */
-  inProcessMode: process.env.IN_PROCESS_MODE !== 'false', // Default to true (direct mode) unless explicitly set to false
+  // Default to true (direct mode) unless explicitly set to false
+  inProcessMode: process.env.IN_PROCESS_MODE !== 'false',
   
   /** API base URL for HTTP client mode */
   apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:3000',

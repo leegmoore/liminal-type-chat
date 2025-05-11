@@ -48,7 +48,12 @@ export class AppError extends Error {
    * @param details - Optional error details
    * @param items - Optional validation error items
    */
-  constructor(errorCode: string, message?: string, details?: string, items?: ValidationErrorItem[]) {
+  constructor(
+    errorCode: string, 
+    message?: string, 
+    details?: string, 
+    items?: ValidationErrorItem[]
+  ) {
     // Get error definition or use unknown error as fallback
     const errorDef = ERROR_CODES[errorCode] || ERROR_CODES[SystemErrorCode.UNKNOWN_ERROR];
     
@@ -62,8 +67,10 @@ export class AppError extends Error {
     this.details = details;
     this.items = items;
     
-    // Capture stack trace
-    Error.captureStackTrace(this, this.constructor);
+    // Capture stack trace (if available in this environment)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
   }
   
   /**
@@ -121,7 +128,11 @@ export class NotFoundError extends AppError {
     super(
       ResourceErrorCode.RESOURCE_NOT_FOUND,
       message,
-      details || (resourceType && resourceId ? `${resourceType} with ID ${resourceId} not found` : undefined)
+      details || (
+        resourceType && resourceId 
+          ? `${resourceType} with ID ${resourceId} not found` 
+          : undefined
+      )
     );
   }
 }

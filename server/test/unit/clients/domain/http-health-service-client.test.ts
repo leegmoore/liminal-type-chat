@@ -4,20 +4,28 @@
 import axios from 'axios';
 import { HttpHealthServiceClient } from '../../../../src/clients/domain/http-health-service-client';
 import { HealthStatus, DatabaseHealthStatus } from '../../../../src/services/core/health-service';
-import { AppError } from '../../../../src/utils/errors';
+import { AppError, ExternalServiceError } from '../../../../src/utils/errors';
+import { ExternalServiceErrorCode } from '../../../../src/utils/error-codes';
+
+// Create mock functions
+const mockGet = jest.fn();
+const mockInterceptorsUse = jest.fn();
+
+// Capture error handler for testing
+let capturedErrorHandler: Function;
 
 // Mock axios
 jest.mock('axios', () => {
   return {
     create: jest.fn(() => ({
-      get: jest.fn(),
+      get: mockGet,
       interceptors: {
         response: {
-          use: jest.fn((successFn, errorFn) => {
-            // Store the error handler for testing
-            (axios as any).errorHandler = errorFn;
+          use: (successFn: Function, errorFn: Function) => {
+            mockInterceptorsUse(successFn, errorFn);
+            capturedErrorHandler = errorFn;
             return successFn;
-          })
+          }
         }
       }
     }))
@@ -26,7 +34,6 @@ jest.mock('axios', () => {
 
 describe('HttpHealthServiceClient', () => {
   let httpClient: HttpHealthServiceClient;
-  let mockAxiosInstance: any;
   
   // Sample health status responses
   const mockHealthStatus: HealthStatus = {
@@ -45,12 +52,11 @@ describe('HttpHealthServiceClient', () => {
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
+    mockGet.mockReset();
+    mockInterceptorsUse.mockReset();
     
     // Create a new HTTP client with a test base URL
     httpClient = new HttpHealthServiceClient('http://test-api.example.com');
-    
-    // Get the mock axios instance
-    mockAxiosInstance = (axios.create as jest.Mock)();
   });
   
   describe('constructor', () => {
@@ -64,27 +70,28 @@ describe('HttpHealthServiceClient', () => {
         }
       });
       
-      expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalled();
+      // Interceptors should be set up
+      expect(mockInterceptorsUse).toHaveBeenCalled();
     });
   });
   
   describe('getSystemStatus', () => {
     it('should call the domain health API endpoint', async () => {
       // Mock successful response
-      mockAxiosInstance.get.mockResolvedValueOnce({
+      mockGet.mockResolvedValueOnce({
         data: mockHealthStatus
       });
       
       const result = await httpClient.getSystemStatus();
       
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v1/domain/health');
+      expect(mockGet).toHaveBeenCalledWith('/api/v1/domain/health');
       expect(result).toEqual(mockHealthStatus);
     });
     
     it('should handle API errors properly', async () => {
       // Simulate an error from the API
       const apiError = new Error('API error');
-      mockAxiosInstance.get.mockRejectedValueOnce(apiError);
+      mockGet.mockRejectedValueOnce(apiError);
       
       await expect(httpClient.getSystemStatus()).rejects.toThrow();
     });
@@ -93,20 +100,20 @@ describe('HttpHealthServiceClient', () => {
   describe('checkDbConnection', () => {
     it('should call the domain database health API endpoint', async () => {
       // Mock successful response
-      mockAxiosInstance.get.mockResolvedValueOnce({
+      mockGet.mockResolvedValueOnce({
         data: mockDbHealthStatus
       });
       
       const result = await httpClient.checkDbConnection();
       
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v1/domain/health/db');
+      expect(mockGet).toHaveBeenCalledWith('/api/v1/domain/health/db');
       expect(result).toEqual(mockDbHealthStatus);
     });
     
     it('should handle API errors properly', async () => {
       // Simulate an error from the API
       const apiError = new Error('API error');
-      mockAxiosInstance.get.mockRejectedValueOnce(apiError);
+      mockGet.mockRejectedValueOnce(apiError);
       
       await expect(httpClient.checkDbConnection()).rejects.toThrow();
     });
@@ -114,7 +121,8 @@ describe('HttpHealthServiceClient', () => {
   
   describe('error handling', () => {
     it('should handle API response errors', () => {
-      const errorHandler = (axios as any).errorHandler;
+      // Verify errorHandler is a function
+      expect(typeof capturedErrorHandler).toBe('function');
       
       // Simulate an error with response
       const responseError = {
@@ -129,20 +137,21 @@ describe('HttpHealthServiceClient', () => {
         }
       };
       
-      expect(() => errorHandler(responseError)).toThrow(AppError);
+      expect(() => capturedErrorHandler(responseError)).toThrow(AppError);
       try {
-        errorHandler(responseError);
+        capturedErrorHandler(responseError);
       } catch (error) {
         expect(error).toBeInstanceOf(AppError);
         expect(error).toHaveProperty('message', 'API error message');
         expect(error).toHaveProperty('statusCode');
-        expect(error).toHaveProperty('errorCode');
+        expect(error).toHaveProperty('errorCode', 'EXTERNAL_SERVICE_ERROR');
         expect(error).toHaveProperty('details');
       }
     });
     
     it('should handle network errors', () => {
-      const errorHandler = (axios as any).errorHandler;
+      // Verify errorHandler is a function
+      expect(typeof capturedErrorHandler).toBe('function');
       
       // Simulate a network error
       const networkError = {
@@ -150,35 +159,32 @@ describe('HttpHealthServiceClient', () => {
         message: 'Network error'
       };
       
-      expect(() => errorHandler(networkError)).toThrow(ApiError);
+      expect(() => capturedErrorHandler(networkError)).toThrow(AppError);
       try {
-        errorHandler(networkError);
+        capturedErrorHandler(networkError);
       } catch (error) {
-        expect(error).toBeInstanceOf(ApiError);
+        expect(error).toBeInstanceOf(AppError);
         expect(error).toHaveProperty('message', 'No response received from server');
-        expect(error).toHaveProperty('statusCode', 0);
-        expect(error).toHaveProperty('code', 5001);
-        expect(error).toHaveProperty('errorCode', 'NETWORK_ERROR');
+        expect(error).toHaveProperty('errorCode', 'EXTERNAL_SERVICE_UNAVAILABLE');
       }
     });
     
     it('should handle request setup errors', () => {
-      const errorHandler = (axios as any).errorHandler;
+      // Verify errorHandler is a function
+      expect(typeof capturedErrorHandler).toBe('function');
       
       // Simulate a request setup error
       const setupError = {
         message: 'Setup error'
       };
       
-      expect(() => errorHandler(setupError)).toThrow(ApiError);
+      expect(() => capturedErrorHandler(setupError)).toThrow(AppError);
       try {
-        errorHandler(setupError);
+        capturedErrorHandler(setupError);
       } catch (error) {
-        expect(error).toBeInstanceOf(ApiError);
+        expect(error).toBeInstanceOf(AppError);
         expect(error).toHaveProperty('message', 'Setup error');
-        expect(error).toHaveProperty('statusCode', 0);
-        expect(error).toHaveProperty('code', 5002);
-        expect(error).toHaveProperty('errorCode', 'REQUEST_ERROR');
+        expect(error).toHaveProperty('errorCode', 'EXTERNAL_SERVICE_ERROR');
       }
     });
   });

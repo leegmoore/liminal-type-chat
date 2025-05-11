@@ -13,18 +13,25 @@ import { SystemErrorCode } from '../utils/error-codes';
  * @param _next - Express next function (unused)
  */
 export function errorHandler(
-  err: Error,
+  err: unknown,
   _req: Request,
   res: Response,
   _next: NextFunction
 ) {
+  // Safely extract error properties
+  const errorObj = err as Error;
+  const message = errorObj && errorObj.message ? errorObj.message : 'Unknown error';
+  const stack = errorObj && errorObj.stack ? errorObj.stack : undefined;
+  
   // Log error (with stack trace in non-production environments)
   if (process.env.NODE_ENV !== 'production') {
-    console.error(`Error: ${err.message}`);
-    console.error(err.stack);
+    console.error(`Error: ${message}`);
+    if (stack) {
+      console.error(stack);
+    }
   } else {
     // In production, log less verbose details
-    console.error(`Error occurred: ${err.message}`);
+    console.error(`Error occurred: ${message}`);
   }
 
   // Handle different error types
@@ -37,7 +44,7 @@ export function errorHandler(
   const unknownError = new AppError(
     SystemErrorCode.UNKNOWN_ERROR,
     'Internal server error',
-    process.env.NODE_ENV !== 'production' ? err.message : undefined
+    process.env.NODE_ENV !== 'production' ? message : undefined
   );
 
   return res.status(unknownError.statusCode).json(unknownError.toJSON());

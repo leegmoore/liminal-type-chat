@@ -56,9 +56,15 @@ describe('Edge Health Routes', () => {
     });
     
     it('should handle errors from the client', async () => {
-      // Mock a client error
+      // Mock a client error with proper structure
       const error = new AppError('INTERNAL_SERVER_ERROR', 'Test error');
-      mockHealthServiceClient.getSystemStatus.mockRejectedValueOnce(error);
+      // Ensure the error has a stack trace by throwing and catching it
+      try {
+        throw error;
+      } catch (e) {
+        // Use the caught error with stack trace
+        mockHealthServiceClient.getSystemStatus.mockRejectedValueOnce(e);
+      }
       
       const response = await request(app)
         .get('/api/v1/edge/health')
@@ -85,9 +91,15 @@ describe('Edge Health Routes', () => {
     });
     
     it('should handle errors from the client', async () => {
-      // Mock a client error
+      // Mock a client error with proper structure
       const error = new AppError('DATABASE_ERROR', 'Database error');
-      mockHealthServiceClient.checkDbConnection.mockRejectedValueOnce(error);
+      // Ensure the error has a stack trace by throwing and catching it
+      try {
+        throw error;
+      } catch (e) {
+        // Use the caught error with stack trace
+        mockHealthServiceClient.checkDbConnection.mockRejectedValueOnce(e);
+      }
       
       const response = await request(app)
         .get('/api/v1/edge/health/db')
