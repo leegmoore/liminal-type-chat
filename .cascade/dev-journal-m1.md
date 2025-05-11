@@ -104,4 +104,11 @@ Milestone 1 has been successfully completed with all objectives met. The applica
    - Integration tests for the health endpoint
    - 100% test coverage for both components
 
+5. **Project Restructuring for Better Separation**:
+   - Reorganized as a monorepo with separate `server` and `client` workspaces
+   - Dedicated test directory structure with separation for unit and integration tests
+   - Independent configuration files for each workspace
+   - Root-level workspace coordination for scripts and TypeScript project references
+   - Placeholder structure for the React frontend implementation in Milestone 4
+
 The application is now ready for Milestone 2, which will focus on core data models and database setup.

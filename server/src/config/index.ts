@@ -13,7 +13,7 @@ dotenv.config();
  */
 const config = {
   /** Server port */
-  port: process.env.PORT ? parseInt(process.env.PORT, 10) : 3000,
+  port: process.env.PORT ? parseInt(process.env.PORT, 10) : 8765,
   
   /** Node environment */
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -24,7 +24,17 @@ const config = {
   /** Database configuration */
   db: {
     /** Path to SQLite database file */
-    path: process.env.DB_PATH || path.join(process.cwd(), 'server', 'db', 'liminal-chat.db'),
+    path: process.env.DB_PATH || (() => {
+      // Check if we're already in the server directory
+      const cwd = process.cwd();
+      const isInServerDir = cwd.endsWith('/server') || cwd.endsWith('\\server');
+      
+      if (isInServerDir) {
+        return path.join(cwd, 'db', 'liminal-chat.db');
+      } else {
+        return path.join(cwd, 'server', 'db', 'liminal-chat.db');
+      }
+    })(),
   },
   
   /** Client mode configuration */

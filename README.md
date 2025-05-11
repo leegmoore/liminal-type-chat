@@ -20,11 +20,11 @@ An open-source, local-first GenAI chat application designed for individuals and 
   - Implement domain health check endpoint and comprehensive error handling
   - Add unit and integration tests with proper coverage
 
-- ⬜ **Milestone 2**: SQLite Database Connectivity & Domain DB Health Endpoint
+- ✅ **Milestone 2**: SQLite Database Connectivity & Domain DB Health Endpoint - **COMPLETED**
   - Set up SQLite with better-sqlite3 and create database provider
   - Implement health check table and schema initialization
   - Extend health service with database connection checks
-  - Add database health check endpoint
+  - Add database health check endpoint with visual dashboard
 
 - ⬜ **Milestone 3**: Edge-to-Domain Pattern Implementation for Health Checks
   - Implement domain client adapter pattern for tier communication
@@ -80,9 +80,12 @@ liminal-type-chat/
 │   ├── package.json         # Frontend dependencies
 │   └── tsconfig.json        # TypeScript configuration for frontend
 ├── server/                  # Node.js backend application
+│   ├── db/                  # SQLite database directory
 │   ├── src/                 # Backend source code
 │   │   ├── config/          # Configuration
 │   │   ├── middleware/      # Express middleware
+│   │   ├── providers/       # Service providers
+│   │   │   └── db/          # Database providers (SQLite)
 │   │   ├── routes/          # API routes
 │   │   ├── services/        # Domain services
 │   │   └── utils/           # Utilities

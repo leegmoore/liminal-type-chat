@@ -552,6 +552,11 @@
             - `/config`: Configuration management
             - `/middleware`: Express middleware
             - `/utils`: Utility functions
+          - `/test`: Test files separated by type
+            - `/unit`: Unit tests targeting individual functions and classes
+              - Structure mirrors src directory (e.g., `/unit/services/`)
+            - `/integration`: Integration tests targeting component interactions
+              - Structure reflects logical module groupings (e.g., `/integration/routes/`)
           - `/public`: Static frontend files (served by Express)
           - `/dist`: Compiled JavaScript
           - `/db`: Database files and migrations
@@ -562,6 +567,10 @@
         - `/client`: Frontend application
           - `/src`: Frontend source code
           - `/public`: Static assets
+          - `/test`: Test files (will be implemented in Milestone 4)
+            - `/unit`: Unit tests for React components
+            - `/integration`: Integration tests for component interactions
+            - `/__mocks__`: Mock files for testing
           - `/build`: Build output (copied to `/server/public` during deployment)
 
       - **Configuration Files**:

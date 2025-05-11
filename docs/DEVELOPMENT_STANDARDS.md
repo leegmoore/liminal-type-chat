@@ -167,9 +167,12 @@ This document outlines the development standards and conventions used in the Lim
   - Edge/route handlers: 80% minimum coverage
   - Utility functions: 80% minimum coverage
 
-- **Test Structure**:
-  - Use Jest's describe/it pattern for organization
-  - Group tests by functionality, not implementation details
+- **Test Organization**:
+  - Tests are organized in a dedicated `/test` directory with separate folders for test types:
+    - `/test/unit`: Unit tests targeting individual functions and classes
+    - `/test/integration`: Integration tests targeting component interactions
+  - Unit test directory structure mirrors the source code structure (e.g., `/test/unit/services`)
+  - Use Jest's describe/it pattern for logical test organization
   - Follow AAA pattern (Arrange, Act, Assert)
 
 - **Test Naming**:

@@ -27,5 +27,19 @@ export const createHealthRoutes = (healthService: HealthService) => {
     }
   });
   
+  /**
+   * @route GET /api/v1/domain/health/db
+   * @description Get the current database health status
+   * @returns {Object} Database health status object
+   */
+  router.get('/api/v1/domain/health/db', async (_req, res, next) => {
+    try {
+      const status = await healthService.checkDbConnection();
+      res.json(status);
+    } catch (error) {
+      next(error); // Pass to error handler middleware
+    }
+  });
+  
   return router;
 };
