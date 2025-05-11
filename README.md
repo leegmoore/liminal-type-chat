@@ -6,6 +6,9 @@ An open-source, local-first GenAI chat application designed for individuals and 
 
 - [Development Standards](docs/DEVELOPMENT_STANDARDS.md) - Coding standards, patterns, and best practices
 - [Error Codes](docs/ERROR_CODES.md) - Complete error code reference
+- [Roadmap](docs/ROADMAP.md) - Future enhancements and planned features
+- [Security Policy](.github/SECURITY.md) - Security information and reporting vulnerabilities
+- [Contributing](.github/CONTRIBUTING.md) - Guidelines for contributing to the project
 
 ## Project Status
 
@@ -112,6 +115,17 @@ The application follows a tiered architecture within each package:
 - **Edge/XPI Tier**: Handles API routes, transformations
 - **UI Tier**: Handles presentation (React components) and response formats
 - **Testing**: Jest with Supertest, high test coverage requirements
+
+## Security & Privacy
+
+Liminal Type Chat is designed as a local-first application, meaning your data primarily stays on your machine. However, please be aware of the following:
+
+- When using external LLM providers, your prompts and data will be sent to their APIs
+- If deploying the Edge tier to a cloud environment, ensure proper security measures are in place
+- The application stores conversations in a local SQLite database by default
+- Always keep your API keys secure and never share them
+
+For more details, see our [Security Policy](.github/SECURITY.md).
 
 ## Getting Started
 
