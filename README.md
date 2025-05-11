@@ -9,9 +9,56 @@ An open-source, local-first GenAI chat application designed for individuals and 
 
 ## Project Status
 
-- ✅ Milestone 0: Project Initialization - **COMPLETED**
-- ✅ Milestone 1: Basic HTTP Server & Domain Health Endpoint - **COMPLETED**
-- ⬜ Milestone 2: Core Data Models & Initial Database Setup - *Planned*
+### Initial Development Plan
+
+- ✅ **Milestone 0**: Project Initialization & First Commit - **COMPLETED**
+  - Set up the Node.js/TypeScript project structure and configuration files
+  - Initialize Git repository and perform initial commit
+
+- ✅ **Milestone 1**: Basic HTTP Server & Domain Health Endpoint - **COMPLETED**
+  - Stand up Express.js application with architectural folder structure
+  - Implement domain health check endpoint and comprehensive error handling
+  - Add unit and integration tests with proper coverage
+
+- ⬜ **Milestone 2**: SQLite Database Connectivity & Domain DB Health Endpoint
+  - Set up SQLite with better-sqlite3 and create database provider
+  - Implement health check table and schema initialization
+  - Extend health service with database connection checks
+  - Add database health check endpoint
+
+- ⬜ **Milestone 3**: Edge-to-Domain Pattern Implementation for Health Checks
+  - Implement domain client adapter pattern for tier communication
+  - Create edge routes that use the domain client to access domain services
+  - Add support for both direct and HTTP communication modes
+  - Implement comprehensive test suite for both communication modes
+
+- ⬜ **Milestone 4**: React TypeScript Frontend with Health Check Features
+  - Create React TypeScript frontend with modern, responsive design
+  - Implement server and database health check components
+  - Configure build process to deploy to Express static directory
+  - Add comprehensive component and integration tests
+
+### Future Conversation Functionality
+
+- ⬜ **Milestone 5**: Core Conversation Models & Storage
+  - Implement conversation and message data models
+  - Create conversation repository and services
+  - Set up SQLite tables for storing conversations and messages
+
+- ⬜ **Milestone 6**: LLM Provider Integration
+  - Implement OpenAI provider as first BYOK vendor
+  - Create provider abstraction layer for future LLM providers
+  - Add authentication and API key management
+
+- ⬜ **Milestone 7**: Chat Interface & Basic Functionality
+  - Build conversation UI with chat interface
+  - Implement real-time message display and history
+  - Add basic prompt templating
+
+- ⬜ **Milestone 8**: Advanced Features & Deployment
+  - Add support for multiple LLM providers
+  - Implement conversation chain functionality
+  - Create deployment packaging for local installations
 
 ## Features
 
