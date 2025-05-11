@@ -2,13 +2,25 @@
   "name": "liminal-type-chat",
   "version": "0.1.0",
   "description": "Local-first GenAI chat application with BYOK model",
-  "main": "server/dist/server.js",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
   "scripts": {
-    "dev": "nodemon --watch server/src --ext ts,json --exec ts-node server/src/server.ts",
-    "build": "tsc",
-    "start": "node server/dist/server.js",
-    "test": "jest",
-    "lint": "eslint server/src --ext .ts"
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run start",
+    "dev": "npm run dev:server",
+    "build:server": "cd server && npm run build",
+    "build:client": "cd client && npm run build",
+    "build": "npm run build:server && npm run build:client",
+    "start": "cd server && npm run start",
+    "test:server": "cd server && npm run test",
+    "test:client": "cd client && npm run test",
+    "test": "npm run test:server",
+    "lint:server": "cd server && npm run lint",
+    "lint:client": "cd client && npm run lint",
+    "lint": "npm run lint:server"
   },
   "keywords": [
     "chat",
@@ -21,30 +33,5 @@
   "license": "MIT",
   "engines": {
     "node": ">=20.0.0"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "dotenv": "^16.3.1",
-    "better-sqlite3": "^11.10.0",
-    "morgan": "^1.10.0",
-    "cors": "^2.8.5"
-  },
-  "devDependencies": {
-    "typescript": "^5.1.6",
-    "@types/express": "^4.17.17",
-    "@types/node": "^20.4.5",
-    "@types/better-sqlite3": "^7.6.4",
-    "@types/morgan": "^1.9.4",
-    "@types/cors": "^2.8.13",
-    "ts-node": "^10.9.1",
-    "nodemon": "^3.0.1",
-    "jest": "^29.6.2",
-    "@types/jest": "^29.5.3",
-    "ts-jest": "^29.1.1",
-    "supertest": "^6.3.3",
-    "@types/supertest": "^2.0.12",
-    "eslint": "^8.46.0",
-    "@typescript-eslint/eslint-plugin": "^6.2.0",
-    "@typescript-eslint/parser": "^6.2.0"
   }
 }

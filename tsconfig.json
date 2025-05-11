@@ -5,23 +5,15 @@
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "sourceMap": true,
-    "outDir": "./server/dist",
-    "rootDir": "./server/src",
     "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "forceConsistentCasingInFileNames": true,
+    "composite": true,
+    "declaration": true
   },
-  "include": ["server/src/**/*"],
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "files": [],
+  "references": [
+    { "path": "./server" },
+    { "path": "./client" }
+  ]
 }

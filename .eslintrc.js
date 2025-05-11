@@ -1,29 +1,48 @@
 module.exports = {
-  parser: '@typescript-eslint/parser',
+  root: true,
   extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended'
+    'eslint:recommended'
   ],
-  plugins: ['@typescript-eslint'],
   env: {
     node: true,
-    es6: true,
-    jest: true
+    es6: true
   },
   rules: {
-    'no-console': 'off',
-    'no-unused-vars': 'off',
-    '@typescript-eslint/no-unused-vars': ['error', { 
-      'argsIgnorePattern': '^_',
-      'varsIgnorePattern': '^_'
-    }],
-    '@typescript-eslint/explicit-function-return-type': 'off',
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-explicit-any': 'warn',
     'quotes': ['error', 'single', { 'allowTemplateLiterals': true }],
     'semi': ['error', 'always'],
     'indent': ['error', 2],
     'max-len': ['error', { 'code': 100 }]
   },
-  ignorePatterns: ['dist', 'node_modules', 'coverage']
+  ignorePatterns: [
+    'node_modules', 
+    'coverage',
+    'server/dist',
+    'client/build'
+  ],
+  overrides: [
+    // Server configuration
+    {
+      files: ['server/**/*.ts'],
+      parser: '@typescript-eslint/parser',
+      plugins: ['@typescript-eslint'],
+      extends: [
+        'plugin:@typescript-eslint/recommended'
+      ],
+      env: {
+        node: true
+      }
+    },
+    // Client configuration
+    {
+      files: ['client/**/*.ts', 'client/**/*.tsx'],
+      parser: '@typescript-eslint/parser',
+      plugins: ['@typescript-eslint'],
+      extends: [
+        'plugin:@typescript-eslint/recommended'
+      ],
+      env: {
+        browser: true
+      }
+    }
+  ]
 };

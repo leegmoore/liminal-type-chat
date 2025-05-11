@@ -1,0 +1,11 @@
+{
+  "name": "liminal-type-chat-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "React TypeScript frontend for Liminal Type Chat",
+  "scripts": {
+    "start": "echo \"Client start script placeholder\"",
+    "build": "echo \"Client build script placeholder\"",
+    "test": "echo \"Client test script placeholder\""
+  }
+}

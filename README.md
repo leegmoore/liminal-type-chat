@@ -70,10 +70,35 @@ An open-source, local-first GenAI chat application designed for individuals and 
 
 ## Project Structure
 
-- **Backend**: Node.js/Express/TypeScript with SQLite database
-- **Frontend**: React/TypeScript application
-- **Architecture**: Clean separation between Domain, Edge/XPI, and UI tiers
-- **Error Handling**: Standardized error codes and response formats
+This project is organized as a monorepo with separate packages for the server and client applications:
+
+```
+liminal-type-chat/
+├── client/                  # React frontend application
+│   ├── src/                 # Frontend source code
+│   ├── test/                # Frontend tests
+│   ├── package.json         # Frontend dependencies
+│   └── tsconfig.json        # TypeScript configuration for frontend
+├── server/                  # Node.js backend application
+│   ├── src/                 # Backend source code
+│   │   ├── config/          # Configuration
+│   │   ├── middleware/      # Express middleware
+│   │   ├── routes/          # API routes
+│   │   ├── services/        # Domain services
+│   │   └── utils/           # Utilities
+│   ├── test/                # Backend tests
+│   │   ├── unit/            # Unit tests
+│   │   └── integration/     # Integration tests
+│   ├── package.json         # Backend dependencies
+│   └── tsconfig.json        # TypeScript configuration for backend
+└── docs/                    # Project documentation
+```
+
+The application follows a tiered architecture within each package:
+
+- **Domain Tier**: Contains core business logic (services)
+- **Edge/XPI Tier**: Handles API routes, transformations
+- **UI Tier**: Handles presentation (React components) and response formats
 - **Testing**: Jest with Supertest, high test coverage requirements
 
 ## Getting Started
@@ -81,39 +106,73 @@ An open-source, local-first GenAI chat application designed for individuals and 
 ### Prerequisites
 
 - Node.js 20.x or later
-- npm 9.x or later
+- npm 10.x or later
 
 ### Installation
 
-1. Clone the repository
-   ```
+1. Clone the repository:
+   ```bash
    git clone https://github.com/yourusername/liminal-type-chat.git
    cd liminal-type-chat
    ```
 
-2. Install dependencies
-   ```
+2. Install dependencies for both client and server:
+   ```bash
    npm install
    ```
 
-3. Set up environment variables
-   ```
-   cp .env.example .env
-   ```
-   Edit the `.env` file to configure your settings and API keys.
-
-4. Run the development server
-   ```
-   npm run dev
+3. Create a `.env` file for the server based on the example:
+   ```bash
+   cp server/.env.example server/.env
    ```
 
-5. Access the application at `http://localhost:3000`
+### Development
 
-## Development
+#### Running the Server
 
-- Run tests: `npm test`
-- Build for production: `npm run build`
-- Start production server: `npm start`
+```bash
+# From the root directory
+npm run dev:server
+
+# Or from the server directory
+cd server
+npm run dev
+```
+
+#### Running the Client (when implemented in Milestone 4)
+
+```bash
+# From the root directory
+npm run dev:client
+
+# Or from the client directory
+cd client
+npm start
+```
+
+### Running Tests
+
+```bash
+# Run server tests from root
+npm run test:server
+
+# Or from the server directory
+cd server
+npm test
+
+# Run client tests (when implemented)
+npm run test:client
+```
+
+### Building for Production
+
+```bash
+# Build both client and server
+npm run build
+
+# Start the production server
+npm start
+```
 
 ## License
 
