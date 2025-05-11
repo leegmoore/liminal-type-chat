@@ -70,7 +70,17 @@ export class AppError extends Error {
    * Convert error to JSON representation for API responses
    */
   toJSON() {
-    const response: Record<string, any> = {
+    type ErrorResponse = {
+      error: {
+        code: number;
+        message: string;
+        details?: string;
+        errorCode?: string;
+        items?: ValidationErrorItem[];
+      }
+    };
+    
+    const response: ErrorResponse = {
       error: {
         code: this.code,
         message: this.message

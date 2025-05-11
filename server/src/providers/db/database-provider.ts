@@ -12,7 +12,7 @@ export interface Transaction {
    * @param sql - SQL statement to execute
    * @param params - Parameters for the prepared statement
    */
-  exec(sql: string, params?: any[]): void;
+  exec(sql: string, params?: (string | number | boolean | null)[]): void;
   
   /**
    * Execute a query that returns rows
@@ -20,7 +20,7 @@ export interface Transaction {
    * @param params - Parameters for the prepared statement
    * @returns Array of rows from the query result
    */
-  query<T>(sql: string, params?: any[]): T[];
+  query<T>(sql: string, params?: (string | number | boolean | null)[]): T[];
 }
 
 /**
@@ -39,7 +39,7 @@ export interface DatabaseProvider {
    * @param params - Parameters for the prepared statement
    * @returns Promise resolving with array of rows from the query result
    */
-  query<T>(sql: string, params?: any[]): Promise<T[]>;
+  query<T>(sql: string, params?: (string | number | boolean | null)[]): Promise<T[]>;
   
   /**
    * Execute a query that returns no rows
@@ -47,7 +47,7 @@ export interface DatabaseProvider {
    * @param params - Parameters for the prepared statement
    * @returns Promise resolving when execution is complete
    */
-  exec(sql: string, params?: any[]): Promise<void>;
+  exec(sql: string, params?: (string | number | boolean | null)[]): Promise<void>;
   
   /**
    * Execute operations within a transaction

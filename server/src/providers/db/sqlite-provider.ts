@@ -43,7 +43,7 @@ export class SQLiteProvider implements DatabaseProvider {
    * @param params - Parameters for the prepared statement
    * @returns Promise resolving with array of rows from the query result
    */
-  async query<T>(sql: string, params: any[] = []): Promise<T[]> {
+  async query<T>(sql: string, params: (string | number | boolean | null)[] = []): Promise<T[]> {
     try {
       if (!this.db) {
         throw new Error('Database connection not initialized');
@@ -71,7 +71,7 @@ export class SQLiteProvider implements DatabaseProvider {
    * @param params - Parameters for the prepared statement
    * @returns Promise resolving when execution is complete
    */
-  async exec(sql: string, params: any[] = []): Promise<void> {
+  async exec(sql: string, params: (string | number | boolean | null)[] = []): Promise<void> {
     try {
       if (!this.db) {
         throw new Error('Database connection not initialized');
@@ -99,11 +99,11 @@ export class SQLiteProvider implements DatabaseProvider {
       
       // Create a transaction interface
       const txInterface: Transaction = {
-        query: <U>(sql: string, params: any[] = []): U[] => {
+        query: <U>(sql: string, params: (string | number | boolean | null)[] = []): U[] => {
           const statement = this.db!.prepare(sql);
           return statement.all(...(params || [])) as U[];
         },
-        exec: (sql: string, params: any[] = []): void => {
+        exec: (sql: string, params: (string | number | boolean | null)[] = []): void => {
           const statement = this.db!.prepare(sql);
           statement.run(...(params || []));
         }
@@ -184,8 +184,10 @@ export class SQLiteProvider implements DatabaseProvider {
    * @returns DatabaseError with appropriate error code
    * @private
    */
-  private handleError(error: any, message: string): DatabaseError {
-    console.error(`Database error: ${error.message}`);
-    return new DatabaseError(`${message}: ${error.message}`, undefined, error);
+  private handleError(error: Error | unknown, message: string): DatabaseError {
+    // Extract error message safely from unknown error type
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Database error: ${errorMessage}`);
+    return new DatabaseError(`${message}: ${errorMessage}`, undefined, error instanceof Error ? error : undefined);
   }
 }

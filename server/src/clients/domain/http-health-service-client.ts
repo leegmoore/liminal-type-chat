@@ -63,13 +63,8 @@ export class HttpHealthServiceClient implements HealthServiceClient {
    * @returns Promise with health status information
    */
   async getSystemStatus(): Promise<HealthStatus> {
-    try {
-      const response = await this.httpClient.get<HealthStatus>('/api/v1/domain/health');
-      return response.data;
-    } catch (error) {
-      // Let the axios interceptor handle standard errors
-      throw error;
-    }
+    const response = await this.httpClient.get<HealthStatus>('/api/v1/domain/health');
+    return response.data;
   }
   
   /**
@@ -77,12 +72,7 @@ export class HttpHealthServiceClient implements HealthServiceClient {
    * @returns Promise with database health status information
    */
   async checkDbConnection(): Promise<DatabaseHealthStatus> {
-    try {
-      const response = await this.httpClient.get<DatabaseHealthStatus>('/api/v1/domain/health/db');
-      return response.data;
-    } catch (error) {
-      // Let the axios interceptor handle standard errors
-      throw error;
-    }
+    const response = await this.httpClient.get<DatabaseHealthStatus>('/api/v1/domain/health/db');
+    return response.data;
   }
 }

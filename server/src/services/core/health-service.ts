@@ -94,14 +94,15 @@ export class HealthService {
       }
       
       return result;
-    } catch (error: any) {
+    } catch (error) {
       // Handle database connection errors
+      const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
       return {
         status: 'error',
         timestamp,
         database: {
           connected: false,
-          error: error.message || 'Unknown database error'
+          error: errorMessage
         }
       };
     }

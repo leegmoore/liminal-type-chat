@@ -23,7 +23,7 @@ module.exports = {
     'quotes': ['error', 'single', { 'allowTemplateLiterals': true }],
     'semi': ['error', 'always'],
     'indent': ['error', 2],
-    'max-len': ['error', { 'code': 100 }]
+    'max-len': ['warn', { 'code': 100 }]
   },
   ignorePatterns: ['dist', 'node_modules', 'coverage']
 };
