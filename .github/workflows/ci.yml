@@ -5,14 +5,12 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
-  verify-server:
-    name: Verify Server
+  verify:
+    name: Verify Project
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./server
     
     steps:
     - uses: actions/checkout@v3
@@ -22,51 +20,29 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-        cache-dependency-path: './server/package-lock.json'
+        # Using the root package-lock.json for workspaces
+        cache-dependency-path: './package-lock.json'
     
-    - name: Install server dependencies
+    - name: Install dependencies (workspaces)
       run: npm ci
-    
-    - name: Lint server code
-      run: npm run lint
-    
-    - name: Check TypeScript compilation
-      run: npm run build --if-present
-    
-    - name: Run server tests
-      run: npm test
       
-    - name: Security audit
-      run: npm audit --audit-level=high || echo "Security vulnerabilities found"
-  
-  verify-client:
-    name: Verify Client
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./client
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: './client/package-lock.json'
-    
-    - name: Install client dependencies
-      run: npm ci
-    
+    - name: Lint server code
+      run: npm run lint:server
+      
     - name: Lint client code
-      run: npm run lint
+      run: npm run lint:client
     
-    - name: Check TypeScript compilation
-      run: npm run build --if-present
+    - name: Build server
+      run: npm run build:server
+      
+    - name: Build client
+      run: npm run build:client
     
-    - name: Run client tests
-      run: npm test
+    - name: Test server
+      run: npm run test:server
+      
+    - name: Test client
+      run: npm run test:client
       
     - name: Security audit
       run: npm audit --audit-level=high || echo "Security vulnerabilities found"
