@@ -12,6 +12,7 @@ This document outlines the development standards and conventions used in the Lim
 - [Architectural Guidelines](#architectural-guidelines)
 - [Dependency Injection](#dependency-injection)
 - [Async Code Standards](#async-code-standards)
+- [React Frontend Standards](#react-frontend-standards)
 
 ## Code Formatting and Style
 
@@ -210,14 +211,34 @@ The Liminal Type Chat application follows a tiered architecture:
    - Implementation of the API layer
 
 3. **UI Tier**:
-   - React-based frontend
-   - Communicates with backend via API calls
-   - Handles presentation and user interaction
+   - React-based frontend with TypeScript
+   - Uses Chakra UI for consistent, accessible components
+   - Communicates with backend via type-safe API calls
+   - Handles presentation, user interaction, and state management
+   - Follows component-based architecture with clear separation of concerns
 
 4. **Domain Client Adapter Pattern**:
    - Enables Edge routes to communicate with domain services
    - Can operate in-process or via HTTP calls (cross-process)
    - Provides flexibility in deployment options
+   - Implementation follows interface segregation principle
+   - Example interfaces:
+     ```typescript
+     // Domain service interface
+     interface HealthService {
+       checkHealth(): Promise<HealthStatus>;
+       checkDatabaseHealth(): Promise<DatabaseHealthStatus>;
+     }
+     
+     // Client adapter interface for edge tier
+     interface HealthServiceClient {
+       checkHealth(): Promise<HealthStatus>;
+       checkDatabaseHealth(): Promise<DatabaseHealthStatus>;
+     }
+     ```
+   - Example implementations:
+     - `DirectHealthServiceClient`: In-process communication
+     - `HttpHealthServiceClient`: HTTP-based communication
 
 ## Dependency Injection
 
@@ -227,7 +248,16 @@ The Liminal Type Chat application follows a tiered architecture:
 
 - **Dependencies as Interfaces**:
   - Define interfaces for all dependencies
-  - Example: `interface DatabaseProvider { query(sql: string, params?: any[]): Promise<any> }`
+  - Example: 
+    ```typescript
+    interface DatabaseProvider {
+      query(sql: string, params?: any[]): Promise<any>;
+      exec(sql: string, params?: any[]): void;
+      healthCheck(): Promise<boolean>;
+      close(): void;
+    }
+    ```
+  - Implementations can vary (SQLite, PostgreSQL, etc.) while maintaining the same API
 
 - **Factories**:
   - Use factory functions to create instances with dependencies
@@ -241,6 +271,26 @@ The Liminal Type Chat application follows a tiered architecture:
   - Singletons (except in specific justified cases)
   - Direct imports of concrete implementations inside classes
   - Service locator patterns
+
+## Server Management
+
+- **Utility Scripts**:
+  - Placed in the `server/scripts` directory
+  - Follow a consistent style and error handling approach
+  - Examples include:
+    - `server-control.sh`: Start, stop, status, and restart functionality
+    - `db-backup.sh`: Database backup operations
+    - `db-health-check.sh`: Database integrity checks
+
+- **Port Management**:
+  - Use consistent port (8765) for development
+  - Services should check for port availability before starting
+  - Proper error handling for port conflicts
+
+- **Database Operations**:
+  - Regular backups via utility scripts
+  - Integrity checks via health endpoints
+  - Schema initialization at startup
 
 ## Async Code Standards
 
@@ -266,3 +316,61 @@ The Liminal Type Chat application follows a tiered architecture:
   - Mixing callback and Promise patterns
   - Deeply nested async operations
   - Unhandled Promise rejections
+
+## React Frontend Standards
+
+### Component Structure
+
+- **Component Organization**:
+  - Place components in appropriate directories (`/components`, `/pages`)
+  - Follow single responsibility principle
+  - Split large components into smaller, reusable pieces
+
+- **Component Types**:
+  - **Container Components**: Handle data fetching, state management, and business logic
+  - **Presentation Components**: Focus on UI rendering with minimal state
+  - **Layout Components**: Manage arrangement of elements on the page
+
+- **Naming Conventions**:
+  - Use PascalCase for component names
+  - Use descriptive names that reflect the component's purpose
+  - Suffix test files with `.test.tsx`
+
+### State Management
+
+- **Local State**: Use React's useState for component-specific state
+- **Prop Drilling**: Avoid excessive prop drilling; consider context or hooks for shared state
+- **Context API**: Use for state shared across multiple components
+- **Custom Hooks**: Create reusable hooks for common stateful logic
+
+### TypeScript Usage
+
+- **Prop Types**: Define explicit interfaces for component props
+  ```typescript
+  interface HealthCheckCardProps {
+    title: string;
+    onCheck: () => Promise<void>;
+    status?: 'healthy' | 'unhealthy' | null;
+    loading?: boolean;
+    error?: string | null;
+  }
+  ```
+
+- **Type Assertions**: Minimize use of type assertions (`as`)
+- **Generic Components**: Leverage TypeScript generics for reusable components
+- **API Types**: Share type definitions between frontend and API calls
+
+### Styling Standards
+
+- **Chakra UI**: Primary styling system for components
+- **Theme**: Use consistent theme tokens for colors, spacing, etc.
+- **Responsive Design**: All components must be responsive
+- **Accessibility**: Follow WCAG 2.1 AA standards for accessibility
+
+### Testing
+
+- **Test Coverage**: Minimum 80% code coverage
+- **Component Testing**: Test rendering, user interactions, and state changes
+- **Service Testing**: Mock API calls in tests
+- **Test Organization**: Organize tests to mirror the component structure
+- **Test Utilities**: Use React Testing Library for component testing

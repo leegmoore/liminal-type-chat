@@ -5,6 +5,8 @@ activation_mode: always_on
 priority: high
 include_files:
   - project-plan.xml
+  - dev-journal-m4.md
+  - dev-journal-m2-m3.md
   - dev-journal-m1.md
   - dev-journal-m0.md
 ---
@@ -17,7 +19,10 @@ This document provides essential context for development of the Liminal Type Cha
 
 - ✅ Milestone 0: Project Initialization - **COMPLETED**
 - ✅ Milestone 1: Basic HTTP Server & Domain Health Endpoint - **COMPLETED**
-- ⬜ Milestone 2: Core Data Models & Initial Database Setup
+- ✅ Milestone 2: Database Integration & Health Checks - **COMPLETED**
+- ✅ Milestone 3: Edge-to-Domain Communication - **COMPLETED**
+- ✅ Milestone 4: React TypeScript Frontend - **COMPLETED**
+- ⬜ Milestone 5: Core Conversation Models & Storage
 
 ## Key Architecture Points
 
@@ -66,5 +71,7 @@ Always maintain clean separation between tiers and follow the domain client adap
 
 Implementation decisions, problem-solving approaches, and developer notes are tracked in milestone-specific development journals:
 
+- [Milestone 4 Development Journal](dev-journal-m4.md) - React TypeScript Frontend ✅
+- [Milestone 2 & 3 Development Journal](dev-journal-m2-m3.md) - Database Integration & Edge-to-Domain Communication ✅
 - [Milestone 1 Development Journal](dev-journal-m1.md) - Basic HTTP Server & Domain Health Endpoint ✅
 - [Milestone 0 Development Journal](dev-journal-m0.md) - Project Initialization ✅

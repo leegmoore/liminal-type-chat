@@ -26,19 +26,21 @@ An open-source, local-first GenAI chat application designed for individuals and 
   - Extend health service with database connection checks
   - Add database health check endpoint with visual dashboard
 
-- ⬜ **Milestone 3**: Edge-to-Domain Pattern Implementation for Health Checks
-  - Implement domain client adapter pattern for tier communication
-  - Create edge routes that use the domain client to access domain services
-  - Add support for both direct and HTTP communication modes
-  - Implement comprehensive test suite for both communication modes
+- ✅ **Milestone 3**: Edge-to-Domain Pattern Implementation for Health Checks - **COMPLETED**
+  - Implemented domain client adapter pattern for tier communication
+  - Created edge routes that use the domain client to access domain services
+  - Added support for both direct and HTTP communication modes
+  - Implemented comprehensive test suite for both communication modes
+  - Enhanced health dashboard with domain and edge tier visualization
 
-- ⬜ **Milestone 4**: React TypeScript Frontend with Health Check Features
-  - Create React TypeScript frontend with modern, responsive design
-  - Implement server and database health check components
-  - Configure build process to deploy to Express static directory
-  - Add comprehensive component and integration tests
+- ✅ **Milestone 4**: React TypeScript Frontend with Health Check Features - **COMPLETED**
+  - Created React TypeScript frontend with Chakra UI for modern, responsive design
+  - Implemented server and database health check components with real-time status display
+  - Configured Vite build process with automatic deployment to Express static directory
+  - Added comprehensive component and integration tests with 80% coverage
+  - Implemented type-safe API communication with domain and edge tiers
 
-### Future Conversation Functionality
+### Next Development Phase
 
 - ⬜ **Milestone 5**: Core Conversation Models & Storage
   - Implement conversation and message data models
@@ -74,13 +76,20 @@ This project is organized as a monorepo with separate packages for the server an
 
 ```
 liminal-type-chat/
-├── client/                  # React frontend application
+├── client/                  # React TypeScript frontend application
+│   ├── scripts/             # Deployment and utility scripts
 │   ├── src/                 # Frontend source code
-│   ├── test/                # Frontend tests
+│   │   ├── components/      # Reusable UI components
+│   │   ├── pages/           # Page-level components
+│   │   ├── services/        # API services and data access
+│   │   ├── types/           # TypeScript type definitions
+│   │   └── utils/           # Utility functions
+│   ├── public/              # Static assets
 │   ├── package.json         # Frontend dependencies
 │   └── tsconfig.json        # TypeScript configuration for frontend
 ├── server/                  # Node.js backend application
 │   ├── db/                  # SQLite database directory
+│   ├── scripts/             # Server management scripts
 │   ├── src/                 # Backend source code
 │   │   ├── config/          # Configuration
 │   │   ├── middleware/      # Express middleware
@@ -142,15 +151,42 @@ cd server
 npm run dev
 ```
 
-#### Running the Client (when implemented in Milestone 4)
+#### Server Management Scripts
+
+The project includes several useful server management scripts in the `server/scripts` directory:
 
 ```bash
-# From the root directory
-npm run dev:client
+# Start the server on port 8765
+./server/scripts/server-control.sh start
 
-# Or from the client directory
+# Stop the server
+./server/scripts/server-control.sh stop
+
+# Check server status
+./server/scripts/server-control.sh status
+
+# Create a database backup
+./server/scripts/db-backup.sh
+
+# Check database health and integrity
+./server/scripts/db-health-check.sh
+
+# Set up development environment
+./server/scripts/dev-setup.sh
+```
+
+See the [Server Scripts README](server/scripts/README.md) for more details.
+
+#### Running the Client
+
+```bash
+# From the client directory
 cd client
 npm start
+
+# To build and deploy to the server
+cd client
+npm run deploy
 ```
 
 ### Running Tests
@@ -163,8 +199,9 @@ npm run test:server
 cd server
 npm test
 
-# Run client tests (when implemented)
-npm run test:client
+# Run client tests
+cd client
+npm test
 ```
 
 ### Building for Production

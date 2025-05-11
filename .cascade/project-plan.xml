@@ -352,6 +352,7 @@
 
     <milestone id="M2">
       <heading>Milestone 2: SQLite Database Connectivity &amp; Domain DB Health Endpoint</heading>
+      <status>completed</status>
       <content>
         - **Objective**: Set up SQLite database connectivity with a health check table, implement domain service methods for database health checks, and expose through a domain API endpoint.
         - **Key Deliverables**:
@@ -384,6 +385,7 @@
 
     <milestone id="M3">
       <heading>Milestone 3: Edge-to-Domain Pattern Implementation for Health Checks</heading>
+      <status>completed</status>
       <content>
         - **Objective**: Implement both edge and domain routes for our health checks, with the edge-to-domain adapter pattern, and validate with comprehensive integration tests.
         - **Key Deliverables**:
@@ -411,6 +413,7 @@
 
     <milestone id="M4">
       <heading>Milestone 4: React TypeScript Frontend with Health Check Features</heading>
+      <status>completed</status>
       <content>
         - **Objective**: Create a modern React TypeScript frontend with build deployment to the Express server, comprehensive testing, and health check functionality.
         - **Key Deliverables**:

@@ -12,7 +12,7 @@ dotenv.config();
  * Server configuration
  */
 const config = {
-  /** Server port */
+  /** Server port - fixed to 8765 for consistency unless explicitly overridden */
   port: process.env.PORT ? parseInt(process.env.PORT, 10) : 8765,
   
   /** Node environment */
@@ -38,7 +38,7 @@ const config = {
   },
   
   /** Client mode configuration */
-  inProcessMode: process.env.IN_PROCESS_MODE === 'true',
+  inProcessMode: process.env.IN_PROCESS_MODE !== 'false', // Default to true (direct mode) unless explicitly set to false
   
   /** API base URL for HTTP client mode */
   apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:3000',

@@ -1,55 +1,36 @@
 import app from './app';
-import net from 'net';
+import config from './config';
 
-// Function to find an available port starting from the base port
-const findAvailablePort = (basePort: number): Promise<number> => {
-  return new Promise((resolve, reject) => {
-    // Try ports from basePort to basePort + 100
-    const maxPort = basePort + 100;
-    let currentPort = basePort;
-    
-    const tryPort = () => {
-      if (currentPort > maxPort) {
-        return reject(new Error('No available ports found in range'));
-      }
-      
-      const server = net.createServer();
-      
-      server.once('error', (err: any) => {
-        if (err.code === 'EADDRINUSE') {
-          // Port is in use, try next port
-          currentPort++;
-          tryPort();
-        } else {
-          reject(err);
-        }
-      });
-      
-      server.once('listening', () => {
-        const foundPort = currentPort;
-        server.close(() => {
-          resolve(foundPort);
-        });
-      });
-      
-      server.listen(currentPort);
-    };
-    
-    tryPort();
-  });
-};
-
-// Get base port from config and find available port
+// Get port from configuration
 const startServer = async () => {
   try {
-    // Start from base port 9000
-    const port = await findAvailablePort(9000);
+    const port = config.port;
     
-    // Start the server
-    app.listen(port, () => {
+    console.log(`Starting server with configured port: ${port} (from env: ${process.env.PORT || 'using default'})`);
+    const server = app.listen(port, () => {
       console.log(`Liminal Type Chat server listening on port ${port}`);
       console.log(`http://localhost:${port}`);
+      console.log(`Dashboard URL: http://localhost:${port}/dashboard`);
     });
+    
+    // Handle graceful shutdown
+    const handleShutdown = async () => {
+      console.log('\nShutting down server...');
+      server.close(() => {
+        console.log('Server closed.');
+        process.exit(0);
+      });
+      
+      // Force close after 5 seconds if server doesn't close gracefully
+      setTimeout(() => {
+        console.log('Forcing server shutdown...');
+        process.exit(1);
+      }, 5000);
+    };
+    
+    process.on('SIGINT', handleShutdown);
+    process.on('SIGTERM', handleShutdown);
+    
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);

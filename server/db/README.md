@@ -43,3 +43,28 @@ Milestone 2 has been completed with the following implementations:
 ### Health Endpoint
 - Added `/api/v1/domain/health/db` endpoint for checking database health
 - Created a visual dashboard in the root route for testing health checks
+
+## Milestone 3 Implementation (Completed)
+
+Milestone 3 extended the health check functionality with the following enhancements:
+
+### Domain Client Adapter Pattern
+- Implemented the client adapter pattern for tier communication
+- Created `HealthServiceClient` interface for the edge tier to interact with the domain tier
+- Provided two implementations:
+  - `DirectHealthServiceClient`: For in-process communication
+  - `HttpHealthServiceClient`: For HTTP-based communication between tiers
+
+### Edge Tier Health Endpoints
+- Added edge tier health check endpoints:
+  - `/api/v1/edge/health`: Basic edge tier health check
+  - `/api/v1/edge/health/db`: Database health check via the domain client
+
+### Enhanced Dashboard
+- Updated the health check dashboard with separate sections for domain and edge tiers
+- Added buttons to test all health endpoints from a single interface
+- Improved visual feedback for health status with color-coded indicators
+
+### Database Management Scripts
+- Added `db-backup.sh` script for creating timestamped database backups
+- Created `db-health-check.sh` for running database integrity checks from the command line

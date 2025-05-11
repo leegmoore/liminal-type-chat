@@ -1,21 +1,80 @@
 # Liminal Type Chat - Client
 
-This directory contains the React frontend for the Liminal Type Chat application. The frontend will be developed in Milestone 4 according to the project plan.
+This directory contains the React TypeScript frontend for the Liminal Type Chat application. The frontend implements a modern, responsive UI for monitoring the health of both the domain and edge tiers of the application.
 
 ## Directory Structure
 
-- `src/` - Frontend source code (React components, state management, etc.)
-- `test/` - Test files for frontend components and logic
+- `src/` - Frontend source code
+  - `components/` - Reusable UI components
+  - `pages/` - Page-level components
+  - `services/` - API services and data access
+  - `types/` - TypeScript type definitions
+  - `utils/` - Utility functions
 - `public/` - Static assets
+- `scripts/` - Deployment and utility scripts
 - `build/` - Production build output (generated during build process)
+
+## Features
+
+### Implemented (Milestone 4)
+
+- ✅ Health Check Dashboard
+  - Domain and edge tier health monitoring
+  - Server health status checks
+  - Database connection verification
+  - Visual status indicators
+  - Responsive layout for all device sizes
+
+- ✅ Modern UI with Chakra UI
+  - Clean, accessible component library
+  - Consistent styling and theming
+  - Responsive design principles
+
+- ✅ Type Safety
+  - Full TypeScript implementation
+  - Shared types between components
+  - Type-safe API communication
+
+### Planned for Future Milestones
+
+- Chat interface for interacting with various LLMs
+- Support for conversation history and context management
+- API key management and provider selection
 
 ## Development
 
-Frontend development will begin in Milestone 4, after the backend has been fully set up with the edge-to-domain pattern.
+### Getting Started
 
-## Features (Planned)
+```bash
+# Install dependencies
+npm install
 
-- Modern, responsive UI built with React and TypeScript
-- Health check dashboard showing server and database status
-- Chat interface for interacting with various LLMs
-- Support for conversation history and context management
+# Start development server
+npm start
+```
+
+The development server will start on port 3000 and automatically proxy API requests to the backend server running on port 8765.
+
+### Testing
+
+```bash
+# Run tests
+npm test
+
+# Run tests with coverage report
+npm test -- --coverage
+```
+
+The project maintains a minimum of 80% test coverage across all components.
+
+### Building and Deployment
+
+```bash
+# Build for production
+npm run build
+
+# Deploy to server's public directory
+npm run deploy
+```
+
+The deploy script automatically copies the built assets to the server's public directory for serving.
