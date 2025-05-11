@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react';
 import HealthCheckCard from '../components/HealthCheckCard';
 import { checkServerHealth, checkDatabaseHealth } from '../services/healthService';
-import { HealthStatus, DatabaseHealthStatus, HealthTier } from '../types/health';
+import { HealthStatus, DatabaseHealthStatus } from '../types/health';
 
 /**
  * Health Dashboard page component
@@ -148,7 +148,8 @@ const HealthDashboard: React.FC = () => {
           System Health Dashboard
         </Heading>
         <Text fontSize="lg" color="gray.600" maxW="800px" mx="auto">
-          Monitor the health of different tiers of the Liminal Type Chat application. Test both domain and edge tier endpoints to ensure proper functionality.
+          Monitor the health of different tiers of the Liminal Type Chat application.
+          Test both domain and edge tier endpoints to ensure proper functionality.
         </Text>
       </Box>
 
@@ -158,7 +159,8 @@ const HealthDashboard: React.FC = () => {
           Domain Tier Health
         </Heading>
         <Text fontSize="md" color="gray.600" mb={5}>
-          The domain tier represents the core business logic of the application and direct database access.
+          The domain tier represents the core business logic of the application
+          and direct database access.
         </Text>
 
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
@@ -190,7 +192,8 @@ const HealthDashboard: React.FC = () => {
           Edge Tier Health
         </Heading>
         <Text fontSize="md" color="gray.600" mb={5}>
-          The edge tier handles API routes and communicates with the domain tier using the client adapter pattern.
+          The edge tier handles API routes and communicates with the domain tier
+          using the client adapter pattern.
         </Text>
 
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>

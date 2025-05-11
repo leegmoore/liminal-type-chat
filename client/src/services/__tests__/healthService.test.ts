@@ -126,7 +126,8 @@ describe('healthService', () => {
     test('handles unexpected error format', async () => {
       mockAxios.get.mockRejectedValueOnce(new Error('Network error'));
       
-      await expect(checkDatabaseHealth('domain')).rejects.toThrow('Failed to check database health');
+      await expect(checkDatabaseHealth('domain'))
+        .rejects.toThrow('Failed to check database health');
     });
   });
 });
