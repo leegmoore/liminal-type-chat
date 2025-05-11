@@ -2,6 +2,17 @@
 
 An open-source, local-first GenAI chat application designed for individuals and small teams who want to leverage their own API keys to interact with various language models (LLMs).
 
+## Documentation
+
+- [Development Standards](docs/DEVELOPMENT_STANDARDS.md) - Coding standards, patterns, and best practices
+- [Error Codes](docs/ERROR_CODES.md) - Complete error code reference
+
+## Project Status
+
+- ✅ Milestone 0: Project Initialization - **COMPLETED**
+- ✅ Milestone 1: Basic HTTP Server & Domain Health Endpoint - **COMPLETED**
+- ⬜ Milestone 2: Core Data Models & Initial Database Setup - *Planned*
+
 ## Features
 
 - **BYOK (Bring Your Own Key)**: Use your own API keys with models from OpenAI, Anthropic, Google, and other providers
@@ -15,6 +26,8 @@ An open-source, local-first GenAI chat application designed for individuals and 
 - **Backend**: Node.js/Express/TypeScript with SQLite database
 - **Frontend**: React/TypeScript application
 - **Architecture**: Clean separation between Domain, Edge/XPI, and UI tiers
+- **Error Handling**: Standardized error codes and response formats
+- **Testing**: Jest with Supertest, high test coverage requirements
 
 ## Getting Started
 

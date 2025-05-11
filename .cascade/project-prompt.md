@@ -13,12 +13,20 @@ include_files:
 
 This document provides essential context for development of the Liminal Type Chat application. The complete architecture and standards are in the `project-plan.xml` file, which should be consulted before making code changes.
 
+## Project Status
+
+- ✅ Milestone 0: Project Initialization - **COMPLETED**
+- ✅ Milestone 1: Basic HTTP Server & Domain Health Endpoint - **COMPLETED**
+- ⬜ Milestone 2: Core Data Models & Initial Database Setup
+
 ## Key Architecture Points
 
 - Follow the tiered architecture with clean separation:
   - Domain Tier (core business logic)
   - Edge/XPI Tier (API routes, transforms)
   - UI Tier (React frontend)
+
+- Use the standardized error handling system with hierarchical error codes (see `/docs/ERROR_CODES.md`)
 
 - Implement the domain client adapter pattern for tier communication, allowing both in-process and HTTP communication modes
 
@@ -58,5 +66,5 @@ Always maintain clean separation between tiers and follow the domain client adap
 
 Implementation decisions, problem-solving approaches, and developer notes are tracked in milestone-specific development journals:
 
-- [Milestone 1 Development Journal](dev-journal-m1.md) - Basic HTTP Server & Domain Health Endpoint
-- [Milestone 0 Development Journal](dev-journal-m0.md) - Project Initialization
+- [Milestone 1 Development Journal](dev-journal-m1.md) - Basic HTTP Server & Domain Health Endpoint ✅
+- [Milestone 0 Development Journal](dev-journal-m0.md) - Project Initialization ✅

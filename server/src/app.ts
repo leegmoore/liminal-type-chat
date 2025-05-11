@@ -5,6 +5,11 @@ import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 
+// Import routes
+import { createHealthRoutes } from './routes/domain/health';
+import { HealthService } from './services/core/health-service';
+import { errorHandler } from './middleware/error-handler';
+
 // Load environment variables
 dotenv.config();
 
@@ -17,8 +22,11 @@ app.use(cors()); // CORS headers
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
 
-// Routes will be mounted here
-// Example: app.use('/api/v1/domain/health', domainHealthRoutes);
+// Create services
+const healthService = new HealthService();
+
+// Mount routes
+app.use(createHealthRoutes(healthService));
 
 // Serve static files from the public directory (will contain the UI build)
 // Uncomment when UI build is available
@@ -30,13 +38,7 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bo
 //   res.sendFile(path.join(__dirname, '../public/index.html'));
 // });
 
-// Error handler middleware
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : err.message
-  });
-});
+// Mount error handler middleware
+app.use(errorHandler);
 
 export default app;
