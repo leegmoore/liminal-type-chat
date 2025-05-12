@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">82.75% </span>
+                <span class="strong">83.33% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>48/58</span>
+                <span class='fraction'>50/60</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">47.05% </span>
+                <span class="strong">47.61% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>8/17</span>
+                <span class='fraction'>10/21</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">82.75% </span>
+                <span class="strong">83.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>48/58</span>
+                <span class='fraction'>50/60</span>
             </div>
         
             
@@ -254,7 +254,10 @@
 <a name='L189'></a><a href='#L189'>189</a>
 <a name='L190'></a><a href='#L190'>190</a>
 <a name='L191'></a><a href='#L191'>191</a>
-<a name='L192'></a><a href='#L192'>192</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -441,6 +444,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -490,7 +496,7 @@ export class SQLiteProvider implements DatabaseProvider {
    * @param params - Parameters for the prepared statement
    * @returns Promise resolving with array of rows from the query result
    */
-  async query&lt;T&gt;(sql: string, params: any[] = []): Promise&lt;T[]&gt; {
+  async query&lt;T&gt;(sql: string, params: (string | number | boolean | null)[] = []): Promise&lt;T[]&gt; {
     try {
       <span class="missing-if-branch" title="if path not taken" >I</span>if (!this.db) {
 <span class="cstat-no" title="statement not covered" >        throw new Error('Database connection not initialized');</span>
@@ -518,7 +524,7 @@ export class SQLiteProvider implements DatabaseProvider {
    * @param params - Parameters for the prepared statement
    * @returns Promise resolving when execution is complete
    */
-  async exec(sql: string, params: any[] = []): Promise&lt;void&gt; {
+  async exec(sql: string, params: (string | number | boolean | null)[] = []): Promise&lt;void&gt; {
     try {
       <span class="missing-if-branch" title="if path not taken" >I</span>if (!this.db) {
 <span class="cstat-no" title="statement not covered" >        throw new Error('Database connection not initialized');</span>
@@ -546,11 +552,11 @@ export class SQLiteProvider implements DatabaseProvider {
       
       // Create a transaction interface
       const txInterface: Transaction = {
-        query: <span class="fstat-no" title="function not covered" >&lt;U&gt;(s</span>ql: string, params: any[] = <span class="branch-0 cbranch-no" title="branch not covered" >[])</span>: U[] =&gt; {
+        query: <span class="fstat-no" title="function not covered" >&lt;U&gt;(s</span>ql: string, params: (string | number | boolean | null)[] = <span class="branch-0 cbranch-no" title="branch not covered" >[])</span>: U[] =&gt; {
           const statement = <span class="cstat-no" title="statement not covered" >this.db!.prepare(sql);</span>
 <span class="cstat-no" title="statement not covered" >          return statement.all(...(params || [])) as U[];</span>
         },
-        exec: (sql: string, params: any[] = <span class="branch-0 cbranch-no" title="branch not covered" >[])</span>: void =&gt; {
+        exec: (sql: string, params: (string | number | boolean | null)[] = <span class="branch-0 cbranch-no" title="branch not covered" >[])</span>: void =&gt; {
           const statement = this.db!.prepare(sql);
           statement.run(...(params || <span class="branch-1 cbranch-no" title="branch not covered" >[])</span>);
         }
@@ -631,9 +637,12 @@ export class SQLiteProvider implements DatabaseProvider {
    * @returns DatabaseError with appropriate error code
    * @private
    */
-  private handleError(error: any, message: string): DatabaseError {
-    console.error(`Database error: ${error.message}`);
-    return new DatabaseError(`${message}: ${error.message}`, undefined, error);
+  private handleError(error: Error | unknown, message: string): DatabaseError {
+    // Extract error message safely from unknown error type
+    const errorMessage = error instanceof Error ? error.message : <span class="branch-1 cbranch-no" title="branch not covered" >String(error);</span>
+    console.error(`Database error: ${errorMessage}`);
+    const originalError = error instanceof Error ? error : <span class="branch-1 cbranch-no" title="branch not covered" >undefined;</span>
+    return new DatabaseError(`${message}: ${errorMessage}`, undefined, originalError);
   }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -643,7 +652,7 @@ export class SQLiteProvider implements DatabaseProvider {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-05-11T18:00:45.330Z
+                at 2025-05-11T23:29:12.955Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
