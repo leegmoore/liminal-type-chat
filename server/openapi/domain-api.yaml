@@ -1,0 +1,392 @@
+openapi: 3.0.3
+info:
+  title: Liminal Type Chat Domain API
+  description: |
+    Domain API for Liminal Type Chat application.
+    This API provides core business logic functionality for managing context threads
+    and messages, and is intended for internal system use.
+  version: 1.0.0
+  contact:
+    name: Liminal Type Chat Team
+servers:
+  - url: http://localhost:8765
+    description: Local development server
+paths:
+  /domain/threads:
+    get:
+      summary: Get all context threads
+      description: Retrieve a list of context threads
+      operationId: getContextThreads
+      tags:
+        - ContextThreads
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of threads to return
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          description: Number of threads to skip
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - threads
+                properties:
+                  threads:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContextThread'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+    post:
+      summary: Create a new context thread
+      description: Create a new context thread with optional title, metadata, and initial message
+      operationId: createContextThread
+      tags:
+        - ContextThreads
+      requestBody:
+        description: Thread creation parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  nullable: true
+                  description: Optional title for the thread
+                metadata:
+                  type: object
+                  description: Optional key-value pairs of metadata
+                  additionalProperties: true
+                initialMessage:
+                  $ref: '#/components/schemas/Message'
+      responses:
+        '201':
+          description: Thread created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextThread'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+  /domain/threads/{id}:
+    get:
+      summary: Get a context thread by ID
+      description: Retrieve a single context thread by its ID
+      operationId: getContextThreadById
+      tags:
+        - ContextThreads
+      parameters:
+        - name: id
+          in: path
+          description: ID of the thread to retrieve
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextThread'
+        '404':
+          description: Thread not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+    put:
+      summary: Update a context thread
+      description: Update an existing context thread's properties (e.g., title)
+      operationId: updateContextThread
+      tags:
+        - ContextThreads
+      parameters:
+        - name: id
+          in: path
+          description: ID of the thread to update
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Properties to update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  nullable: true
+                  description: New title for the thread
+                metadata:
+                  type: object
+                  description: Key-value pairs of metadata to update
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Thread updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextThread'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+        '404':
+          description: Thread not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+    delete:
+      summary: Delete a context thread
+      description: Delete a context thread by its ID
+      operationId: deleteContextThread
+      tags:
+        - ContextThreads
+      parameters:
+        - name: id
+          in: path
+          description: ID of the thread to delete
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Thread deleted
+        '404':
+          description: Thread not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+  /domain/threads/{id}/messages:
+    post:
+      summary: Add a message to a context thread
+      description: Add a new message to an existing context thread
+      operationId: addMessageToContextThread
+      tags:
+        - Messages
+      parameters:
+        - name: id
+          in: path
+          description: ID of the thread to add the message to
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Message to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses:
+        '201':
+          description: Message added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+        '404':
+          description: Thread not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainError'
+  /domain/health:
+    get:
+      summary: Health check
+      description: Check if the domain services are healthy
+      operationId: domainHealthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Domain services are healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  version:
+                    type: string
+                    example: 1.0.0
+                  timestamp:
+                    type: string
+                    format: date-time
+                  dbStatus:
+                    type: string
+                    enum:
+                      - ok
+                      - error
+                    description: Status of the database connection
+components:
+  schemas:
+    ContextThread:
+      type: object
+      required:
+        - id
+        - createdAt
+        - updatedAt
+        - messages
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the context thread
+        title:
+          type: string
+          nullable: true
+          description: Optional title for the thread
+        createdAt:
+          type: number
+          format: int64
+          description: Unix timestamp (ms) of thread creation
+        updatedAt:
+          type: number
+          format: int64
+          description: Unix timestamp (ms) of last thread update
+        messages:
+          type: array
+          description: Array of messages in the thread
+          items:
+            $ref: '#/components/schemas/Message'
+        metadata:
+          type: object
+          description: Optional key-value pairs of metadata
+          additionalProperties: true
+    Message:
+      type: object
+      required:
+        - id
+        - role
+        - content
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the message
+        role:
+          type: string
+          enum:
+            - user
+            - assistant
+            - system
+            - tool
+          description: Role of the message sender
+        content:
+          type: string
+          description: Text content of the message
+        createdAt:
+          type: number
+          format: int64
+          description: Unix timestamp (ms) of message creation
+        status:
+          type: string
+          enum:
+            - pending
+            - streaming
+            - complete
+            - error
+            - interrupted
+          description: Status of the message processing
+        metadata:
+          type: object
+          description: Optional key-value pairs of metadata
+          additionalProperties: true
+    DomainError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Domain-specific error code
+          example: THREAD_NOT_FOUND
+        message:
+          type: string
+          description: Error message
+          example: The requested thread was not found
+        details:
+          type: string
+          nullable: true
+          description: Additional error details
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+      description: "Basic authentication for domain API (for documentation access)"

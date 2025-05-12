@@ -40,3 +40,22 @@ export interface ContextThread {
   metadata?: Record<string, unknown>;
   messages: Message[];
 }
+
+/**
+ * Parameters for creating a context thread.
+ * Used for communication between Edge API and Domain services.
+ */
+export interface CreateContextThreadParams {
+  title?: string;
+  metadata?: Record<string, unknown>;
+  initialMessage?: Omit<Message, 'id' | 'threadId' | 'createdAt'>;
+}
+
+/**
+ * Parameters for updating a context thread.
+ * Used for communication between Edge API and Domain services.
+ */
+export interface UpdateContextThreadParams {
+  title?: string;
+  metadata?: Record<string, unknown>;
+}

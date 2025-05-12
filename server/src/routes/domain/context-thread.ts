@@ -8,9 +8,8 @@
 import { Router, Request, Response } from 'express';
 import { 
   ContextThreadService, 
-  CreateThreadParams, 
-  AddMessageParams, 
-  UpdateThreadParams 
+  CreateContextThreadParams, 
+  UpdateContextThreadParams 
 } from '../../services/core/ContextThreadService';
 import { MessagesCorruptedError } from '../../providers/db/errors';
 
@@ -29,7 +28,7 @@ export function createContextThreadRoutes(service: ContextThreadService): Router
   router.get('/:id', (req: Request, res: Response) => {
     try {
       const threadId = req.params.id;
-      const thread = service.getThread(threadId);
+      const thread = service.getContextThread(threadId);
     
       if (!thread) {
         return res.status(404).json({
@@ -65,13 +64,13 @@ export function createContextThreadRoutes(service: ContextThreadService): Router
  */
   router.post('/', (req: Request, res: Response) => {
     try {
-      const params: CreateThreadParams = {
+      const params: CreateContextThreadParams = {
         title: req.body.title,
         initialMessage: req.body.initialMessage,
         metadata: req.body.metadata
       };
     
-      const thread = service.createThread(params);
+      const thread = service.createContextThread(params);
     
       return res.status(201).json({
         success: true,
@@ -93,12 +92,12 @@ export function createContextThreadRoutes(service: ContextThreadService): Router
   router.put('/:id', (req: Request, res: Response) => {
     try {
       const threadId = req.params.id;
-      const params: UpdateThreadParams = {
+      const params: UpdateContextThreadParams = {
         title: req.body.title,
         metadata: req.body.metadata
       };
     
-      const thread = service.updateThread(threadId, params);
+      const thread = service.updateContextThread(threadId, params);
     
       if (!thread) {
         return res.status(404).json({
@@ -127,7 +126,7 @@ export function createContextThreadRoutes(service: ContextThreadService): Router
   router.delete('/:id', (req: Request, res: Response) => {
     try {
       const threadId = req.params.id;
-      const deleted = service.deleteThread(threadId);
+      const deleted = service.deleteContextThread(threadId);
     
       if (!deleted) {
         return res.status(404).json({
@@ -156,14 +155,14 @@ export function createContextThreadRoutes(service: ContextThreadService): Router
   router.post('/:id/messages', (req: Request, res: Response) => {
     try {
       const threadId = req.params.id;
-      const params: AddMessageParams = {
+      const params = {
         role: req.body.role,
         content: req.body.content,
         metadata: req.body.metadata,
         status: req.body.status
       };
     
-      const thread = service.addMessage(threadId, params);
+      const thread = service.addMessageToContextThread(threadId, params);
     
       if (!thread) {
         return res.status(404).json({
@@ -200,7 +199,7 @@ export function createContextThreadRoutes(service: ContextThreadService): Router
         metadata: req.body.metadata
       };
     
-      const thread = service.updateMessage(threadId, messageId, updates);
+      const thread = service.updateMessageInContextThread(threadId, messageId, updates);
     
       if (!thread) {
         return res.status(404).json({
@@ -229,7 +228,7 @@ export function createContextThreadRoutes(service: ContextThreadService): Router
   router.get('/:id/messages', (req: Request, res: Response) => {
     try {
       const threadId = req.params.id;
-      const thread = service.getThread(threadId);
+      const thread = service.getContextThread(threadId);
     
       if (!thread) {
         return res.status(404).json({
