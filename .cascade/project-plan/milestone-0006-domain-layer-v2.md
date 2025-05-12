@@ -128,10 +128,21 @@ Using SQLite. Messages are denormalized and stored as a JSON array string direct
 ---
 *Document Version: 2 (Created due to edit issues with original)*
 
-### Key Design Decisions Summary
+### Key Design Decisions
 
-*   JSON Schema for domain models.
-*   Denormalized SQLite schema (`messages` as JSON TEXT in `context_threads`).
-*   Service layer owns ID/timestamp generation and message ordering logic (via `normalizeThreadMessages`).
-*   Repository handles DB interaction and JSON parsing/stringifying.
-*   Specific error handling for corrupted `messages` JSON.
+*   **Denormalization:** Storing `messages` as a JSON array within the `context_threads` table simplifies retrieval for the common use case (loading a full thread) and avoids complex joins or multiple queries for the MVP.
+*   **Error Handling (JSON):** The Repository layer is responsible for safely parsing the `messages` JSON. If parsing fails (corrupted data), it should throw a specific, catchable error (`MessagesCorruptedError`) rather than returning partial data. The Service layer will decide how to handle this (e.g., log, return an error state thread).
+*   **Immutability:** Treat domain objects (like `ContextThread` and `Message`) as immutable where practical. Operations should return new instances rather than modifying existing ones.
+*   **Timestamp Generation:** The Service layer is responsible for generating `createdAt` and `updatedAt` timestamps.
+*   **ID Generation:** The Service layer is responsible for generating UUIDs for new threads and messages.
+*   **`normalizeThreadMessages` Responsibility:** Initially, this utility only sorts messages. Future enhancements (e.g., handling status, merging partials) will be added in later milestones.
+*   **TypeScript Interfaces:** Domain model interfaces (`ContextThread`, `Message`) *must* be created (in `/server/src/types/domain.ts`). *Optionally*, configure tooling (e.g., `json-schema-to-typescript`) to generate these from the JSON schemas; otherwise, create them manually.
+*   **UUID Generation:** Use the standard `uuid` package (specifically `v4`) for generating IDs within the Service layer.
+*   **Logging:** For initial implementation, use `console.error` for logging critical errors like JSON parsing failures in the Repository. Refactor to a dedicated logger utility if one is established later.
+*   **Custom Errors:** Place custom error classes (e.g., `MessagesCorruptedError`) in a dedicated `errors.ts` file within the relevant module directory (e.g., `/server/src/providers/db/errors.ts`).
+*   **Test Database:** Unit tests for the repository layer should utilize an in-memory SQLite database (`':memory:'`) provided by `better-sqlite3`.
+*   **Denormalization Rationale:** Denormalization simplifies the MVP by reducing the need for complex queries and joins, but may require additional maintenance for data consistency in the future.
+*   **Error Propagation:** Errors from the Repository layer should be propagated to the Service layer, which decides how to handle them (e.g., logging, returning error states).
+*   **Domain Model Evolution:** The domain model (JSON schemas and TypeScript interfaces) should evolve as the application's requirements change, ensuring that the domain logic remains consistent and accurate.
+*   **Repository and Service Layer Responsibilities:** Clearly define the responsibilities of each layer to avoid confusion and ensure maintainability.
+*   **Testing Strategy:** Unit tests should cover critical paths and error scenarios for both the Repository and Service layers, ensuring that the domain logic is correct and robust.
