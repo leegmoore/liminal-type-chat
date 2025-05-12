@@ -2,6 +2,16 @@
 
 This document outlines standard operating procedures (SOPs) for common development tasks involving AI assistance (Cascade). Adhering to these commands helps ensure consistency, accuracy, and efficiency.
 
+## Command Quick Reference
+
+*   [Update Roadmap/Milestone](#command-update-roadmapmilestone): Modify project plan, roadmap, and related docs.
+*   [Documentation Sync Check](#command-documentation-sync-check): Verify consistency across documentation.
+*   [Create Dev Journal Entry](#command-create-dev-journal-entry): Add a new dated journal entry and update the summary.
+*   [Push Changes](#command-push-changes): Run lint/tests and push local commits to remote.
+*   [Add New Documentation File](#command-add-new-documentation-file): Create a new .md file, add standard links, and update references.
+
+---
+
 ## Command: Update Roadmap/Milestone
 
 **Trigger:** User request to modify project milestones or roadmap features (e.g., add/remove features, change scope, update status).
@@ -120,6 +130,34 @@ This document outlines standard operating procedures (SOPs) for common developme
 3.  **Push:** If linting and tests pass, execute the push command for the current branch.
     *   *Action:* Use `run_command` for `git push` (SafeToAutoRun: false).
 4.  **Confirmation:** Report success or failure of the push.
+
+---
+
+## Command: Add New Documentation File
+
+**Trigger:** User request to create a new Markdown documentation file (e.g., a new README, guide, or design document).
+
+**Objective:** Ensure new documentation files are created correctly, include standard navigation, and are linked from relevant existing documents.
+
+**Key Files Involved:**
+
+1.  **New File:** `path/to/new-doc-name.md` (To be created).
+2.  **Linking File(s):** `README.md`, `docs/README.md`, or other relevant index/summary files (To be updated).
+
+**Procedure:**
+
+1.  **Determine Path & Filename:** Confirm the location and filename for the new document with the user (e.g., `docs/guides/authentication.md`).
+2.  **Draft Initial Content:** Create basic content for the new file, including a title and standard navigation elements (e.g., a "Back to [Parent README/Root]" link at the top or bottom).
+    *   *Example Link:* `[<- Back to Root README](../README.md)`
+3.  **Create File:** Write the drafted content to the new file.
+    *   *Action:* Use `write_to_file` tool.
+4.  **Identify Linking Files:** Determine which existing documentation files should link to the new document (e.g., the main `README.md`'s documentation structure section, a parent `README.md` in the same directory).
+5.  **Update Linking Files:** Add appropriate links to the new file in the identified existing documents.
+    *   *Action:* Use `edit_file` tool for each linking file.
+6.  **Confirmation:** Inform the user the new file has been created and links have been updated.
+7.  **Commit:** Stage and commit the new file **and** all modified linking files.
+    *   *Description:* This performs a local commit only. **Ensure the commit message is meaningful and descriptive** (e.g., `docs: Add new guide for X`).
+    *   *Action:* Use `run_command` for `git add` and `git commit -m "<meaningful message>"`.
 
 ---
 

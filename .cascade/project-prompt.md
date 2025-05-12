@@ -1,21 +1,48 @@
 ---
 name: Liminal Type Chat Project Context
 description: Core project architecture, standards, and development guidelines
+
+# Frontmatter Configuration
+# Defines core context files provided to the AI.
+# - .cascade/project-plan/*.md: Individual files containing project architecture, standards, milestones, etc.
+# - AI_COMMANDS.md: Standard procedures for AI-assisted tasks.
+# - ../dev-journal/dev-journal-summary.md: Provides CONCISE context of recent development activity. Avoid including individual journal files unless specifically requested for a deep dive.
 activation_mode: always_on
 priority: high
 include_files:
-  - project-plan.xml
+  - project-plan/01-introduction.md
+  - project-plan/02-architecture-overview.md
+  - project-plan/03-tech-stack.md
+  - project-plan/04-terminology.md
+  - project-plan/05-design-principles.md
+  - project-plan/06-roadmap-mvp-scope.md
+  - project-plan/07-error-handling-testing-cicd.md
+  - project-plan/08-key-code-patterns.md
+  - project-plan/09-product-vision.md
+  - project-plan/10-mvp-001-milestones.md
+  - project-plan/11-architecture-detailed.md
+  - project-plan/12-security.md
+  - project-plan/13-project-setup.md
+  - project-plan/14-dev-standards-naming.md
+  - project-plan/15-dev-standards-formatting.md
+  - project-plan/16-dev-standards-documentation.md
+  - project-plan/17-dev-standards-testing.md
+  - project-plan/18-dev-standards-error-handling.md
+  - project-plan/19-dev-standards-async.md
+  - project-plan/20-dev-standards-di.md
+  - project-plan/21-dev-standards-db.md
+  - project-plan/22-local-dev-setup.md
+  - project-plan/23-deployment.md
+  - project-plan/24-development-approach.md
+  - project-plan/25-cascade-config.md
+  - project-plan/26-ai-coding-guidelines.md
   - AI_COMMANDS.md
-  - ../dev-journal/dev-journal-m4.md
-  - ../dev-journal/dev-journal-m3.md
-  - ../dev-journal/dev-journal-m2.md
-  - ../dev-journal/dev-journal-m1.md
-  - ../dev-journal/dev-journal-m0.md
+  - ../dev-journal/dev-journal-summary.md
 ---
 
 # Liminal Type Chat Project Context
 
-This document provides essential context for development of the Liminal Type Chat application. The complete architecture and standards are in the `project-plan.xml` file, which should be consulted before making code changes.
+This document provides essential context for development of the Liminal Type Chat application. The complete architecture and standards are detailed in the markdown files within the `.cascade/project-plan/` directory, which should be consulted before making code changes.
 
 ## Project Status
 
@@ -55,12 +82,7 @@ This document provides essential context for development of the Liminal Type Cha
 
 ## Project Plan Reference
 
-The full project plan is located at `project-plan.xml` - please refer to this document for:
-
-1. Detailed application architecture
-2. Development standards and patterns
-3. Milestone definitions
-4. Code examples of key patterns
+The full project plan details (architecture, standards, milestones, patterns) are located in the markdown files within the `.cascade/project-plan/` directory. Please refer to these files as needed.
 
 ### Technology Stack
 
@@ -120,10 +142,10 @@ For the ContextThread and GPT-4.1 integration (Milestones 5-8), follow these gui
 
 ## Core Planning & Context Documents:
 
-*   The complete architecture, roadmap, and development standards are documented in `.cascade/project-plan.xml`.
+*   The complete architecture, roadmap, and development standards are documented in the markdown files within `.cascade/project-plan/`.
 *   Standard procedures for common AI-assisted tasks are defined as **AI Commands** in `.cascade/AI_COMMANDS.md`.
 
-**Please consult BOTH `project-plan.xml` and `AI_COMMANDS.md` thoroughly before making any code changes or performing defined AI Command actions.**
+**Please consult the relevant files in `.cascade/project-plan/` and `AI_COMMANDS.md` thoroughly before making any code changes or performing defined AI Command actions.**
 
 ## Key Reminders & Guidelines:
 

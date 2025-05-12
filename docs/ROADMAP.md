@@ -41,10 +41,48 @@ This document outlines planned enhancements and improvements to Liminal Type Cha
 
 ## Feature Roadmap
 
-### MVP2: Basic Chat with GPT-4.1
+### MVP 2: Core Chat Functionality & LLM Integration
 
-The next major version focuses on delivering a streamlined chat experience with GPT-4.1 integration and conversation history:
+**Objective:** Implement the core chat interface, conversation persistence, and basic integration with a single LLM provider using user-provided keys.
 
+**Key Features/Tasks:**
+
+-   **API Development (Server):**
+    -   [ ] Define and implement API endpoints for:
+        -   [ ] Creating/Listing/Deleting Conversations
+        -   [ ] Adding/Retrieving Messages within a conversation
+        -   [ ] Sending prompts to the LLM service
+    -   [ ] Implement data validation for API inputs.
+-   **Database Integration (Server):**
+    -   [ ] Define database schema for `conversations` and `messages` tables.
+    -   [ ] Implement repository/service logic for CRUD operations on conversations and messages.
+-   **LLM Integration (Server):**
+    -   [ ] Design `LlmService` interface.
+    -   [ ] Implement initial `OpenAiService` (or similar first provider) integrating with the LLM API.
+    -   [ ] Secure handling of user-provided API keys (initially via environment variables or configuration).
+-   **Frontend Development (Client):**
+    -   [ ] Develop UI components for:
+        -   [ ] Conversation list/sidebar
+        -   [ ] Chat message display area
+        -   [ ] Message input box
+    -   [ ] Implement state management for conversations and messages.
+    -   [ ] Integrate frontend with the new chat API endpoints.
+-   **Configuration:**
+    -   [ ] Implement loading of LLM API keys from configuration (`.env`).
+-   **Documentation:**
+    -   [ ] **Database Schema:** Create detailed documentation for the chat database schema (`docs/DATABASE.md` or similar).
+    -   [ ] **Configuration Guide:** Document environment variables and configuration options (`docs/CONFIGURATION.md` or similar).
+    -   [ ] **OpenAPI Specification:** Generate or write OpenAPI (Swagger) specification for the v1 API (`docs/API.md` or `openapi.yaml`).
+    -   [ ] Update READMEs and relevant documents.
+
+**Definition of Done:**
+
+-   [ ] Core chat functionality is testable and usable locally.
+-   [ ] User can provide an API key via configuration to interact with one LLM.
+-   [ ] Basic conversation history is persisted and displayed.
+-   [ ] Key documentation (API Spec, DB Schema, Config Guide) is created.
+
+## MVP 3: Enhanced LLM Support & User Experience
 ### Core ContextThread Domain Layer (Milestone 5)
 - [ ] Implement ContextThread and Message data models
 - [ ] Create SQLite schema for storing these entities
