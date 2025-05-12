@@ -21,6 +21,7 @@ include_files:
   - project-plan/09-product-vision.md
   - project-plan/10-mvp-001-milestones.md
   - project-plan/milestone-0006-domain-layer-v2.md
+  - project-plan/milestone-0007-edge-api.md
   - project-plan/11-architecture-detailed.md
   - project-plan/12-security.md
   - project-plan/13-project-setup.md

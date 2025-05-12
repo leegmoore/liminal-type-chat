@@ -33,7 +33,7 @@ jobs:
         npm --version
 
     - name: Install dependencies (workspaces)
-      run: npm ci
+      run: npm ci --no-audit --cache /tmp/empty-npm-cache
       
     - name: Lint server code
       run: npm run lint:server

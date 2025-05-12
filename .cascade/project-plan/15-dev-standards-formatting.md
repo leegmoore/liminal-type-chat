@@ -4,6 +4,8 @@
   - ESLint with TypeScript plugin for code quality
   - Prettier for consistent formatting
   - Configuration in `.eslintrc.js` and `.prettierrc`
+  - **Non-Null Assertions**: Avoid using the non-null assertion operator (`!`). Refactor code to eliminate the need for it, or provide a comment explaining why it's safe and necessary if unavoidable.
+  - **Unused Imports**: All imported modules, variables, types, or functions must be used. Remove any unused imports to keep the codebase clean and maintainable. Linting tools will flag these.
 
 - **Line Length**: Maximum 100 characters per line
 

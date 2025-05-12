@@ -9,7 +9,8 @@
 export type MessageRole = 'user' | 'assistant' | 'system' | 'tool';
 
 /**
- * Represents the possible statuses of a message, particularly useful for streaming or async operations.
+ * Represents the possible statuses of a message.
+ * Particularly useful for tracking message state during streaming or async operations.
  */
 export type MessageStatus = 'pending' | 'streaming' | 'complete' | 'error' | 'interrupted';
 
