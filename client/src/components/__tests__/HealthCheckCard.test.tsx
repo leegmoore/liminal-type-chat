@@ -49,8 +49,7 @@ describe('HealthCheckCard', () => {
 
     expect(screen.getByText('Checking server health...')).toBeInTheDocument();
     // Check for spinner
-    const spinner = document.querySelector('[role="status"]');
-    expect(spinner).toBeInTheDocument();
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
   });
 
   test('displays server health data correctly', () => {

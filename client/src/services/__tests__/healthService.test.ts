@@ -45,17 +45,20 @@ describe('healthService', () => {
     });
 
     test('handles error response correctly', async () => {
-      const errorResponse = {
-        response: {
-          data: {
-            error: {
-              message: 'Server error'
-            }
+      const apiErrorPayload = { 
+        data: {
+          error: {
+            message: 'Server error'
           }
         }
       };
+      // Simulate an AxiosError
+      const mockAxiosError = {
+        isAxiosError: true,
+        response: apiErrorPayload // Nest our desired response data here
+      };
       
-      mockAxios.get.mockRejectedValueOnce(errorResponse);
+      mockAxios.get.mockRejectedValueOnce(mockAxiosError); // Reject with the simulated AxiosError
       
       await expect(checkServerHealth('domain')).rejects.toThrow('Server error');
     });
@@ -109,17 +112,20 @@ describe('healthService', () => {
     });
 
     test('handles error response correctly', async () => {
-      const errorResponse = {
-        response: {
-          data: {
-            error: {
-              message: 'Database connection failed'
-            }
+      const apiErrorPayload = { 
+        data: {
+          error: {
+            message: 'Database connection failed'
           }
         }
       };
+      // Simulate an AxiosError
+      const mockAxiosError = {
+        isAxiosError: true,
+        response: apiErrorPayload // Nest our desired response data here
+      };
       
-      mockAxios.get.mockRejectedValueOnce(errorResponse);
+      mockAxios.get.mockRejectedValueOnce(mockAxiosError); // Reject with the simulated AxiosError
       
       await expect(checkDatabaseHealth('domain')).rejects.toThrow('Database connection failed');
     });

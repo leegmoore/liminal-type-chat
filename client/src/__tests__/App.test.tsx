@@ -4,15 +4,15 @@ import { vi } from 'vitest';
 import App from '../App';
 
 // Mock the Header, Footer, and HealthDashboard components
-vi.mock('../components/Header', () => () => (
-  <div data-testid="mock-header">Header Component</div>
-));
-vi.mock('../components/Footer', () => () => (
-  <div data-testid="mock-footer">Footer Component</div>
-));
-vi.mock('../pages/HealthDashboard', () => () => (
-  <div data-testid="mock-dashboard">Dashboard Component</div>
-));
+vi.mock('../components/Header', () => ({
+  default: () => <div data-testid="mock-header">Header Component</div>,
+}));
+vi.mock('../components/Footer', () => ({
+  default: () => <div data-testid="mock-footer">Footer Component</div>,
+}));
+vi.mock('../pages/HealthDashboard', () => ({
+  default: () => <div data-testid="mock-dashboard">Dashboard Component</div>,
+}));
 
 describe('App', () => {
   test('renders all main components in correct layout', () => {

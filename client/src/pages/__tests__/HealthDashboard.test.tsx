@@ -50,7 +50,9 @@ describe('HealthDashboard', () => {
   test('Domain server health check button works correctly', async () => {
     render(<HealthDashboard />);
     
-    const button = screen.getByText('Check Server Health', { selector: 'button' });
+    // Get all buttons with this name and select the first one (Domain Server Health)
+    const buttons = screen.getAllByRole('button', { name: /Check Server Health/i });
+    const button = buttons[0];
     fireEvent.click(button);
     
     expect(mockCheckServerHealth).toHaveBeenCalledWith('domain');
@@ -63,7 +65,7 @@ describe('HealthDashboard', () => {
   test('Domain database health check button works correctly', async () => {
     render(<HealthDashboard />);
     
-    const buttons = screen.getAllByText('Check Database Health');
+    const buttons = screen.getAllByRole('button', { name: /Check Database Health/i });
     fireEvent.click(buttons[0]); // First database button is for domain tier
     
     expect(mockCheckDatabaseHealth).toHaveBeenCalledWith('domain');
@@ -77,7 +79,7 @@ describe('HealthDashboard', () => {
   test('Edge server health check button works correctly', async () => {
     render(<HealthDashboard />);
     
-    const buttons = screen.getAllByText('Check Server Health');
+    const buttons = screen.getAllByRole('button', { name: /Check Server Health/i });
     fireEvent.click(buttons[1]); // Second server button is for edge tier
     
     expect(mockCheckServerHealth).toHaveBeenCalledWith('edge');
@@ -90,7 +92,7 @@ describe('HealthDashboard', () => {
   test('Edge database health check button works correctly', async () => {
     render(<HealthDashboard />);
     
-    const buttons = screen.getAllByText('Check Database Health');
+    const buttons = screen.getAllByRole('button', { name: /Check Database Health/i });
     fireEvent.click(buttons[1]); // Second database button is for edge tier
     
     expect(mockCheckDatabaseHealth).toHaveBeenCalledWith('edge');
@@ -105,7 +107,9 @@ describe('HealthDashboard', () => {
     
     render(<HealthDashboard />);
     
-    const button = screen.getByText('Check Server Health', { selector: 'button' });
+    // Get all buttons with this name and select the first one (Domain Server Health)
+    const buttons = screen.getAllByRole('button', { name: /Check Server Health/i });
+    const button = buttons[0];
     fireEvent.click(button);
     
     await waitFor(() => {

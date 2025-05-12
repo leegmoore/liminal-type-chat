@@ -43,6 +43,7 @@ const HealthCheckCard: React.FC<HealthCheckCardProps> = ({
   const { data, loading, error } = result;
   const cardBg = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const dbDetailsBg = useColorModeValue('gray.50', 'gray.700');
 
   const isSuccess = data?.status === 'ok';
 
@@ -81,6 +82,7 @@ const HealthCheckCard: React.FC<HealthCheckCardProps> = ({
             <Spinner 
               thickness="4px"
               speed="0.65s"
+              data-testid="loading-spinner" 
               color="brand.500"
               size="xl"
               mb={4}
@@ -101,7 +103,7 @@ const HealthCheckCard: React.FC<HealthCheckCardProps> = ({
             </Flex>
             
             {checkType === 'database' && 'database' in data && (
-              <Box mt={3} p={3} bg={useColorModeValue('gray.50', 'gray.700')} borderRadius="md">
+              <Box mt={3} p={3} bg={dbDetailsBg} borderRadius="md">
                 <Text mb={1}>
                   <Text as="span" fontWeight="semibold">Database: </Text>
                   {(data as DatabaseHealthStatus).database.name}
