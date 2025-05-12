@@ -18,12 +18,18 @@ This document provides essential context for development of the Liminal Type Cha
 
 ## Project Status
 
+### MVP1 (Completed)
 - ✅ Milestone 0: Project Initialization - **COMPLETED**
 - ✅ Milestone 1: Basic HTTP Server & Domain Health Endpoint - **COMPLETED**
 - ✅ Milestone 2: Database Integration & Health Checks - **COMPLETED**
 - ✅ Milestone 3: Edge-to-Domain Communication - **COMPLETED**
 - ✅ Milestone 4: React TypeScript Frontend - **COMPLETED**
-- ⬜ Milestone 5: Core Conversation Models & Storage
+
+### MVP2 (In Progress)
+- ⬜ Milestone 5: Core ContextThread Domain Layer - Implement data models, storage, and domain services
+- ⬜ Milestone 6: Edge Tier API for ContextThreads - Create RESTful API endpoints
+- ⬜ Milestone 7: GPT-4.1 Integration with Streaming - Implement OpenAI service with SSE
+- ⬜ Milestone 8: Chat UI Components - Create React components for conversation interface
 
 ## Key Architecture Points
 
