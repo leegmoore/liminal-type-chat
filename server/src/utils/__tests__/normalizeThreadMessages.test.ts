@@ -3,7 +3,7 @@ import { Message, MessageRole } from '../../types/domain';
 
 describe('normalizeThreadMessages', () => {
   it('should return an empty array when messages is null', () => {
-    // @ts-ignore - Testing null case
+    // @ts-expect-error - Testing null case
     const result = normalizeThreadMessages(null);
     expect(result).toEqual([]);
   });

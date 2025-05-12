@@ -1,10 +1,8 @@
 import request from 'supertest';
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import { createContextThreadRoutes } from '../context-thread';
 import { ContextThreadService } from '../../../services/core/ContextThreadService';
-import { ContextThreadRepository } from '../../../providers/db/ContextThreadRepository';
-import { MessagesCorruptedError } from '../../../providers/db/errors';
-import { ContextThread, Message, MessageRole, MessageStatus } from '../../../types/domain';
+import { ContextThread, MessageRole, MessageStatus } from '../../../types/domain';
 
 // Mock the ContextThreadService
 jest.mock('../../../services/core/ContextThreadService');

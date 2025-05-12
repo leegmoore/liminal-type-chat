@@ -1,4 +1,9 @@
-import { ContextThreadService, CreateThreadParams, AddMessageParams, UpdateThreadParams } from '../ContextThreadService';
+import { 
+  ContextThreadService, 
+  CreateThreadParams, 
+  AddMessageParams, 
+  UpdateThreadParams 
+} from '../ContextThreadService';
 import { ContextThreadRepository } from '../../../providers/db/ContextThreadRepository';
 import { MessagesCorruptedError } from '../../../providers/db/errors';
 import { ContextThread, Message } from '../../../types/domain';
@@ -110,8 +115,8 @@ describe('ContextThreadService', () => {
           {
             id: mockUuid, // Same UUID for simplicity in the test
             threadId: mockUuid,
-            role: params.initialMessage.role,
-            content: params.initialMessage.content,
+            role: params.initialMessage!.role,
+            content: params.initialMessage!.content,
             createdAt: mockTimestamp,
           },
         ],
@@ -341,7 +346,7 @@ describe('ContextThreadService', () => {
           }),
         ]),
       }));
-      expect(result.messages).toContainEqual(
+      expect(result!.messages).toContainEqual(
         expect.objectContaining({
           status: messageParams.status,
           metadata: messageParams.metadata,

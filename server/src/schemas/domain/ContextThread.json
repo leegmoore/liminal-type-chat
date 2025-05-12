@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ContextThread",
+  "description": "Represents a conversation thread containing messages.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "description": "Unique identifier for the context thread (UUID v4).",
+      "type": "string",
+      "format": "uuid"
+    },
+    "title": {
+      "description": "Optional user-defined title for the thread.",
+      "type": "string"
+    },
+    "createdAt": {
+      "description": "Timestamp when the thread was created (Unix epoch ms).",
+      "type": "number",
+      "format": "int64"
+    },
+    "updatedAt": {
+      "description": "Timestamp when the thread was last updated (Unix epoch ms).",
+      "type": "number",
+      "format": "int64"
+    },
+    "metadata": {
+      "description": "Optional metadata associated with the thread.",
+      "type": "object",
+      "additionalProperties": true
+    },
+    "messages": {
+      "description": "An array of Message objects belonging to this thread.",
+      "type": "array",
+      "items": {
+        "$ref": "./Message.json"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "createdAt",
+    "updatedAt",
+    "messages"
+  ],
+  "additionalProperties": false
+}

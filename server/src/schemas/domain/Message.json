@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Message",
+  "description": "Represents a single message within a ContextThread.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "description": "Unique identifier for the message (UUID v4).",
+      "type": "string",
+      "format": "uuid"
+    },
+    "threadId": {
+      "description": "Identifier of the ContextThread this message belongs to (UUID v4).",
+      "type": "string",
+      "format": "uuid"
+    },
+    "role": {
+      "description": "The role of the entity creating the message.",
+      "type": "string",
+      "enum": ["user", "assistant", "system", "tool"]
+    },
+    "content": {
+      "description": "The text content of the message.",
+      "type": "string"
+    },
+    "createdAt": {
+      "description": "Timestamp when the message was created (Unix epoch ms).",
+      "type": "number",
+      "format": "int64"
+    },
+    "metadata": {
+      "description": "Optional metadata associated with the message (e.g., tool call info, citations).",
+      "type": "object",
+      "additionalProperties": true
+    },
+    "status": {
+      "description": "Optional status indicator for the message (e.g., 'pending', 'complete', 'error').",
+      "type": "string",
+      "enum": ["pending", "streaming", "complete", "error", "interrupted"]
+    }
+  },
+  "required": [
+    "id",
+    "threadId",
+    "role",
+    "content",
+    "createdAt"
+  ],
+  "additionalProperties": false
+}

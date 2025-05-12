@@ -1,6 +1,6 @@
 import { ContextThreadRepository } from '../ContextThreadRepository';
 import { MessagesCorruptedError } from '../errors';
-import { ContextThread, Message } from '../../../types/domain';
+import { ContextThread } from '../../../types/domain';
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';

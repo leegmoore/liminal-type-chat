@@ -62,8 +62,7 @@ export class ContextThreadRepository {
       return parsed;
     } catch (error) {
       console.error(
-        `Failed to parse messages JSON for thread ${threadId}:`,
-        messagesJson,
+        `Failed to parse messages JSON for thread ${threadId}: ${messagesJson}`,
         error
       );
       throw new MessagesCorruptedError(threadId, error);
@@ -90,7 +89,13 @@ export class ContextThreadRepository {
   }
 
   // Transform DB row to Domain object
-  private toDomain(row: any): ContextThread | null { // eslint-disable-line @typescript-eslint/no-explicit-any
+  /**
+   * Transforms a database row into a domain ContextThread object
+   * @param row The database row to transform
+   * @returns A ContextThread domain object or null
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private toDomain(row: any): ContextThread | null {
     if (!row) return null;
     return {
       id: row.id,
@@ -120,7 +125,8 @@ export class ContextThreadRepository {
         createdAt: threadData.createdAt,
         updatedAt: threadData.updatedAt,
         metadata: threadData.metadata ? JSON.stringify(threadData.metadata) : null,
-        messages: JSON.stringify(threadData.messages || []), // Default to empty array if null/undefined
+        // Default to empty array if messages is null/undefined
+        messages: JSON.stringify(threadData.messages || []),
       });
       // Return the complete thread object as passed in, assuming successful insertion
       return threadData;
