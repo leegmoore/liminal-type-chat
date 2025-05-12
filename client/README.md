@@ -1,4 +1,6 @@
-# Liminal Type Chat - Client
+# Liminal Type Chat - Client (`/client`)
+
+[<< Back to Root README](../README.md)
 
 This directory contains the React TypeScript frontend for the Liminal Type Chat application. The frontend implements a modern, responsive UI for monitoring the health of both the domain and edge tiers of the application.
 
@@ -18,19 +20,19 @@ This directory contains the React TypeScript frontend for the Liminal Type Chat 
 
 ### Implemented (Milestone 4)
 
-- ✅ Health Check Dashboard
+- Health Check Dashboard
   - Domain and edge tier health monitoring
   - Server health status checks
   - Database connection verification
   - Visual status indicators
   - Responsive layout for all device sizes
 
-- ✅ Modern UI with Chakra UI
+- Modern UI with Chakra UI
   - Clean, accessible component library
   - Consistent styling and theming
   - Responsive design principles
 
-- ✅ Type Safety
+- Type Safety
   - Full TypeScript implementation
   - Shared types between components
   - Type-safe API communication

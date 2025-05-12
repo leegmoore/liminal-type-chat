@@ -1,4 +1,6 @@
-# Liminal Type Chat - Server
+# Liminal Type Chat - Server (`/server`)
+
+[<< Back to Root README](../README.md)
 
 This directory contains the Node.js/Express backend for the Liminal Type Chat application. The server follows a tiered architecture and provides both the API endpoints and serves the React frontend.
 
@@ -25,23 +27,23 @@ This directory contains the Node.js/Express backend for the Liminal Type Chat ap
 
 ### Implemented
 
-- ✅ **Basic HTTP Server & Domain Health Endpoint** (Milestone 1)
+- **Basic HTTP Server & Domain Health Endpoint** (Milestone 1)
   - Express.js application with architectural folder structure
   - Domain health check endpoint
   - Comprehensive error handling
 
-- ✅ **SQLite Database Connectivity & Health Checks** (Milestone 2)
+- **SQLite Database Connectivity & Health Checks** (Milestone 2)
   - SQLite with better-sqlite3 integration
   - Database provider interface
   - Health check table and schema initialization
   - Database health check endpoint
 
-- ✅ **Edge-to-Domain Communication** (Milestone 3)
+- **Edge-to-Domain Communication** (Milestone 3)
   - Domain client adapter pattern
   - Support for both direct and HTTP communication modes
   - Edge tier health check routes
 
-- ✅ **React Frontend Serving** (Milestone 4)
+- **React Frontend Serving** (Milestone 4)
   - Serves the React frontend from the public directory
   - Catch-all routing for client-side React Router
   - API routes for health checks used by the frontend
@@ -113,10 +115,10 @@ The project maintains a minimum of 90% test coverage for domain services and 80%
 
 ### Health Check Endpoints
 
-- **GET /api/health** - Domain tier health check
-- **GET /api/health/db** - Database health check
-- **GET /api/edge/health** - Edge tier health check
-- **GET /api/edge/health/db** - Edge tier database health check
+- **GET /api/v1/domain/health** - Domain tier system health check
+- **GET /api/v1/domain/health/db** - Domain tier database health check
+- **GET /api/v1/edge/health** - Edge tier system health check (via domain client)
+- **GET /api/v1/edge/health/db** - Edge tier database health check (via domain client)
 
 ## Frontend Integration
 

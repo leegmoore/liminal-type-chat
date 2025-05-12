@@ -1,3 +1,5 @@
+[<< Back to Root README](../README.md)
+
 # Liminal Type Chat: Roadmap & Future Enhancements
 
 This document outlines planned enhancements and improvements to Liminal Type Chat based on architectural reviews and feedback. It serves as both a roadmap for contributors and a tracking mechanism for future development.

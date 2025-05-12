@@ -1,3 +1,5 @@
+[<< Back to Root README](../README.md)
+
 # Liminal Type Chat Error Codes
 
 This document provides a comprehensive list of all error codes used in the Liminal Type Chat API. Each error code maps to a specific HTTP status code and has a standard error message.

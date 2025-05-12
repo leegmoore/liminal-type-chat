@@ -1,3 +1,5 @@
+[<< Back to Root README](../README.md)
+
 # Liminal Type Chat Development Standards
 
 This document outlines the development standards and conventions used in the Liminal Type Chat project. These standards are designed to ensure code quality, maintainability, and a consistent development experience across the codebase.

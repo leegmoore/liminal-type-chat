@@ -11,6 +11,19 @@ An open-source, local-first GenAI chat application designed for individuals and 
 - [Security Policy](.github/SECURITY.md) - Security information and reporting vulnerabilities
 - [Contributing](.github/CONTRIBUTING.md) - Guidelines for contributing to the project
 
+## Documentation Structure
+
+Navigating the project documentation:
+
+- **`/README.md` (this file):** Project overview, top-level setup, and main entry point.
+- **[`server/README.md`](./server/README.md):** Backend (Node.js/Express) specific setup, architecture details, and API information.
+- **[`client/README.md`](./client/README.md):** Frontend (React/TypeScript) specific setup, components, and state management details.
+- **[`docs/`](./docs/):** Contains detailed developer documentation:
+    - [`DEVELOPMENT_STANDARDS.md`](./docs/DEVELOPMENT_STANDARDS.md): Coding standards, patterns, and testing strategy.
+    - [`ERROR_CODES.md`](./docs/ERROR_CODES.md): Reference for standardized error codes.
+    - [`ROADMAP.md`](./docs/ROADMAP.md): Future development plans and milestones.
+- **`.cascade/`:** Contains files primarily for AI agent context, high-level project planning (`project-plan.xml`), and development history logs (dev journals).
+
 ## Project Status
 
 ### Initial Development Plan

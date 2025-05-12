@@ -1,20 +1,35 @@
 <project_plan>
-
   <introduction>
     <title>Introduction to Liminal Type Chat</title>
     <content>
-      Liminal Type Chat is an open-source, local-first GenAI chat application designed for individuals and small teams who want to leverage their own API keys to interact with various language models (LLMs). It prioritizes excellent design principles, easy setup, and fast execution at small scales, while maintaining the flexibility to grow. Unlike managed chat services, Liminal Type Chat emphasizes:
-
-      1. **BYOK (Bring Your Own Key)**: Complete freedom to use your own API keys with models from OpenAI, Anthropic, Google, and any other providers
-      2. **Local-First Design**: Run the entire application locally, keeping your conversations private and under your control
-      3. **Simple Deployment**: Minimal setup required - just Node.js and a web browser
-      4. **Optimized for Small Scale**: Lean, performant implementation for individuals and small teams
-      5. **Advanced LLM Orchestration** (future): Send prompts to multiple LLMs simultaneously, chain LLMs together where one model's output becomes another's input
-      6. **Extensibility Framework**: Pre and post LLM hooks, plugin system, and MCP (Model Control Protocol) tooling support
-
-      The application consists of a Node.js/Express backend and a React TypeScript frontend. The backend serves both the API and the static frontend files, eliminating CORS issues and simplifying deployment. While the system can scale to moderately larger deployments, its primary purpose is to provide a flexible, powerful chat experience for power users who value control, privacy, and extensibility.
+      Liminal Type Chat is an open-source, local-first GenAI chat application designed for individuals and small teams who want to leverage their own API keys to interact with various language models (LLMs). It prioritizes user control, data privacy, and flexibility. The project uses a tiered architecture and a monorepo structure to facilitate clean separation of concerns and maintainable code.
     </content>
   </introduction>
+
+  <architecture>
+    <title>System Architecture</title>
+    <content>
+      The application follows a four-tier conceptual architecture implemented within a monorepo structure:
+      1.  **UI Tier (Presentation):** Handles user interaction. Implemented using React and TypeScript in the `/client` directory.
+      2.  **Edge/XPI Tier (Experience/Adaptation):** Routes HTTP requests, transforms data between UI and Domain formats, acts as a Backend-for-Frontend (BFF). Resides within the Node.js/Express server in the `/server` directory.
+      3.  **Domain API Tier (Core Services/Business Logic):** Contains core business logic, service operations, and canonical data models. UI-agnostic. Resides within the Node.js/Express server in the `/server` directory.
+      4.  **Datasources & External Services Tier (Integration):** Provides access to databases (SQLite initially, planned Supabase), LLM providers, etc. Integrated within the Domain tier.
+
+      Communication between the Edge and Domain tiers is handled by a Domain Client Adapter pattern (see Key Code Patterns).
+    </content>
+  </architecture>
+
+  <technology_stack>
+    <title>Technology Stack</title>
+    <content>
+      - **Backend:** Node.js, Express.js, TypeScript
+      - **Frontend:** React, TypeScript, Vite, Chakra UI
+      - **Database:** better-sqlite3 (initially), Supabase (planned)
+      - **Testing:** Jest (Backend), Vitest (Frontend), Supertest (API Integration)
+      - **Linting/Formatting:** ESLint, Prettier
+      - **CI/CD:** GitHub Actions
+    </content>
+  </technology_stack>
 
   <terminology>
     <title>Key Terminology</title>
@@ -30,6 +45,9 @@
       - **Domain Client Adapter**: A component that enables edge routes to communicate with domain services, either directly (in-process) or via HTTP calls (cross-process).
       
       - **Provider Pattern**: An approach where core functionality depends on abstractions rather than concrete implementations, allowing different implementations (e.g., SQLite vs PostgreSQL) to be swapped without changing business logic.
+      
+      - **Monorepo:** A single repository containing multiple distinct projects (e.g., `server`, `client`) with well-defined relationships.
+      - **BYOK (Bring Your Own Key):** Users provide their own API keys for accessing external LLM services.
     </content>
   </terminology>
 
@@ -87,158 +105,62 @@
          - Services designed for testability via dependency injection
          - Clear interfaces between components enable effective mocking
          - High test coverage requirements for critical paths
+
+      10. **Testability:** Design components for easy unit and integration testing. Comprehensive test coverage is a primary goal (see Testing Strategy).
+      11. **Developer Experience:** Prioritize clear documentation, consistent standards, and efficient tooling.
+      12. **Extensibility:** Design with future enhancements in mind (e.g., plugin systems, multi-database support).
     </content>
   </design_principles>
 
-  <code_examples>
-    <title>Key Code Patterns</title>
+  <milestones_roadmap>
+    <title>Milestones & Roadmap</title>
     <content>
-      **1. Domain Service Example:**
-      ```typescript
-      // src/services/core/health-service.ts
-      import { DatabaseProvider } from '../../providers/db/database-provider';
-
-      export class HealthService {
-        constructor(private dbProvider: DatabaseProvider) {}
-        
-        async getSystemStatus(): Promise<{ status: string; timestamp: string }> {
-          return {
-            status: 'ok',
-            timestamp: new Date().toISOString()
-          };
-        }
-        
-        async checkDbConnection(): Promise<{ status: string; checked_at: string } | null> {
-          try {
-            const result = await this.dbProvider.query(
-              'SELECT status, checked_at FROM health_check_table ORDER BY id DESC LIMIT 1'
-            );
-            return result ? result : null;
-          } catch (error) {
-            console.error('Database health check failed:', error);
-            return null;
-          }
-        }
-      }
-      ```
-
-      **2. Domain Route Example:**
-      ```typescript
-      // src/routes/domain/health.ts
-      import { Router } from 'express';
-      import { HealthService } from '../../services/core/health-service';
-
-      export const createHealthRoutes = (healthService: HealthService) => {
-        const router = Router();
-        
-        router.get('/api/v1/domain/health', async (req, res) => {
-          try {
-            const status = await healthService.getSystemStatus();
-            res.json(status);
-          } catch (error) {
-            res.status(500).json({ error: 'Failed to check system status' });
-          }
-        });
-        
-        router.get('/api/v1/domain/health/db', async (req, res) => {
-          try {
-            const dbStatus = await healthService.checkDbConnection();
-            if (dbStatus) {
-              res.json({ db_status: 'ok', record: dbStatus });
-            } else {
-              res.status(500).json({ db_status: 'error', message: 'Failed to retrieve database status' });
-            }
-          } catch (error) {
-            res.status(500).json({ db_status: 'error', message: 'Database check failed' });
-          }
-        });
-        
-        return router;
-      };
-      ```
-
-      **3. Domain Client Adapter Example:**
-      ```typescript
-      // src/clients/domain-client/health-client.ts
-      import axios from 'axios';
-      import { HealthService } from '../../services/core/health-service';
-      import config from '../../config';
-
-      export class HealthClient {
-        private healthService?: HealthService;
-        private baseUrl: string;
-        private inProcessMode: boolean;
-        
-        constructor(options: { healthService?: HealthService }) {
-          this.healthService = options.healthService;
-          this.baseUrl = config.apiBaseUrl;
-          this.inProcessMode = config.inProcessMode;
-        }
-        
-        async getSystemStatus(): Promise<{ status: string; timestamp: string }> {
-          if (this.inProcessMode && this.healthService) {
-            // Direct service call when in same process
-            return this.healthService.getSystemStatus();
-          } else {
-            // HTTP call when in separate process
-            const response = await axios.get(`${this.baseUrl}/api/v1/domain/health`);
-            return response.data;
-          }
-        }
-        
-        async checkDbConnection(): Promise<{ db_status: string; record?: any; message?: string }> {
-          if (this.inProcessMode && this.healthService) {
-            // Direct service call
-            const result = await this.healthService.checkDbConnection();
-            return result 
-              ? { db_status: 'ok', record: result }
-              : { db_status: 'error', message: 'Failed to retrieve database status' };
-          } else {
-            // HTTP call
-            const response = await axios.get(`${this.baseUrl}/api/v1/domain/health/db`);
-            return response.data;
-          }
-        }
-      }
-      ```
-
-      **4. Edge Route Example:**
-      ```typescript
-      // src/routes/edge/health.ts
-      import { Router } from 'express';
-      import { HealthClient } from '../../clients/domain-client/health-client';
-
-      export const createEdgeHealthRoutes = (healthClient: HealthClient) => {
-        const router = Router();
-        
-        router.get('/api/v1/edge/health', async (req, res) => {
-          try {
-            const status = await healthClient.getSystemStatus();
-            // Edge tier could transform the response if needed for the UI
-            // In this simple case, we just pass it through
-            res.json(status);
-          } catch (error) {
-            res.status(500).json({ error: 'Failed to check system status' });
-          }
-        });
-        
-        router.get('/api/v1/edge/health/db', async (req, res) => {
-          try {
-            const dbStatus = await healthClient.checkDbConnection();
-            res.json(dbStatus);
-          } catch (error) {
-            res.status(500).json({ 
-              db_status: 'error', 
-              message: 'Failed to connect to database service'
-            });
-          }
-        });
-        
-        return router;
-      };
-      ```
+      The project follows a phased development approach.
+      - **MVP 1 (Complete):** Focused on establishing the core architecture, backend setup, frontend serving, database connectivity, edge-domain communication, CI pipeline, and foundational health checks.
+      - **MVP 2 (In Progress):** Focuses on implementing core chat functionality, user authentication, conversation management, and initial LLM integration.
+      - **Future:** Includes advanced features like multi-model support, orchestration, RAG, and plugin architecture.
+      Refer to `docs/ROADMAP.md` for detailed planning.
     </content>
-  </code_examples>
+  </milestones_roadmap>
+
+  <error_handling>
+    <title>Error Handling Strategy</title>
+    <content>
+      A standardized, hierarchical error code system is used across the application (backend and frontend). Errors are categorized (e.g., Configuration, Database, API, Validation) with specific codes for precise identification. API responses use consistent JSON formats for errors, including the code, message, and relevant HTTP status. Refer to `docs/ERROR_CODES.md` for the complete list and details.
+    </content>
+  </error_handling>
+
+  <testing_strategy>
+    <title>Testing Strategy</title>
+    <content>
+      Testing is a core part of the development process. The strategy includes:
+      - **Unit Tests:** Jest for backend (Domain, Edge components), Vitest for frontend (React components, utilities).
+      - **Integration Tests:** Supertest for API endpoint testing, ensuring correct interaction between Edge and Domain tiers.
+      - **Coverage:** Aiming for high test coverage (e.g., >80% initially) enforced via testing configurations.
+      Refer to `docs/DEVELOPMENT_STANDARDS.md` for detailed testing guidelines.
+    </content>
+  </testing_strategy>
+
+  <ci_cd>
+    <title>Continuous Integration / Continuous Deployment (CI/CD)</title>
+    <content>
+      A CI pipeline is implemented using GitHub Actions. It automatically runs linters, tests (backend and frontend), and builds upon commits and pull requests to the main branches, ensuring code quality and integration stability.
+    </content>
+  </ci_cd>
+
+  <key_code_patterns>
+    <title>Key Code Patterns and Conventions</title>
+    <content>
+      Several key patterns are employed to maintain consistency and quality:
+      - **Tiered Architecture:** As described in the Architecture section.
+      - **Dependency Injection:** Used primarily in the Domain tier to inject dependencies like database providers, facilitating testing and decoupling.
+      - **Repository/Provider Pattern:** Abstracting data access logic (e.g., `SqliteDbProvider`).
+      - **Configuration Management:** Centralized configuration handling.
+      - **Domain Client Adapter Factory:** (Used for Edge-to-Domain communication) This pattern provides architectural flexibility, enabling the application to run with the Edge and Domain tiers in a single process (using direct function calls) or as separate processes (using HTTP communication), controlled by configuration. A factory (`health-service-client-factory.ts`) creates the appropriate client instance (`health-service-client.ts` for direct calls, `health-service-http-client.ts` for HTTP calls). This ensures the Edge tier interacts with the Domain tier transparently and consistently, regardless of the deployment mode, and serves as the standard mechanism for all Edge-to-Domain service communication (not just health checks).
+      - **Standardized API Responses:** Consistent JSON structures for success and error responses.
+      - **Development Standards:** Detailed coding conventions, naming standards, and best practices are documented in `docs/DEVELOPMENT_STANDARDS.md`.
+    </content>
+  </key_code_patterns>
 
   <product_summary_and_vision>
     <title>Product Summary and Vision</title>
