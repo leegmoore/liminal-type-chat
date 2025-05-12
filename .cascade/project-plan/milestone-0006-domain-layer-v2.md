@@ -1,6 +1,6 @@
 # Milestone 0006 (was M5): Core ContextThread Domain Layer
 
-- **Objective**: Implement the core domain logic for managing `ContextThread`s and `Message`s, including data models, persistence, domain services, and establish the database schema documentation process.
+- **Objective**: Implement the core domain logic for managing `ContextThread`s and `Message`s, including data models, persistence, domain services, domain API routes, and establish the database schema documentation process.
 
 ## Scope
 
@@ -9,7 +9,8 @@
 3.  Database Schema Documentation (`docs/database-schema.md`).
 4.  Data Access Layer (`ContextThreadRepository`) implementation.
 5.  Domain Service Layer (`ContextThreadService`) implementation.
-6.  Unit Tests for the Data Access and Domain Service layers.
+6.  Domain API Routes implementation (following the established architecture).
+7.  Unit Tests for the Data Access, Domain Service, and Domain API layers.
 
 ## Plan
 
@@ -20,7 +21,8 @@
 5.  **Implement `ContextThreadService`:** Create in `/server/src/services/core/`. Responsibilities: Business logic; generate UUIDs/timestamps; manage `Message` status; call `normalizeThreadMessages` before saving. Include unit tests (mocking Repository).
     *   Implement `normalizeThreadMessages` utility (initially sorts messages by `createdAt`).
 6.  **(Optional Generation) Define TypeScript Types:** Define `ContextThread` and `Message` interfaces (e.g., in `/server/src/types/domain.ts`). *Optionally*, configure tooling (e.g., `json-schema-to-typescript`) to generate these from the JSON schemas; otherwise, create them manually.
-7.  **Create/Update Database Documentation:** Ensure `docs/database-schema.md` reflects the `schema.sql` definition.
+7.  **Implement Domain API Routes:** Create in `/server/src/routes/domain/context-thread.ts`. Expose the `ContextThreadService` operations as API endpoints. This follows the established architectural pattern that supports both single-process and multi-process deployment models. Include unit tests (mocking Service layer).
+8.  **Create/Update Database Documentation:** Ensure `docs/database-schema.md` reflects the `schema.sql` definition.
 
 ## Design
 
@@ -120,10 +122,15 @@ Using SQLite. Messages are denormalized and stored as a JSON array string direct
 
 ### Domain API Test Conditions
 
-*(Deferred to Milestone 0007, requires API endpoints)*
-
-*   **Thread Endpoints (`/domain/threads`)**: POST (Success/Validation Error), GET :id (Success/Not Found).
-*   **Message Endpoints (`/domain/threads/:id/messages`)**: POST (Success/Validation Error/Thread Not Found), GET (Success/No Messages/Thread Not Found).
+*   **Thread Endpoints (`/domain/threads`)**:
+    * **POST**: Test successful creation, validation errors, and proper response status codes/bodies.
+    * **GET /:id**: Test successful retrieval, not found errors, and handling corrupted data.
+    * **PUT /:id**: Test successful updates, handling not found errors, and validation errors.
+    * **DELETE /:id**: Test successful deletion and handling not found errors.
+*   **Message Endpoints (`/domain/threads/:id/messages`)**:
+    * **POST**: Test successful message addition, thread not found errors, and validation errors.
+    * **GET**: Test successful message retrieval, handling empty arrays, and thread not found errors.
+    * **PUT /:messageId**: Test successful message updates, not found errors (thread or message), and validation errors.
 
 ---
 *Document Version: 2 (Created due to edit issues with original)*
