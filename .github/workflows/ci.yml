@@ -33,7 +33,12 @@ jobs:
         npm --version
 
     - name: Install dependencies (workspaces)
-      run: npm ci --no-audit --cache /tmp/empty-npm-cache
+      run: |
+        # Use clean install instead of ci to handle platform-specific dependencies
+        rm -rf node_modules
+        npm install --no-audit
+        # Specifically install the Linux version of rollup
+        npm install @rollup/rollup-linux-x64-gnu --no-save
       
     - name: Lint server code
       run: npm run lint:server
