@@ -125,3 +125,63 @@
   - Successful build and deployment to Express server's public directory
   - Health check buttons correctly call their respective endpoints and display results
   - Responsive design works on various screen sizes
+
+---
+
+# MVP 2 Milestones (Planned)
+
+## Milestone 0006 (was M5): Core ContextThread Domain Layer
+
+- **Objective**: Implement the core domain logic for managing `ContextThread`s and `Message`s, including data models, persistence, domain services, and establish the database schema documentation process.
+- **Key Deliverables**:
+    1.  **Domain Models (JSON Schema)**: JSON Schema definitions for `ContextThread` and `Message` located in `/server/src/schemas/domain/`.
+    2.  **Database Schema (DDL)**: `server/db/schema.sql` containing `CREATE TABLE` statements for `context_threads` and `messages`.
+    3.  **Database Documentation**: `docs/database-schema.md` documenting the schema, maintained via the "Review and Update DB Schema Docs" AI Command.
+    4.  **Data Access Layer**: `ContextThreadRepository` (or similar) in `/server/src/providers/db/` handling CRUD operations for threads and messages using `better-sqlite3`.
+    5.  **Domain Service**: `ContextThreadService` in `/server/src/services/core/` implementing core business logic (e.g., `createThread`, `getThread`, `addMessage`), using the repository.
+    6.  **Unit Tests**: Comprehensive unit tests for `ContextThreadRepository` (mocking DB driver) and `ContextThreadService` (mocking repository) with high coverage.
+- **High-Level Tasks**:
+    1.  Define `Message` JSON Schema.
+    2.  Define `ContextThread` JSON Schema.
+    3.  Define SQLite DDL in `schema.sql`.
+    4.  Create initial `database-schema.md` documentation.
+    5.  Implement `ContextThreadRepository` with tests.
+    6.  Implement `ContextThreadService` with tests.
+    7.  Utilize "Review and Update DB Schema Docs" AI command to ensure documentation sync.
+- **Key Design Decisions**:
+    *   Domain models defined using JSON Schema for validation and OpenAPI integration.
+    *   Database schema documented in `docs/database-schema.md`, synchronized with `server/db/schema.sql` using the dedicated AI Command.
+    *   Use `better-sqlite3` for SQLite interaction.
+    *   Strict separation of concerns between Service and Repository layers.
+- **Success Criteria**:
+    *   JSON Schemas defined and validated.
+    *   DDL script successfully creates tables.
+    *   Database documentation accurately reflects DDL after using AI command.
+    *   >90% unit test coverage for Repository and Service.
+    *   All unit tests passing.
+
+## Milestone 0007 (was M6): Edge Tier API for ContextThreads
+
+- **Objective**: Expose the `ContextThread` domain functionality via a RESTful API in the Edge Tier, including an OpenAPI specification and Swagger UI for testing.
+- **Key Deliverables**:
+    1.  **OpenAPI Specification**: `openapi.yaml` or `openapi.json` defining the REST API endpoints for `ContextThreads` and `Messages`, referencing the domain JSON Schemas.
+    2.  **Swagger UI Setup**: Integration of Swagger UI into the Express application to serve interactive API documentation from the OpenAPI spec.
+    3.  **API Route Handlers**: Express route handlers in `/server/src/routes/edge/` for CRUD operations on `ContextThreads` and `Messages`, using the Domain Client Adapter to interact with the `ContextThreadService`.
+    4.  **Integration Tests**: Integration tests using Supertest to validate the Edge API endpoints.
+- **High-Level Tasks**:
+    1.  Define initial OpenAPI specification structure.
+    2.  Integrate Swagger UI middleware.
+    3.  Implement API route handlers for `ContextThread` CRUD.
+    4.  Implement API route handlers for `Message` operations within a thread.
+    5.  Refine OpenAPI specification with models and routes.
+    6.  Write integration tests for all new endpoints.
+- **Key Design Decisions**:
+    *   Use OpenAPI 3.x standard.
+    *   Leverage existing Domain Client Adapter pattern.
+    *   Ensure API routes handle request validation (potentially using JSON Schemas) and data transformation between Edge and Domain formats.
+- **Success Criteria**:
+    *   OpenAPI specification is valid and accurately describes the API.
+    *   Swagger UI is accessible and allows interaction with all defined endpoints.
+    *   API endpoints perform correct CRUD operations on threads and messages via the domain layer.
+    *   >90% integration test coverage for Edge API routes.
+    *   All integration tests passing.

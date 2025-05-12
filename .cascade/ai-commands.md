@@ -6,6 +6,7 @@ This document outlines standard operating procedures (SOPs) for common developme
 
 *   [Update Roadmap/Milestone](#command-update-roadmapmilestone): Modify project plan, roadmap, and related docs.
 *   [Documentation Sync Check](#command-documentation-sync-check): Verify consistency across documentation.
+*   [Review and Update DB Schema Docs](#command-review-and-update-db-schema-docs): Sync DB schema documentation with SQL DDL.
 *   [Create Dev Journal Entry](#command-create-dev-journal-entry): Add a new dated journal entry and update the summary.
 *   [Push Changes](#command-push-changes): Run lint/tests and push local commits to remote.
 *   [Add New Documentation File](#command-add-new-documentation-file): Create a new .md file, add standard links, and update references.
@@ -158,6 +159,57 @@ This document outlines standard operating procedures (SOPs) for common developme
 7.  **Commit:** Stage and commit the new file **and** all modified linking files.
     *   *Description:* This performs a local commit only. **Ensure the commit message is meaningful and descriptive** (e.g., `docs: Add new guide for X`).
     *   *Action:* Use `run_command` for `git add` and `git commit -m "<meaningful message>"`.
+
+---
+
+## Command: Review and Update DB Schema Docs
+
+**Trigger:** Manually invoked after making changes to `server/db/schema.sql`.
+
+**Objective:** Keep the database documentation file (`docs/database-schema.md`) structurally synchronized with the DDL source of truth (`server/db/schema.sql`) while preserving human-written descriptions and adhering to a defined format.
+
+**Key Files Involved:**
+
+1.  **Source of Truth:** `server/db/schema.sql` (Contains the DDL).
+2.  **Documentation Target:** `docs/database-schema.md` (Contains human-readable docs + structural representation).
+
+**Procedure:**
+
+1.  **Analyze SQL:** Parse `server/db/schema.sql` to identify the current database structure (tables, columns, types, constraints like PK/FK/NOT NULL/UNIQUE, indexes).
+2.  **Analyze Markdown:** Parse `docs/database-schema.md` to identify the currently documented structure. Assume a standard format (e.g., Markdown tables for each DB table listing columns, types, constraints, and description).
+    *   *(Example Template Section to Look For/Maintain in Markdown - Actual format TBD)*:
+        ```markdown
+        ### `my_table`
+
+        *Brief description of the table's purpose.*
+
+        | Column Name | Data Type | Constraints     | Description                  |
+        |-------------|-----------|-----------------|------------------------------|
+        | `id`        | `TEXT`    | PRIMARY KEY     | Unique identifier (UUID)     |
+        | `name`      | `TEXT`    | NOT NULL        | Name of the item             |
+        | `created_at`| `TEXT`    | NOT NULL        | ISO 8601 timestamp           |
+        | `updated_at`| `TEXT`    | NOT NULL        | ISO 8601 timestamp           |
+
+        **Indexes:**
+        *   `idx_my_table_name`: ON (`name`)
+
+        **Relationships:**
+        *   Relates to `other_table` via `other_table_id` (if applicable).
+        ```
+3.  **Compare:** Identify structural differences: missing/extra tables, missing/extra columns, type mismatches, constraint mismatches between the SQL definition and the Markdown documentation.
+4.  **Propose Updates via `edit_file`:**
+    *   **Target:** `docs/database-schema.md`.
+    *   **Correct Structure:** Generate edits to add/remove/modify rows or sections in the Markdown to match the SQL structure.
+    *   **Preserve Descriptions:** CRITICAL: Avoid deleting or overwriting existing text in the 'Description' column or the table's introductory description. Only remove description cells/sections associated with deleted SQL elements.
+    *   **Add Placeholders:** For newly added tables or columns, insert the structural rows/sections following the template, using placeholder text like `<!-- TODO: Add description -->` in the description fields.
+    *   **Adhere to Template:** Ensure all generated Markdown edits conform to the established documentation style and structure (like the example above).
+5.  **Report:** Present a summary of discrepancies found and the specific `edit_file` operations proposed to the user for review.
+
+**Human Role:**
+
+*   Review the AI's proposed changes to `docs/database-schema.md`.
+*   Manually fill in the descriptions for any `<!-- TODO: ... -->` placeholders.
+*   Commit both the updated `server/db/schema.sql` and the reviewed/updated `docs/database-schema.md` files.
 
 ---
 

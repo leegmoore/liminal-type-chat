@@ -5,7 +5,7 @@ description: Core project architecture, standards, and development guidelines
 # Frontmatter Configuration
 # Defines core context files provided to the AI.
 # - .cascade/project-plan/*.md: Individual files containing project architecture, standards, milestones, etc.
-# - AI_COMMANDS.md: Standard procedures for AI-assisted tasks.
+# - ai-commands.md: Standard procedures for AI-assisted tasks.
 # - ../dev-journal/dev-journal-summary.md: Provides CONCISE context of recent development activity. Avoid including individual journal files unless specifically requested for a deep dive.
 activation_mode: always_on
 priority: high
@@ -20,6 +20,7 @@ include_files:
   - project-plan/08-key-code-patterns.md
   - project-plan/09-product-vision.md
   - project-plan/10-mvp-001-milestones.md
+  - project-plan/milestone-0006-domain-layer.md
   - project-plan/11-architecture-detailed.md
   - project-plan/12-security.md
   - project-plan/13-project-setup.md
@@ -36,7 +37,7 @@ include_files:
   - project-plan/24-development-approach.md
   - project-plan/25-cascade-config.md
   - project-plan/26-ai-coding-guidelines.md
-  - AI_COMMANDS.md
+  - ai-commands.md
   - ../dev-journal/dev-journal-summary.md
 ---
 
@@ -54,8 +55,8 @@ This document provides essential context for development of the Liminal Type Cha
 - ✅ Milestone 4: React TypeScript Frontend - **COMPLETED**
 
 ### MVP2 (In Progress)
-- ⬜ Milestone 5: Core ContextThread Domain Layer - Implement data models, storage, and domain services
-- ⬜ Milestone 6: Edge Tier API for ContextThreads - Create RESTful API endpoints
+- ⬜ Milestone 5: Core ContextThread Domain Layer - Implement data models, storage, domain services, **and establish schema documentation process**
+- ⬜ Milestone 6: Edge Tier API for ContextThreads - Create RESTful API endpoints, **implement OpenAPI specification, and set up Swagger UI for testing**
 - ⬜ Milestone 7: GPT-4.1 Integration with Streaming - Implement OpenAI service with SSE
 - ⬜ Milestone 8: Chat UI Components - Create React components for conversation interface
 
@@ -121,31 +122,23 @@ Follow this tiered implementation approach when developing features:
    - Implement components with proper state management
    - Connect to backend through typed API services
 
-### MVP2 Focus: ContextThread Implementation
+### MVP2 Focus: Core Conversation Features
 
-For the ContextThread and GPT-4.1 integration (Milestones 5-8), follow these guidelines:
+For the Core Conversation Features (Milestones 5-8), follow these guidelines:
 
-1. **ContextThread Schema Design**:
-   - Keep the data model simple but extensible
-   - Include necessary fields for conversation context
-   - Consider using SQLite JSON capabilities for flexible metadata
+### MVP 2: Core Conversation Features (In Progress)
 
-2. **OpenAI API Integration**:
-   - Ensure proper error handling for API failures
-   - Implement streaming using SSE (Server-Sent Events)
-   - Abstract OpenAI-specific details behind a service interface
-
-3. **Security Considerations**:
-   - Protect API keys using environment variables
-   - Implement appropriate request validation
-   - Handle errors gracefully without exposing sensitive information
+*   **Milestone 0006 (was M5): Core ContextThread Domain Layer**: Implement domain models, services, and persistence for conversation threads and messages. *(See `project-plan/milestone-0006-domain-layer.md` for full details)*.
+*   **Milestone 0007 (was M6): Edge Tier API for ContextThreads**: Expose domain functionality via REST API with OpenAPI/Swagger. *(See `10-mvp-001-milestones.md` for full details)*.
+*   **Milestone 0008 (was M7): GPT-4.1 Integration with Streaming**: Implement OpenAI service with SSE *(See `10-mvp-001-milestones.md` for full details)*.
+*   **Milestone 0009 (was M8): Chat UI Components**: Create React components for conversation interface *(See `10-mvp-001-milestones.md` for full details)*.
 
 ## Core Planning & Context Documents:
 
 *   The complete architecture, roadmap, and development standards are documented in the markdown files within `.cascade/project-plan/`.
-*   Standard procedures for common AI-assisted tasks are defined as **AI Commands** in `.cascade/AI_COMMANDS.md`.
+*   Standard procedures for common AI-assisted tasks are defined as **AI Commands** in `.cascade/ai-commands.md`.
 
-**Please consult the relevant files in `.cascade/project-plan/` and `AI_COMMANDS.md` thoroughly before making any code changes or performing defined AI Command actions.**
+**Please consult the relevant files in `.cascade/project-plan/` and `ai-commands.md` thoroughly before making any code changes or performing defined AI Command actions.**
 
 ## Key Reminders & Guidelines:
 
