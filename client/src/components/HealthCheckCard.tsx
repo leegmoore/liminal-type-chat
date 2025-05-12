@@ -95,7 +95,7 @@ const HealthCheckCard: React.FC<HealthCheckCardProps> = ({
               {isSuccess ? (
                 <CheckCircleIcon color="green.500" boxSize="6" mr={2} />
               ) : (
-                <WarningIcon color="red.500" boxSize="6" mr={2} />
+                <WarningIcon data-testid="warning-icon" color="red.500" boxSize="6" mr={2} />
               )}
               <Text fontWeight="bold">
                 Status: {isSuccess ? 'Healthy' : 'Error'}

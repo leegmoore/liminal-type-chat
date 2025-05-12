@@ -102,8 +102,8 @@ describe('HealthDashboard', () => {
     });
   });
 
-  test('Handles error from health check API', async () => {
-    mockCheckServerHealth.mockRejectedValue(new Error('API Error'));
+  test('Handles error from domain server health check API', async () => {
+    mockCheckServerHealth.mockRejectedValue(new Error('Domain API Error'));
     
     render(<HealthDashboard />);
     
@@ -113,7 +113,52 @@ describe('HealthDashboard', () => {
     fireEvent.click(button);
     
     await waitFor(() => {
-      expect(screen.getByText('API Error')).toBeInTheDocument();
+      expect(screen.getByText('Domain API Error')).toBeInTheDocument();
+    });
+  });
+
+  test('Handles error from edge server health check API', async () => {
+    mockCheckServerHealth.mockRejectedValue(new Error('Edge API Error'));
+    
+    render(<HealthDashboard />);
+    
+    // Get the second button (Edge Server Health)
+    const buttons = screen.getAllByRole('button', { name: /Check Server Health/i });
+    const button = buttons[1]; // Second button is for edge tier
+    fireEvent.click(button);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Edge API Error')).toBeInTheDocument();
+    });
+  });
+
+  test('Handles error from domain database health check API', async () => {
+    mockCheckDatabaseHealth.mockRejectedValue(new Error('Domain DB Error'));
+    
+    render(<HealthDashboard />);
+    
+    // Get the first database health check button (Domain Database Health)
+    const buttons = screen.getAllByRole('button', { name: /Check Database Health/i });
+    const button = buttons[0]; // First button is for domain tier
+    fireEvent.click(button);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Domain DB Error')).toBeInTheDocument();
+    });
+  });
+
+  test('Handles error from edge database health check API', async () => {
+    mockCheckDatabaseHealth.mockRejectedValue(new Error('Edge DB Error'));
+    
+    render(<HealthDashboard />);
+    
+    // Get the second database health check button (Edge Database Health)
+    const buttons = screen.getAllByRole('button', { name: /Check Database Health/i });
+    const button = buttons[1]; // Second button is for edge tier
+    fireEvent.click(button);
+    
+    await waitFor(() => {
+      expect(screen.getByText('Edge DB Error')).toBeInTheDocument();
     });
   });
 });

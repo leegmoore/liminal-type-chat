@@ -114,6 +114,62 @@ describe('HealthCheckCard', () => {
     expect(screen.getByText('3.39.2')).toBeInTheDocument();
   });
 
+  test('displays error status correctly', () => {
+    const mockData = {
+      status: 'error' as const,
+      timestamp: '2025-05-11T18:30:00Z'
+    };
+
+    render(
+      <HealthCheckCard
+        title="Test Title"
+        subtitle="Test Subtitle"
+        checkType="server"
+        tier="domain"
+        result={{
+          data: mockData,
+          loading: false,
+          error: null
+        }}
+        onCheck={mockOnCheck}
+      />
+    );
+
+    expect(screen.getByText('Status: Error')).toBeInTheDocument();
+    // This is testing the branch where isSuccess is false, showing the WarningIcon
+    const warningIcon = screen.getByTestId('warning-icon');
+    expect(warningIcon).toBeInTheDocument();
+    expect(screen.getByText(/Last checked:/)).toBeInTheDocument();
+  });
+
+  test('displays data without details property', () => {
+    const mockData = {
+      status: 'ok' as const,
+      timestamp: '2025-05-11T18:30:00Z'
+      // No details property
+    };
+
+    render(
+      <HealthCheckCard
+        title="Test Title"
+        subtitle="Test Subtitle"
+        checkType="server"
+        tier="domain"
+        result={{
+          data: mockData,
+          loading: false,
+          error: null
+        }}
+        onCheck={mockOnCheck}
+      />
+    );
+
+    expect(screen.getByText('Status: Healthy')).toBeInTheDocument();
+    // Ensure we don't find any italicized details text
+    expect(screen.queryByText(/Server is healthy/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Last checked:/)).toBeInTheDocument();
+  });
+
   test('displays error state correctly', () => {
     render(
       <HealthCheckCard
