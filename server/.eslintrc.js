@@ -25,5 +25,21 @@ module.exports = {
     'indent': ['error', 2],
     'max-len': ['warn', { 'code': 100 }]
   },
-  ignorePatterns: ['dist', 'node_modules', 'coverage']
+  ignorePatterns: ['dist', 'node_modules', 'coverage'],
+  overrides: [
+    {
+      // Disable max-len for app.ts which contains HTML/CSS template code
+      files: ['src/app.ts'],
+      rules: {
+        'max-len': 'off'
+      }
+    },
+    {
+      // Relax max-len for test files
+      files: ['**/*.test.ts', 'test/**/*.ts'],
+      rules: {
+        'max-len': ['warn', { 'code': 120 }]
+      }
+    }
+  ]
 };

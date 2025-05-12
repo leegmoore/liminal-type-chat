@@ -23,7 +23,11 @@ This document outlines the development standards and conventions used in the Lim
   - Prettier for consistent formatting
   - Configuration in `.eslintrc.js` and `.prettierrc`
 
-- **Line Length**: Maximum 100 characters per line
+- **Line Length**: 
+  - Maximum 100 characters per line for most code files
+  - Maximum 120 characters per line for test files
+  - No maximum line length for app.ts (contains HTML/CSS templates)
+  - SQL statements should use template literals with backticks and be formatted across multiple lines when they exceed line length limits
 
 - **Indentation**: 2 spaces (not tabs)
 

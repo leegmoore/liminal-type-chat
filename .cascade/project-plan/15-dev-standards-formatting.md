@@ -7,7 +7,11 @@
   - **Non-Null Assertions**: Avoid using the non-null assertion operator (`!`). Refactor code to eliminate the need for it, or provide a comment explaining why it's safe and necessary if unavoidable.
   - **Unused Imports**: All imported modules, variables, types, or functions must be used. Remove any unused imports to keep the codebase clean and maintainable. Linting tools will flag these.
 
-- **Line Length**: Maximum 100 characters per line
+- **Line Length**: 
+  - Maximum 100 characters per line for most code files
+  - Maximum 120 characters per line for test files
+  - No maximum line length for app.ts (contains HTML/CSS templates)
+  - SQL statements should use template literals with backticks and be formatted across multiple lines when they exceed line length limits
 
 - **Indentation**: 2 spaces (not tabs)
 

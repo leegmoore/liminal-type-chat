@@ -64,7 +64,13 @@ describe('ContextThreadRepository', () => {
     
     // Mock fs.readFileSync to return a mock schema
     (fs.readFileSync as jest.Mock).mockReturnValue(
-      'CREATE TABLE context_threads (id TEXT PRIMARY KEY, title TEXT, created_at INTEGER, updated_at INTEGER, messages TEXT);'
+      `CREATE TABLE context_threads (
+        id TEXT PRIMARY KEY, 
+        title TEXT, 
+        created_at INTEGER, 
+        updated_at INTEGER, 
+        messages TEXT
+      );`
     );
     
     // Create repository instance
@@ -100,7 +106,8 @@ describe('ContextThreadRepository', () => {
       });
       
       // Assert that creating a new repository throws
-      expect(() => new ContextThreadRepository('test.db')).toThrow('Failed to initialize database schema');
+      expect(() => new ContextThreadRepository('test.db'))
+        .toThrow('Failed to initialize database schema');
     });
   });
   
