@@ -1,15 +1,17 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { vi } from 'vitest';
 import App from '../App';
 
 // Mock the Header, Footer, and HealthDashboard components
-jest.mock('../components/Header', () => () => (
+vi.mock('../components/Header', () => () => (
   <div data-testid="mock-header">Header Component</div>
 ));
-jest.mock('../components/Footer', () => () => (
+vi.mock('../components/Footer', () => () => (
   <div data-testid="mock-footer">Footer Component</div>
 ));
-jest.mock('../pages/HealthDashboard', () => () => (
+vi.mock('../pages/HealthDashboard', () => () => (
   <div data-testid="mock-dashboard">Dashboard Component</div>
 ));
 

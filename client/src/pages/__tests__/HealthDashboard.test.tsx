@@ -1,20 +1,21 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi } from 'vitest';
 import HealthDashboard from '../HealthDashboard';
 import * as healthService from '../../services/healthService';
 
 // Mock the health service functions
-jest.mock('../../services/healthService', () => ({
-  checkServerHealth: jest.fn(),
-  checkDatabaseHealth: jest.fn(),
+vi.mock('../../services/healthService', () => ({
+  checkServerHealth: vi.fn(),
+  checkDatabaseHealth: vi.fn(),
 }));
 
-const mockCheckServerHealth = healthService.checkServerHealth as jest.Mock;
-const mockCheckDatabaseHealth = healthService.checkDatabaseHealth as jest.Mock;
+const mockCheckServerHealth = healthService.checkServerHealth as ReturnType<typeof vi.fn>;
+const mockCheckDatabaseHealth = healthService.checkDatabaseHealth as ReturnType<typeof vi.fn>;
 
 describe('HealthDashboard', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockCheckServerHealth.mockResolvedValue({
       status: 'ok',
       timestamp: '2025-05-11T18:30:00Z',

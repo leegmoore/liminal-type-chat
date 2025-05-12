@@ -1,12 +1,13 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { vi } from 'vitest';
 import HealthCheckCard from '../HealthCheckCard';
 
-const mockOnCheck = jest.fn();
+const mockOnCheck = vi.fn();
 
 describe('HealthCheckCard', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('renders card with title and subtitle', () => {

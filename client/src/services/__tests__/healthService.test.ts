@@ -1,13 +1,14 @@
 import axios from 'axios';
+import { vi } from 'vitest';
 import { checkServerHealth, checkDatabaseHealth } from '../healthService';
 
 // Mock axios
-jest.mock('axios');
-const mockAxios = axios as jest.Mocked<typeof axios>;
+vi.mock('axios');
+const mockAxios = axios as unknown as { get: ReturnType<typeof vi.fn> };
 
 describe('healthService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('checkServerHealth', () => {
