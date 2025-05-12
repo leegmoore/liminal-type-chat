@@ -44,27 +44,33 @@ An open-source, local-first GenAI chat application designed for individuals and 
   - Added comprehensive component and integration tests with 80% coverage
   - Implemented type-safe API communication with domain and edge tiers
 
-### Next Development Phase
+### Next Development Phase - MVP2: Basic Chat with GPT-4.1
 
-- ⬜ **Milestone 5**: Core Conversation Models & Storage
-  - Implement conversation and message data models
-  - Create conversation repository and services
-  - Set up SQLite tables for storing conversations and messages
+The next major version focuses on delivering a streamlined chat experience with GPT-4.1 integration and conversation history.
 
-- ⬜ **Milestone 6**: LLM Provider Integration
-  - Implement OpenAI provider as first BYOK vendor
-  - Create provider abstraction layer for future LLM providers
-  - Add authentication and API key management
+- ⬜ **Milestone 5**: Core ContextThread Domain Layer
+  - Implement ContextThread and Message data models
+  - Create SQLite schema for storing these entities
+  - Build domain services for creating/retrieving ContextThreads and messages
+  - Apply TDD testing throughout development
 
-- ⬜ **Milestone 7**: Chat Interface & Basic Functionality
-  - Build conversation UI with chat interface
-  - Implement real-time message display and history
-  - Add basic prompt templating
+- ⬜ **Milestone 6**: Edge Tier API for ContextThreads
+  - Create edge tier routes for ContextThread operations (REST only)
+  - Implement validation and error handling
+  - Follow the domain client adapter pattern consistently
+  - Apply TDD testing as we go
 
-- ⬜ **Milestone 8**: Advanced Features & Deployment
-  - Add support for multiple LLM providers
-  - Implement conversation chain functionality
-  - Create deployment packaging for local installations
+- ⬜ **Milestone 7**: GPT-4.1 Integration with Streaming
+  - Create OpenAI service in domain tier for GPT-4.1 integration
+  - Implement streaming response handling using SSE (Server-Sent Events)
+  - Add domain endpoints for sending messages to GPT-4.1
+  - Create edge tier routes for streaming chat completions
+
+- ⬜ **Milestone 8**: Chat UI Components
+  - Create ContextThread list/selector component
+  - Build message display area with streaming support
+  - Implement message input with send functionality
+  - Wire everything up to the backend APIs
 
 ## Features
 

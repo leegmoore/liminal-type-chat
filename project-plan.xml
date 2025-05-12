@@ -445,6 +445,92 @@
       </content>
     </milestone>
 
+    <milestone id="M5">
+      <heading>Milestone 5: Core ContextThread Domain Layer</heading>
+      <objective>Implement data models, storage, and domain services for conversation threads</objective>
+      <deliverables>
+        <deliverable>ContextThread and Message data models and interfaces</deliverable>
+        <deliverable>SQLite schema for storing ContextThreads and messages</deliverable>
+        <deliverable>Domain services for creating/retrieving ContextThreads</deliverable>
+        <deliverable>Comprehensive TDD testing for all components</deliverable>
+      </deliverables>
+      <tasks>
+        <task>Define TypeScript interfaces for ContextThread and Message</task>
+        <task>Create SQLite tables for ContextThreads and messages</task>
+        <task>Implement repository layer for data access</task>
+        <task>Build domain services with proper error handling</task>
+        <task>Write unit tests for all components</task>
+      </tasks>
+      <notes>
+        Focus on getting the core data models and synchronous operations right before tackling streaming and UI components. This milestone establishes the foundation for conversation storage and retrieval.  
+      </notes>
+    </milestone>
+
+    <milestone id="M6">
+      <heading>Milestone 6: Edge Tier API for ContextThreads</heading>
+      <objective>Create RESTful API endpoints for ContextThread operations</objective>
+      <deliverables>
+        <deliverable>REST endpoints for ContextThread CRUD operations</deliverable>
+        <deliverable>Validation and error handling for all endpoints</deliverable>
+        <deliverable>Domain client adapter implementation</deliverable>
+        <deliverable>Integration tests for all routes</deliverable>
+      </deliverables>
+      <tasks>
+        <task>Create route handlers for ContextThread operations</task>
+        <task>Implement request validation and sanitization</task>
+        <task>Apply domain client adapter pattern consistently</task>
+        <task>Set up proper error handling and status codes</task>
+        <task>Write integration tests for all endpoints</task>
+      </tasks>
+      <notes>
+        This milestone extends the Edge/XPI tier to expose ContextThread operations via RESTful APIs. It follows our established architecture patterns while maintaining a clean separation between tiers.
+      </notes>
+    </milestone>
+
+    <milestone id="M7">
+      <heading>Milestone 7: GPT-4.1 Integration with Streaming</heading>
+      <objective>Integrate GPT-4.1 API with streaming response capabilities</objective>
+      <deliverables>
+        <deliverable>OpenAI service for GPT-4.1 integration</deliverable>
+        <deliverable>Streaming response handling using SSE</deliverable>
+        <deliverable>Domain endpoints for AI message generation</deliverable>
+        <deliverable>Edge tier routes for streaming chat completions</deliverable>
+        <deliverable>Tests for both synchronous and streaming operations</deliverable>
+      </deliverables>
+      <tasks>
+        <task>Set up OpenAI API integration</task>
+        <task>Implement SSE streaming for incremental responses</task>
+        <task>Create domain services for AI message processing</task>
+        <task>Add edge tier routes for streaming chat completions</task>
+        <task>Write tests for all components</task>
+      </tasks>
+      <notes>
+        This milestone adds AI capability to the application, with focus on the GPT-4.1 model. The streaming implementation is critical for providing a responsive user experience with real-time message display.
+      </notes>
+    </milestone>
+
+    <milestone id="M8">
+      <heading>Milestone 8: Chat UI Components</heading>
+      <objective>Create React components for conversation interface</objective>
+      <deliverables>
+        <deliverable>ContextThread list/selector component</deliverable>
+        <deliverable>Message display area with streaming support</deliverable>
+        <deliverable>Message input with send functionality</deliverable>
+        <deliverable>Complete integration with backend APIs</deliverable>
+      </deliverables>
+      <tasks>
+        <task>Design and build thread list component</task>
+        <task>Create message display component with chat bubbles</task>
+        <task>Implement message input and send functionality</task>
+        <task>Add streaming text display capabilities</task>
+        <task>Connect all UI components to backend APIs</task>
+        <task>Implement proper loading and error states</task>
+      </tasks>
+      <notes>
+        This milestone completes the core chat functionality by adding React components that consume the APIs created in previous milestones. Custom Chakra UI components will be used to maintain consistency with our existing design system.
+      </notes>
+    </milestone>
+
   </milestones>
 
   <technology_stack_and_architecture>
@@ -871,8 +957,12 @@
     <content>
       Liminal Type Chat will be developed in incremental milestones, each delivering a thin slice of complete functionality from database to UI:
 
-      - **MVP 1**: Focus on core infrastructure, health endpoints, and basic architecture patterns
-      - **MVP 2**: Once MVP 1 is complete, new milestones will be defined for conversation functionality
+      - **MVP 1**: Focus on core infrastructure, health endpoints, and basic architecture patterns ✅
+      - **MVP 2**: Streamlined chat application with GPT-4.1 integration, including:
+        - Core ContextThread data models and storage (Milestone 5)
+        - Edge tier API for ContextThread operations (Milestone 6)
+        - GPT-4.1 integration with streaming responses (Milestone 7)
+        - Chat UI components with conversation management (Milestone 8)
       - **Future MVPs**: Will add advanced features like multi-LLM orchestration, plugins, etc.
 
       Each milestone follows these principles:

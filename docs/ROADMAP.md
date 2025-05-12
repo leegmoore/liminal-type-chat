@@ -39,10 +39,33 @@ This document outlines planned enhancements and improvements to Liminal Type Cha
 
 ## Feature Roadmap
 
-### Core Conversation Features (Milestone 5)
-- [ ] Implement basic conversation model
-- [ ] Add conversation storage and retrieval
-- [ ] Create conversation management UI
+### MVP2: Basic Chat with GPT-4.1
+
+The next major version focuses on delivering a streamlined chat experience with GPT-4.1 integration and conversation history:
+
+### Core ContextThread Domain Layer (Milestone 5)
+- [ ] Implement ContextThread and Message data models
+- [ ] Create SQLite schema for storing these entities
+- [ ] Build domain services for creating/retrieving ContextThreads and messages
+- [ ] Apply TDD testing throughout development
+
+### Edge Tier API for ContextThreads (Milestone 6)
+- [ ] Create edge tier routes for ContextThread operations (REST only)
+- [ ] Implement validation and error handling
+- [ ] Follow the domain client adapter pattern consistently
+- [ ] Apply TDD testing as we go
+
+### GPT-4.1 Integration with Streaming (Milestone 7)
+- [ ] Create OpenAI service in domain tier for GPT-4.1 integration
+- [ ] Implement streaming response handling using SSE
+- [ ] Add domain endpoints for sending messages to GPT-4.1
+- [ ] Create edge tier routes for streaming chat completions
+
+### Chat UI Components (Milestone 8)
+- [ ] Create ContextThread list/selector component
+- [ ] Build message display area with streaming support
+- [ ] Implement message input with send functionality
+- [ ] Connect UI to backend APIs
 
 ### Prompt Management (Future)
 - [ ] Design and implement prompt database schema
