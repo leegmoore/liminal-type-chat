@@ -5,12 +5,11 @@ activation_mode: always_on
 priority: high
 include_files:
   - project-plan.xml
-  - dev-journal-m5-ci-workflow.md
-  - dev-journal-m4.md
-  - dev-journal-m3.md
-  - dev-journal-m2.md
-  - dev-journal-m1.md
-  - dev-journal-m0.md
+  - ../dev-journal/dev-journal-m4.md
+  - ../dev-journal/dev-journal-m3.md
+  - ../dev-journal/dev-journal-m2.md
+  - ../dev-journal/dev-journal-m1.md
+  - ../dev-journal/dev-journal-m0.md
 ---
 
 # Liminal Type Chat Project Context
