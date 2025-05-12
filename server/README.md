@@ -27,23 +27,30 @@ This directory contains the Node.js/Express backend for the Liminal Type Chat ap
 
 ### Implemented
 
-- **Basic HTTP Server & Domain Health Endpoint** (Milestone 1)
+- **Basic HTTP Server & Domain Health Endpoint** (Milestone 0002)
   - Express.js application with architectural folder structure
   - Domain health check endpoint
   - Comprehensive error handling
 
-- **SQLite Database Connectivity & Health Checks** (Milestone 2)
+- **SQLite Database Connectivity & Health Checks** (Milestone 0003)
   - SQLite with better-sqlite3 integration
   - Database provider interface
   - Health check table and schema initialization
   - Database health check endpoint
 
-- **Edge-to-Domain Communication** (Milestone 3)
+- **Core ContextThread Domain Layer** (Milestone 0006)
+  - ContextThread and Message domain models
+  - ContextThreadRepository for data persistence
+  - ContextThreadService with business logic
+  - Thread normalization utilities
+  - Domain API routes for thread and message operations
+
+- **Edge-to-Domain Communication** (Milestone 0004)
   - Domain client adapter pattern
   - Support for both direct and HTTP communication modes
   - Edge tier health check routes
 
-- **React Frontend Serving** (Milestone 4)
+- **React Frontend Serving** (Milestone 0005)
   - Serves the React frontend from the public directory
   - Catch-all routing for client-side React Router
   - API routes for health checks used by the frontend
@@ -119,6 +126,16 @@ The project maintains a minimum of 90% test coverage for domain services and 80%
 - **GET /api/v1/domain/health/db** - Domain tier database health check
 - **GET /api/v1/edge/health** - Edge tier system health check (via domain client)
 - **GET /api/v1/edge/health/db** - Edge tier database health check (via domain client)
+
+### Context Thread Domain API Endpoints
+
+- **POST /api/v1/domain/threads** - Create a new thread (with optional initial message)
+- **GET /api/v1/domain/threads/:id** - Get a thread by ID
+- **PUT /api/v1/domain/threads/:id** - Update a thread
+- **DELETE /api/v1/domain/threads/:id** - Delete a thread
+- **POST /api/v1/domain/threads/:id/messages** - Add a message to a thread
+- **GET /api/v1/domain/threads/:id/messages** - Get all messages in a thread
+- **PUT /api/v1/domain/threads/:id/messages/:messageId** - Update a specific message
 
 ## Frontend Integration
 

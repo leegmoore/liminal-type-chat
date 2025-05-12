@@ -7,9 +7,12 @@ import path from 'path';
 // Import routes and services
 import { createHealthRoutes } from './routes/domain/health';
 import { createEdgeHealthRoutes } from './routes/edge/health';
+import { createContextThreadRoutes } from './routes/domain/context-thread';
 import { HealthService } from './services/core/health-service';
+import { ContextThreadService } from './services/core/ContextThreadService';
 import { errorHandler } from './middleware/error-handler';
 import { SQLiteProvider } from './providers/db/sqlite-provider';
+import { ContextThreadRepository } from './providers/db/ContextThreadRepository';
 import config from './config';
 import { createHealthServiceClient } from './clients/domain/health-service-client-factory';
 
@@ -40,12 +43,15 @@ const dbProvider = new SQLiteProvider(config.db.path);
 
 // Create services with dependencies
 const healthService = new HealthService(dbProvider);
+const contextThreadRepository = new ContextThreadRepository();
+const contextThreadService = new ContextThreadService(contextThreadRepository);
 
 // Create client adapters
 const healthServiceClient = createHealthServiceClient(healthService);
 
 // Mount domain routes
 app.use(createHealthRoutes(healthService));
+app.use('/api/v1/domain/threads', createContextThreadRoutes(contextThreadService));
 
 // Mount edge routes
 app.use(createEdgeHealthRoutes(healthServiceClient));

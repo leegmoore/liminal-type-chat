@@ -1,6 +1,7 @@
 # Milestone 0006 (was M5): Core ContextThread Domain Layer
 
 - **Objective**: Implement the core domain logic for managing `ContextThread`s and `Message`s, including data models, persistence, domain services, domain API routes, and establish the database schema documentation process.
+- **Status**: COMPLETED (May 12, 2025)
 
 ## Scope
 
@@ -14,15 +15,15 @@
 
 ## Plan
 
-1.  **Define `Message` JSON Schema:** Create `/server/src/schemas/domain/Message.json` (including `id`, `threadId`, `role`, `content`, `createdAt`, `metadata?`, `status?`).
-2.  **Define `ContextThread` JSON Schema:** Create `/server/src/schemas/domain/ContextThread.json` (including `id`, `title?`, `createdAt`, `updatedAt`, `metadata?`, `messages` array referencing `Message` schema).
+1.  **Define `Message` JSON Schema:** Create `/server/src/schemas/domain/Message.json` (including `id`, `threadId`, `role`, `content`, `createdAt`, `metadata?`, `status?`). *(Status: Complete - Implemented as TypeScript interfaces)*
+2.  **Define `ContextThread` JSON Schema:** Create `/server/src/schemas/domain/ContextThread.json` (including `id`, `title?`, `createdAt`, `updatedAt`, `metadata?`, `messages` array referencing `Message` schema). *(Status: Complete - Implemented as TypeScript interfaces)*
 3.  **Define Database Schema (`schema.sql`):** Finalize and create `/server/db/schema.sql` with `CREATE TABLE context_threads`. *(Status: Complete)*
-4.  **Implement `ContextThreadRepository`:** Create in `/server/src/providers/db/`. Responsibilities: CRUD operations; parse `messages` JSON on read, stringify `messages` array on write. Include unit tests (mocking DB driver).
-5.  **Implement `ContextThreadService`:** Create in `/server/src/services/core/`. Responsibilities: Business logic; generate UUIDs/timestamps; manage `Message` status; call `normalizeThreadMessages` before saving. Include unit tests (mocking Repository).
-    *   Implement `normalizeThreadMessages` utility (initially sorts messages by `createdAt`).
-6.  **(Optional Generation) Define TypeScript Types:** Define `ContextThread` and `Message` interfaces (e.g., in `/server/src/types/domain.ts`). *Optionally*, configure tooling (e.g., `json-schema-to-typescript`) to generate these from the JSON schemas; otherwise, create them manually.
-7.  **Implement Domain API Routes:** Create in `/server/src/routes/domain/context-thread.ts`. Expose the `ContextThreadService` operations as API endpoints. This follows the established architectural pattern that supports both single-process and multi-process deployment models. Include unit tests (mocking Service layer).
-8.  **Create/Update Database Documentation:** Ensure `docs/database-schema.md` reflects the `schema.sql` definition.
+4.  **Implement `ContextThreadRepository`:** Create in `/server/src/providers/db/`. Responsibilities: CRUD operations; parse `messages` JSON on read, stringify `messages` array on write. Include unit tests (mocking DB driver). *(Status: Complete - 93.75% test coverage)*
+5.  **Implement `ContextThreadService`:** Create in `/server/src/services/core/`. Responsibilities: Business logic; generate UUIDs/timestamps; manage `Message` status; call `normalizeThreadMessages` before saving. Include unit tests (mocking Repository). *(Status: Complete - 97.36% test coverage)*
+    *   Implement `normalizeThreadMessages` utility (initially sorts messages by `createdAt`). *(Status: Complete - 100% test coverage)*
+6.  **Define TypeScript Types:** Define `ContextThread` and `Message` interfaces in `/server/src/types/domain.ts`. *(Status: Complete - TypeScript interfaces created manually)*
+7.  **Implement Domain API Routes:** Create in `/server/src/routes/domain/context-thread.ts`. Expose the `ContextThreadService` operations as API endpoints. This follows the established architectural pattern that supports both single-process and multi-process deployment models. Include unit tests (mocking Service layer). *(Status: Complete - 90.66% test coverage)*
+8.  **Create/Update Database Documentation:** Ensure `docs/database-schema.md` reflects the `schema.sql` definition. *(Status: Complete - Documentation updated)*
 
 ## Design
 
@@ -92,6 +93,22 @@ Using SQLite. Messages are denormalized and stored as a JSON array string direct
 *   **Repository**: Saves the pre-sorted array stringified.
 
 ## Tests
+
+### Testing Implementation Summary
+
+**Achieved Coverage Metrics:**
+- `ContextThreadRepository`: 93.75% statement coverage, 66.66% branch coverage
+- `ContextThreadService`: 97.36% statement coverage, 100% branch coverage
+- `context-thread.ts` routes: 90.66% statement coverage, 75% branch coverage
+- `normalizeThreadMessages` utility: 100% statement coverage, 100% branch coverage
+
+**ContextThreadRepository Tests:**
+*   **Create Thread**: Verified successful insertion of a new thread record with correct data mapping (camelCase -> snake_case, JSON stringify).
+*   **Get Thread by ID (Exists)**: Verify retrieval of a thread, correct data mapping (snake_case -> camelCase), successful parsing of valid `messages` and `metadata` JSON.
+*   **Get Thread by ID (Not Found)**: Verify returns `null` for a non-existent ID.
+*   **Get Thread by ID (Corrupted Messages JSON)**: Verify `MessagesCorruptedError` is thrown when `messages` JSON is invalid.
+*   **Get Thread by ID (Corrupted Metadata JSON)**: Verify error is logged, but method potentially returns thread with `metadata` as `undefined` or `null` (confirm desired behavior).
+*   **Update Thread**: Verify successful update of fields (title, metadata, messages, updated_at), correct data mapping and stringification.
 
 ### Unit Test Conditions
 

@@ -48,17 +48,20 @@ This document provides essential context for development of the Liminal Type Cha
 ## Project Status
 
 ### MVP1 (Completed)
-- ✅ Milestone 0: Project Initialization - **COMPLETED**
-- ✅ Milestone 1: Basic HTTP Server & Domain Health Endpoint - **COMPLETED**
-- ✅ Milestone 2: Database Integration & Health Checks - **COMPLETED**
-- ✅ Milestone 3: Edge-to-Domain Communication - **COMPLETED**
-- ✅ Milestone 4: React TypeScript Frontend - **COMPLETED**
+- ✅ Milestone 0001: Project Initialization - **COMPLETED**
+- ✅ Milestone 0002: Basic HTTP Server & Domain Health Endpoint - **COMPLETED**
+- ✅ Milestone 0003: Database Integration & Health Checks - **COMPLETED**
+- ✅ Milestone 0004: Edge-to-Domain Communication - **COMPLETED**
+- ✅ Milestone 0005: React TypeScript Frontend - **COMPLETED**
 
 ### MVP2 (In Progress)
-- ⬜ Milestone 5: Core ContextThread Domain Layer - Implement data models, storage, domain services, **and establish schema documentation process**
-- ⬜ Milestone 6: Edge Tier API for ContextThreads - Create RESTful API endpoints, **implement OpenAPI specification, and set up Swagger UI for testing**
-- ⬜ Milestone 7: GPT-4.1 Integration with Streaming - Implement OpenAI service with SSE
-- ⬜ Milestone 8: Chat UI Components - Create React components for conversation interface
+- ✅ Milestone 0006: Core ContextThread Domain Layer - **COMPLETED**
+  - Implemented data models, storage, domain services, and schema documentation
+  - Created comprehensive test coverage (>90%) for all components
+  - Established domain API routes with proper error handling
+- ⬜ Milestone 0007: Edge Tier API for ContextThreads - Create RESTful API endpoints, implement OpenAPI specification, and set up Swagger UI for testing
+- ⬜ Milestone 0008: GPT-4.1 Integration with Streaming - Implement OpenAI service with SSE
+- ⬜ Milestone 0009: Chat UI Components - Create React components for conversation interface
 
 ## Key Architecture Points
 

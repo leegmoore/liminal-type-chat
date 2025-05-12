@@ -28,29 +28,29 @@ Navigating the project documentation:
 
 ### Initial Development Plan
 
-- ✅ **Milestone 0**: Project Initialization & First Commit - **COMPLETED**
+- ✅ **Milestone 0001**: Project Initialization & First Commit - **COMPLETED**
   - Set up the Node.js/TypeScript project structure and configuration files
   - Initialize Git repository and perform initial commit
 
-- ✅ **Milestone 1**: Basic HTTP Server & Domain Health Endpoint - **COMPLETED**
+- ✅ **Milestone 0002**: Basic HTTP Server & Domain Health Endpoint - **COMPLETED**
   - Stand up Express.js application with architectural folder structure
   - Implement domain health check endpoint and comprehensive error handling
   - Add unit and integration tests with proper coverage
 
-- ✅ **Milestone 2**: SQLite Database Connectivity & Domain DB Health Endpoint - **COMPLETED**
+- ✅ **Milestone 0003**: SQLite Database Connectivity & Domain DB Health Endpoint - **COMPLETED**
   - Set up SQLite with better-sqlite3 and create database provider
   - Implement health check table and schema initialization
   - Extend health service with database connection checks
   - Add database health check endpoint with visual dashboard
 
-- ✅ **Milestone 3**: Edge-to-Domain Pattern Implementation for Health Checks - **COMPLETED**
+- ✅ **Milestone 0004**: Edge-to-Domain Pattern Implementation for Health Checks - **COMPLETED**
   - Implemented domain client adapter pattern for tier communication
   - Created edge routes that use the domain client to access domain services
   - Added support for both direct and HTTP communication modes
   - Implemented comprehensive test suite for both communication modes
   - Enhanced health dashboard with domain and edge tier visualization
 
-- ✅ **Milestone 4**: React TypeScript Frontend with Health Check Features - **COMPLETED**
+- ✅ **Milestone 0005**: React TypeScript Frontend with Health Check Features - **COMPLETED**
   - Created React TypeScript frontend with Chakra UI for modern, responsive design
   - Implemented server and database health check components with real-time status display
   - Configured Vite build process with automatic deployment to Express static directory
@@ -61,29 +61,30 @@ Navigating the project documentation:
 
 The next major version focuses on delivering a streamlined chat experience with GPT-4.1 integration and conversation history.
 
-- ⬜ **Milestone 5**: Core ContextThread Domain Layer
-  - Implement ContextThread and Message data models
-  - Create SQLite schema for storing these entities
-  - Build domain services for creating/retrieving ContextThreads and messages
-  - Apply TDD testing throughout development
+- ✅ **Milestone 0006**: Core ContextThread Domain Layer - **COMPLETED**
+  - Implemented ContextThread and Message data models as TypeScript interfaces
+  - Created SQLite schema for storing threads with JSON-serialized messages
+  - Built domain services for CRUD operations on ContextThreads and messages
+  - Applied TDD with comprehensive test coverage (>90%)
+  - Implemented domain API routes with full test coverage
 
-- ⬜ **Milestone 6**: Edge Tier API for ContextThreads
+- ⬜ **Milestone 0007**: Edge Tier API for ContextThreads
   - Create edge tier routes for ContextThread operations (REST only)
   - Implement validation and error handling
   - Follow the domain client adapter pattern consistently
   - Apply TDD testing as we go
 
-- ⬜ **Milestone 7**: GPT-4.1 Integration with Streaming
-  - Create OpenAI service in domain tier for GPT-4.1 integration
-  - Implement streaming response handling using SSE (Server-Sent Events)
-  - Add domain endpoints for sending messages to GPT-4.1
-  - Create edge tier routes for streaming chat completions
+- ⬜ **Milestone 0008**: LLM Integration & Basic Chat
+  - Implement OpenAI integration with streaming
+  - Create LLM service in domain tier
+  - Implement chat endpoints in domain and edge tiers
+  - Test with GPT-4.1
 
-- ⬜ **Milestone 8**: Chat UI Components
-  - Create ContextThread list/selector component
-  - Build message display area with streaming support
-  - Implement message input with send functionality
-  - Wire everything up to the backend APIs
+- ⬜ **Milestone 0009**: Chat UI and Conversation Experience
+  - Design and implement chat UI components
+  - Create conversation management interface
+  - Implement thread creation and listing
+  - Add streaming message display
 
 ## Features
 

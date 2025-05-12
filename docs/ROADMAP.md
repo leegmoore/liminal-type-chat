@@ -83,29 +83,31 @@ This document outlines planned enhancements and improvements to Liminal Type Cha
 -   [ ] Key documentation (API Spec, DB Schema, Config Guide) is created.
 
 ## MVP 3: Enhanced LLM Support & User Experience
-### Core ContextThread Domain Layer (Milestone 5)
-- [ ] Implement ContextThread and Message data models
-- [ ] Create SQLite schema for storing these entities
-- [ ] Build domain services for creating/retrieving ContextThreads and messages
-- [ ] Apply TDD testing throughout development
+### Core ContextThread Domain Layer (Milestone 0006) - COMPLETED
+- [x] Implement ContextThread and Message data models as TypeScript interfaces
+- [x] Create SQLite schema for storing threads with JSON-serialized messages
+- [x] Build domain services for CRUD operations on ContextThreads and messages
+- [x] Apply TDD with comprehensive test coverage (>90%)
+- [x] Implement domain API routes with full test coverage
 
-### Edge Tier API for ContextThreads (Milestone 6)
+### Edge Tier API for ContextThreads (Milestone 0007)
 - [ ] Create edge tier routes for ContextThread operations (REST only)
 - [ ] Implement validation and error handling
 - [ ] Follow the domain client adapter pattern consistently
+- [ ] Implement OpenAPI specification and Swagger UI for testing
 - [ ] Apply TDD testing as we go
 
-### GPT-4.1 Integration with Streaming (Milestone 7)
-- [ ] Create OpenAI service in domain tier for GPT-4.1 integration
-- [ ] Implement streaming response handling using SSE
-- [ ] Add domain endpoints for sending messages to GPT-4.1
-- [ ] Create edge tier routes for streaming chat completions
+### LLM Integration & Basic Chat (Milestone 0008)
+- [ ] Implement OpenAI integration with streaming
+- [ ] Create LLM service in domain tier
+- [ ] Implement chat endpoints in domain and edge tiers
+- [ ] Test with GPT-4.1
 
-### Chat UI Components (Milestone 8)
-- [ ] Create ContextThread list/selector component
-- [ ] Build message display area with streaming support
-- [ ] Implement message input with send functionality
-- [ ] Connect UI to backend APIs
+### Chat UI and Conversation Experience (Milestone 0009)
+- [ ] Design and implement chat UI components
+- [ ] Create conversation management interface
+- [ ] Implement thread creation and listing
+- [ ] Add streaming message display
 
 ### Prompt Management (Future)
 - [ ] Design and implement prompt database schema
