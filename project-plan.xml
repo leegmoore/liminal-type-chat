@@ -861,7 +861,8 @@
     <title>Deployment Tooling &amp; Implementation Service</title>
     <content>
       - MVP: Primarily local execution. No complex deployment tooling.
-      - Future if hosted: Docker, PaaS (Vercel, Railway, Fly.io), CI/CD (GitHub Actions) - TBD.
+      - CI/CD: GitHub Actions workflow for automated linting, building, testing, and security scanning.
+      - Future if hosted: Docker, PaaS (Vercel, Railway, Fly.io) - TBD.
     </content>
   </deployment>
 

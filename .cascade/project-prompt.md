@@ -5,6 +5,7 @@ activation_mode: always_on
 priority: high
 include_files:
   - project-plan.xml
+  - docs/dev-journal-m5-ci-workflow.md
   - dev-journal-m4.md
   - dev-journal-m2-m3.md
   - dev-journal-m1.md
@@ -71,6 +72,7 @@ Always maintain clean separation between tiers and follow the domain client adap
 
 Implementation decisions, problem-solving approaches, and developer notes are tracked in milestone-specific development journals:
 
+- [CI Workflow Setup Journal](docs/dev-journal-m5-ci-workflow.md) - GitHub Actions CI Implementation ✅
 - [Milestone 4 Development Journal](dev-journal-m4.md) - React TypeScript Frontend ✅
 - [Milestone 2 & 3 Development Journal](dev-journal-m2-m3.md) - Database Integration & Edge-to-Domain Communication ✅
 - [Milestone 1 Development Journal](dev-journal-m1.md) - Basic HTTP Server & Domain Health Endpoint ✅

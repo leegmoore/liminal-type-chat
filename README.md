@@ -6,6 +6,7 @@ An open-source, local-first GenAI chat application designed for individuals and 
 
 - [Development Standards](docs/DEVELOPMENT_STANDARDS.md) - Coding standards, patterns, and best practices
 - [Error Codes](docs/ERROR_CODES.md) - Complete error code reference
+- [CI Workflow](docs/dev-journal-m5-ci-workflow.md) - GitHub Actions CI setup and configuration
 - [Roadmap](docs/ROADMAP.md) - Future enhancements and planned features
 - [Security Policy](.github/SECURITY.md) - Security information and reporting vulnerabilities
 - [Contributing](.github/CONTRIBUTING.md) - Guidelines for contributing to the project
@@ -213,10 +214,18 @@ npm run test:server
 cd server
 npm test
 
-# Run client tests
+# Run client tests (with coverage enforcement)
 cd client
 npm test
 ```
+
+The project enforces strict test coverage thresholds:
+- 80% line coverage
+- 80% function coverage
+- 80% statement coverage
+- 80% branch coverage
+
+These thresholds are checked during CI builds and must be met for PRs to be merged.
 
 ### Building for Production
 
