@@ -5,7 +5,7 @@ activation_mode: always_on
 priority: high
 include_files:
   - project-plan.xml
-  - AI_WORKFLOWS.md
+  - AI_COMMANDS.md
   - ../dev-journal/dev-journal-m4.md
   - ../dev-journal/dev-journal-m3.md
   - ../dev-journal/dev-journal-m2.md
@@ -121,9 +121,9 @@ For the ContextThread and GPT-4.1 integration (Milestones 5-8), follow these gui
 ## Core Planning & Context Documents:
 
 *   The complete architecture, roadmap, and development standards are documented in `.cascade/project-plan.xml`.
-*   Standard procedures for common AI-assisted tasks are documented in `.cascade/AI_WORKFLOWS.md`.
+*   Standard procedures for common AI-assisted tasks are defined as **AI Commands** in `.cascade/AI_COMMANDS.md`.
 
-**Please consult BOTH `project-plan.xml` and `AI_WORKFLOWS.md` thoroughly before making any code changes or performing defined workflow actions.**
+**Please consult BOTH `project-plan.xml` and `AI_COMMANDS.md` thoroughly before making any code changes or performing defined AI Command actions.**
 
 ## Key Reminders & Guidelines:
 

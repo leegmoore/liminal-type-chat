@@ -1,8 +1,8 @@
-# Cascade AI Workflows for Liminal Type Chat
+# Cascade AI Commands for Liminal Type Chat
 
-This document outlines standard operating procedures (SOPs) for common development tasks involving AI assistance (Cascade). Adhering to these workflows helps ensure consistency, accuracy, and efficiency.
+This document outlines standard operating procedures (SOPs) for common development tasks involving AI assistance (Cascade). Adhering to these commands helps ensure consistency, accuracy, and efficiency.
 
-## Workflow: Update Roadmap/Milestone
+## Command: Update Roadmap/Milestone
 
 **Trigger:** User request to modify project milestones or roadmap features (e.g., add/remove features, change scope, update status).
 
@@ -38,11 +38,12 @@ This document outlines standard operating procedures (SOPs) for common developme
     *   *Action:* Use `edit_file` tool (if needed).
 6.  **Confirmation:** Present a summary of changes made across all files to the user.
 7.  **Commit:** Stage and commit all modified files with a clear commit message (e.g., `docs: Update MVP 2 scope to include X`).
-    *   *Action:* Use `run_command` for `git add` and `git commit`.
+    *   *Description:* This performs a local commit only. **Ensure the commit message is meaningful and descriptive** (e.g., using conventional commit format like `feat:`, `fix:`, `docs:`, `chore:`).
+    *   *Action:* Use `run_command` for `git add` and `git commit -m "<meaningful message>"`.
 
 ---
 
-## Workflow: Documentation Sync Check
+## Command: Documentation Sync Check
 
 **Trigger:** User request to verify consistency across documentation and planning files.
 
@@ -67,7 +68,7 @@ This document outlines standard operating procedures (SOPs) for common developme
 
 ---
 
-## Workflow: Create Dev Journal Entry
+## Command: Create Dev Journal Entry
 
 **Trigger:** User request to create a new development journal entry, typically after a significant work session or decision point.
 
@@ -97,8 +98,29 @@ This document outlines standard operating procedures (SOPs) for common developme
     *   *Action:* Use `edit_file` tool (or `write_to_file` if creating).
 7.  **Confirmation:** Inform the user the journal entry and summary have been updated/created.
 8.  **Commit:** Stage and commit the new journal file **and** the updated summary file.
-    *   *Action:* Use `run_command` for `git add` and `git commit`.
+    *   *Description:* This performs a local commit only. **Ensure the commit message is meaningful and descriptive** (e.g., `journal: Add entry for YYYY-MM-DD on topic Z`).
+    *   *Action:* Use `run_command` for `git add` and `git commit -m "<meaningful message>"`.
 
 ---
 
-*(More workflows to be added as needed)*
+## Command: Push Changes
+
+**Trigger:** User request to push committed changes, or AI suggestion after significant local commits.
+
+**Objective:** Ensure local commits pass quality checks (linting, testing) before uploading them to the remote repository.
+
+**Procedure:**
+
+1.  **Run Linting:** Execute the lint command(s) for the relevant codebase parts (e.g., `npm run lint`).
+    *   *Action:* Use `run_command` (Blocking: true, SafeToAutoRun: true).
+    *   **If Fails:** Stop command, report lint errors to user for correction.
+2.  **Run Tests:** Execute the test command(s) for the relevant codebase parts (e.g., `npm run test:server`, `npm run test:client`). Ensure tests run with coverage checks if applicable (client tests have 80% threshold).
+    *   *Action:* Use `run_command` (Blocking: true, SafeToAutoRun: true).
+    *   **If Fails:** Stop command, report test/coverage failures to user for correction.
+3.  **Push:** If linting and tests pass, execute the push command for the current branch.
+    *   *Action:* Use `run_command` for `git push` (SafeToAutoRun: false).
+4.  **Confirmation:** Report success or failure of the push.
+
+---
+
+*(More commands to be added as needed)*
