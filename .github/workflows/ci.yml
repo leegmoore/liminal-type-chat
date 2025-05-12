@@ -23,6 +23,15 @@ jobs:
         # Using the root package-lock.json for workspaces
         cache-dependency-path: './package-lock.json'
     
+    - name: Check for package-lock.json and npm version
+      run: |
+        pwd
+        ls -la
+        echo "--- package-lock.json (first 10 lines) ---"
+        cat package-lock.json | head -n 10 || echo "package-lock.json not found or cat failed"
+        echo "--- npm version ---"
+        npm --version
+
     - name: Install dependencies (workspaces)
       run: npm ci
       
