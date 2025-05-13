@@ -44,11 +44,27 @@ const config = {
   // Default to true (direct mode) unless explicitly set to false
   inProcessMode: process.env.IN_PROCESS_MODE !== 'false',
   
+  /** Domain client mode ('direct' or 'http') */
+  domainClientMode: process.env.DOMAIN_CLIENT_MODE || 'direct',
+  
   /** API base URL for HTTP client mode */
-  apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:3000',
+  apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:8765',
+  
+  /** Domain API base URL for HTTP client mode */
+  domainApiBaseUrl: process.env.DOMAIN_API_BASE_URL || process.env.API_BASE_URL || 'http://localhost:8765',
   
   /** Logging level */
   logLevel: process.env.LOG_LEVEL || 'debug',
+  
+  /** Domain API documentation settings */
+  domainApiDocs: {
+    /** Username for basic auth protection of Domain API docs */
+    username: process.env.DOMAIN_DOCS_USERNAME || 'admin',
+    /** Password for basic auth protection of Domain API docs */
+    password: process.env.DOMAIN_DOCS_PASSWORD || 'password',
+    /** Whether to enable basic auth for Domain API docs in non-dev environments */
+    enableAuth: process.env.NODE_ENV !== 'development',
+  },
 };
 
 export default config;
