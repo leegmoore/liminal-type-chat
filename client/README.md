@@ -67,7 +67,12 @@ npm test
 npm test -- --coverage
 ```
 
-The project maintains a minimum of 80% test coverage across all components.
+The project implements a comprehensive test coverage strategy for frontend components:
+- React components: 85% minimum coverage
+- Utility functions: 90% minimum coverage
+- Service/API integration: 80% minimum coverage
+
+See [AUTOMATED_TESTING.md](../docs/AUTOMATED_TESTING.md) for detailed testing guidelines and best practices.
 
 ### Building and Deployment
 

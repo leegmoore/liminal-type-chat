@@ -169,15 +169,23 @@ This document outlines the development standards and conventions used in the Lim
 
 ## Testing Standards
 
+See [AUTOMATED_TESTING.md](./AUTOMATED_TESTING.md) for comprehensive testing guidelines.
+
 - **Coverage Requirements**:
-  - Domain services: 90% minimum coverage
-  - Edge/route handlers: 80% minimum coverage
-  - Utility functions: 80% minimum coverage
+  - **Global Baseline**: 85% statements, 70% branches, 85% functions, 85% lines
+  - **Core Business Logic (Domain Services)**: 90% statements, 80% branches, 85% functions, 90% lines
+  - **Utility Functions**: 90% statements, 80% branches, 90% functions, 90% lines
+  - **Data Access (Repositories/Providers)**: 80% statements, 45% branches, 75% functions, 80% lines
+  - **API Routes (Edge/Domain)**: 75% statements, 45% branches, 75% functions, 75% lines
+  - **Client Adapters**: 85% statements, 70% branches, 80% functions, 85% lines
+  - **Configuration**: Lower requirements with appropriate exclusions
 
 - **Test Organization**:
-  - Tests are organized in a dedicated `/test` directory with separate folders for test types:
-    - `/test/unit`: Unit tests targeting individual functions and classes
-    - `/test/integration`: Integration tests targeting component interactions
+  - Tests are organized in two primary locations:
+    - `src/__tests__`: Unit tests adjacent to source files being tested
+    - `/test` directory with separate folders for test types:
+      - `/test/unit`: Additional unit tests targeting individual functions and classes
+      - `/test/integration`: Integration tests targeting component interactions
   - Unit test directory structure mirrors the source code structure (e.g., `/test/unit/services`)
   - Use Jest's describe/it pattern for logical test organization
   - Follow AAA pattern (Arrange, Act, Assert)
@@ -185,19 +193,35 @@ This document outlines the development standards and conventions used in the Lim
 - **Test Naming**:
   - Format: `should [expected behavior] when [condition]`
   - Examples: `should return 404 when thread not found`
+  - Use descriptive names for test files with purpose-specific suffixes (e.g., `.edge-cases.test.ts`, `.standardized.test.ts`)
 
 - **Test Types**:
-  - Unit tests: Test individual functions in isolation
-  - Integration tests: Test interactions between components
-  - HTTP tests: Test API endpoints using Supertest
+  - **Unit Tests**: Test individual functions in isolation
+  - **Integration Tests**: Test interactions between components
+  - **API Tests**: Test HTTP endpoints using Supertest
+  - **Validation Tests**: Test input validation rules
+  - **Edge Case Tests**: Focus on boundary conditions and error handling
 
-- **Mocking**:
+- **Testing Best Practices**:
+  - Write tests before implementing features (TDD approach)
+  - Test both success and failure paths
+  - Keep tests focused on a single behavior
+  - Consider test performance (fast tests encourage more testing)
+  - Use realistic test data
+  - Test edge cases thoroughly
+  - Properly test asynchronous code with async/await
+
+- **Mocking Strategy**:
   - Mock external dependencies (DB, LLM providers, etc.) in unit tests
   - Use Jest mocks and spies consistently
+  - Create mock implementations for interfaces
+  - Use jest.spyOn for monitoring function calls while preserving implementation
   - For integration tests, prefer test doubles over network calls
 
-- **Test Data**:
-  - Use factories or fixtures for test data generation
+- **Test Data Management**:
+  - Use factory functions for generating test data
+  - Create fixtures for complex or reusable test scenarios
+  - Implement helper functions for common test operations
   - Avoid hardcoding test data directly in test files
   - Explain edge cases with comments
 

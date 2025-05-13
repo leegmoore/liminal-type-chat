@@ -262,10 +262,23 @@ The current milestone involves creating a RESTful Edge API for conversations:
 ## Coding Standards
 
 1. **Testing Requirements**
-   - Domain services: ≥90% statement coverage
-   - Other components: ≥80% statement coverage
+   We implement a tiered coverage threshold system based on component criticality:
+
+   - **Core Business Logic (Domain Services)**: 90% statements, 80% branches, 85% functions, 90% lines
+   - **Utility Functions**: 90% statements, 80% branches, 90% functions, 90% lines
+   - **Data Access (Repositories/Providers)**: 80% statements, 45% branches, 75% functions, 80% lines
+   - **API Routes (Edge/Domain)**: 75% statements, 45% branches, 75% functions, 75% lines
+   - **Client Adapters**: 85% statements, 70% branches, 80% functions, 85% lines
+   - **React Components**: 85% statements, 70% branches, 85% lines
+
+   Test types include:
    - Unit tests with Jest/Vitest
    - Integration tests with Supertest
+   - API validation tests
+   - Edge case tests
+   - Component tests with React Testing Library
+
+   Full details are available in [docs/AUTOMATED_TESTING.md](docs/AUTOMATED_TESTING.md)
 
 2. **Documentation Standards**
    - JSDoc comments for public APIs

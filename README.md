@@ -5,6 +5,7 @@ An open-source, local-first GenAI chat application designed for individuals and 
 ## Documentation
 
 - [Development Standards](docs/DEVELOPMENT_STANDARDS.md) - Coding standards, patterns, and best practices
+- [Automated Testing Guide](docs/AUTOMATED_TESTING.md) - Comprehensive testing strategy and best practices
 - [Error Codes](docs/ERROR_CODES.md) - Complete error code reference
 - [CI Workflow](docs/dev-journal-m5-ci-workflow.md) - GitHub Actions CI setup and configuration
 - [Roadmap](docs/ROADMAP.md) - Future enhancements and planned features
@@ -19,7 +20,8 @@ Navigating the project documentation:
 - **[`server/README.md`](./server/README.md):** Backend (Node.js/Express) specific setup, architecture details, and API information.
 - **[`client/README.md`](./client/README.md):** Frontend (React/TypeScript) specific setup, components, and state management details.
 - **[`docs/`](./docs/):** Contains detailed developer documentation:
-    - [`DEVELOPMENT_STANDARDS.md`](./docs/DEVELOPMENT_STANDARDS.md): Coding standards, patterns, and testing strategy.
+    - [`DEVELOPMENT_STANDARDS.md`](./docs/DEVELOPMENT_STANDARDS.md): Coding standards, patterns, and conventions.
+    - [`AUTOMATED_TESTING.md`](./docs/AUTOMATED_TESTING.md): Comprehensive testing strategy, coverage requirements, and best practices.
     - [`ERROR_CODES.md`](./docs/ERROR_CODES.md): Reference for standardized error codes.
     - [`ROADMAP.md`](./docs/ROADMAP.md): Future development plans and milestones.
 - **`.cascade/`:** Contains files primarily for AI agent context, high-level project planning (`project-plan.xml`), and development history logs (dev journals).
@@ -239,13 +241,15 @@ cd client
 npm test
 ```
 
-The project enforces strict test coverage thresholds:
-- 80% line coverage
-- 80% function coverage
-- 80% statement coverage
-- 80% branch coverage
+The project implements a tiered coverage threshold system based on component criticality:
 
-These thresholds are checked during CI builds and must be met for PRs to be merged.
+- **Core Business Logic (Domain Services)**: 90% statements, 80% branches, 85% functions, 90% lines
+- **Utility Functions**: 90% statements, 80% branches, 90% functions, 90% lines
+- **API Routes**: 75% statements, 45% branches, 75% functions, 75% lines
+- **Data Access**: 80% statements, 45% branches, 75% functions, 80% lines
+- **Client Components**: 85% statements, 70% branches, 80% functions, 85% lines
+
+These thresholds are checked during CI builds and must be met for PRs to be merged. See our [Automated Testing Guide](docs/AUTOMATED_TESTING.md) for comprehensive details.
 
 ### Building for Production
 

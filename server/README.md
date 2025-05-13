@@ -116,7 +116,13 @@ npm run test:integration
 npm run test:coverage
 ```
 
-The project maintains a minimum of 90% test coverage for domain services and 80% for other components.
+The project implements a tiered test coverage strategy with different thresholds based on component criticality:
+- Domain services: 90% minimum coverage
+- Utility functions: 90% minimum coverage
+- API routes: 75-85% minimum coverage
+- Data access: 75-80% minimum coverage
+
+See [AUTOMATED_TESTING.md](../docs/AUTOMATED_TESTING.md) for comprehensive testing guidelines.
 
 ## API Endpoints
 
