@@ -32,39 +32,59 @@ Implement secure authentication, LLM service integration with API key management
    - Document security architecture and authentication flow
    - Update API documentation with new endpoints
 
-## Plan
+## Implementation Strategy
+
+This milestone will use a phased implementation approach to balance security requirements with development velocity. The security architecture is designed to be comprehensive while allowing for incremental implementation.
+
+### Phased Implementation Approach
+
+The implementation is organized into phases to enable faster delivery of core functionality while maintaining strong security for sensitive components:
+
+**Phase 1 (Current Milestone Focus):**
+- Implement GitHub OAuth provider integration
+- Establish secure API key storage with strong encryption
+- Create simplified JWT approach without complex token rotation
+- Set up basic security headers and rate limiting
+- Implement LLM integration with OpenAI
+
+**Future Phases (Post-Milestone 0008):**
+- Additional OAuth providers
+- Enhanced token security with refresh mechanisms
+- Full multi-tier security context implementation
+- Advanced monitoring and intrusion detection
+- Additional LLM provider integrations
+
+### Phase 1 Plan
 
 *(Following Test-Driven Development with Regular Linting)*
 
-### 1. Authentication & Authorization Framework
-
-1.1. **User Entity and Repository**
-   - 1.1.1. **Write Tests**: Create tests for User entity and repository
-   - 1.1.2. **Implement**: Design User schema and implement UserRepository
+1.1. **Core Security Infrastructure**
+   - 1.1.1. **Write Tests**: Create tests for secure storage utilities
+   - 1.1.2. **Implement**: Design encryption service for API keys
    - 1.1.3. **Test & Fix**: Run tests and address any issues
    - 1.1.4. **Lint**: Run linter and fix any issues
 
-1.2. **OAuth Provider Integration**
-   - 1.2.1. **Write Tests**: Create tests for OAuth provider integrations
-   - 1.2.2. **Implement**: Create OAuth middleware for Google and GitHub
+1.2. **User Entity and Repository**
+   - 1.2.1. **Write Tests**: Create tests for User entity and repository
+   - 1.2.2. **Implement**: Design User schema and implement UserRepository
    - 1.2.3. **Test & Fix**: Run tests and address any issues
    - 1.2.4. **Lint**: Run linter and fix any issues
 
-1.3. **JWT Authentication Framework**
-   - 1.3.1. **Write Tests**: Create tests for JWT generation, validation, and middleware
-   - 1.3.2. **Implement**: Create JWT service, middleware, and refresh token mechanisms
+1.3. **GitHub OAuth Provider Integration**
+   - 1.3.1. **Write Tests**: Create tests for GitHub OAuth flow
+   - 1.3.2. **Implement**: Create OAuth middleware for GitHub login
    - 1.3.3. **Test & Fix**: Run tests and address any issues
    - 1.3.4. **Lint**: Run linter and fix any issues
 
-1.4. **Auth Service Layer**
-   - 1.4.1. **Write Tests**: Create tests for AuthService
-   - 1.4.2. **Implement**: Create AuthService with login, refresh, and validation
+1.4. **JWT Authentication Framework**
+   - 1.4.1. **Write Tests**: Create tests for JWT generation and validation
+   - 1.4.2. **Implement**: Create JWT service with simplified approach
    - 1.4.3. **Test & Fix**: Run tests and address any issues
    - 1.4.4. **Lint**: Run linter and fix any issues
 
 1.5. **Auth API Routes**
    - 1.5.1. **Write Tests**: Create integration tests for authentication endpoints
-   - 1.5.2. **Implement**: Create login, callback, refresh, and logout routes
+   - 1.5.2. **Implement**: Create login, callback, and logout routes
    - 1.5.3. **Test & Fix**: Run tests and address any issues
    - 1.5.4. **Lint**: Run linter and fix any issues
 
@@ -237,39 +257,69 @@ export function authMiddleware(requiredScopes: string[] = []) {
 }
 ```
 
-#### Multi-Tier Security Context
+#### Security Context Design
 
-The application will support different security contexts for the Edge and Domain tiers:
+The application's architecture includes a robust security context design that will grow as the application matures:
+
+##### Phase 1 Implementation (Current Milestone)
+
+For the initial phase, the Edge and Domain tiers will share a simplified security context:
+
+```typescript
+// Simple unified security context for Phase 1
+interface SecurityContext {
+  userId: string;      // User identifier
+  scopes: string[];    // Permission scopes
+  authenticated: boolean;
+
+  // Additional properties for JWT implementation
+  token?: string;
+  tokenExpiry?: number;
+}
+
+// Helper function to validate security context
+function validateSecurityContext(context: SecurityContext): boolean {
+  return (
+    context.authenticated &&
+    context.userId &&
+    context.scopes &&
+    Array.isArray(context.scopes)
+  );
+}
+```
+
+In the Edge-to-Domain client adapter, the security context will be passed directly:
+
+```typescript
+// Simplified context passing for Phase 1
+function getDomainClientWithContext(securityContext: SecurityContext) {
+  const client = getContextThreadClient();
+  client.setSecurityContext(securityContext);
+  return client;
+}
+```
+
+##### Future Security Context Design
+
+The architecture is designed to support a more sophisticated multi-tier security approach in future phases:
 
 1. **Edge Tier Security Context**
    - End-user focused authentication
-   - OAuth provider integration
+   - Multiple OAuth provider integration
    - UI-optimized permissions model
    - Role-based access control for UI features
 
 2. **Domain Tier Security Context**
    - Service-to-service authentication
-   - API key or JWT based authentication
+   - Token or certificate-based authentication
    - Fine-grained permission model
-   - Resource-based access control 
+   - Resource-based access control
 
-3. **Context Passing Mechanism**
-   ```typescript
-   // When Edge tier needs to call Domain tier:
-   function getDomainSecurityContext(edgeContext: SecurityContext): DomainSecurityContext {
-     // If using direct client, pass through the security context
-     if (config.domainClientMode === 'direct') {
-       return mapEdgeToDomainContext(edgeContext);
-     }
-     
-     // If using HTTP client, generate a short-lived service token
-     return {
-       token: generateServiceToken(edgeContext),
-       userId: edgeContext.userId,
-       scopes: mapEdgeScopes(edgeContext.scopes)
-     };
-   }
-   ```
+3. **Advanced Context Mapping**
+   - Context translation between tiers
+   - Permission boundary enforcement
+   - Audit logging at tier boundaries
+   - Token refresh and validation
 
 #### User Data Model
 
@@ -359,65 +409,169 @@ class LlmServiceFactory {
 }
 ```
 
-#### API Key Management with Encryption
+#### API Key Security Implementation
+
+Securing API keys is a critical security priority. Rather than implementing custom encryption, we'll use established libraries and follow best practices:
 
 ```typescript
 // API Key Management Service
 class ApiKeyManager {
-  constructor(private encryptionService: EncryptionService) {}
-  
+  constructor(
+    private encryptionService: EncryptionService,
+    private keyRepository: UserApiKeyRepository
+  ) {}
+
   // Store encrypted API key
-  async storeApiKey(userId: string, provider: string, key: string): Promise<void> {
-    const encryptedKey = await this.encryptionService.encrypt(key);
-    await userRepository.storeApiKey(userId, provider, encryptedKey);
+  async storeApiKey(
+    userId: string,
+    provider: string,
+    key: string,
+    label?: string
+  ): Promise<void> {
+    // Validate the API key before storing it
+    const isValid = await this.validateApiKey(provider, key);
+    if (!isValid) {
+      throw new Error(`Invalid API key for provider: ${provider}`);
+    }
+
+    // Encrypt the API key
+    const encryptedKey = await this.encryptionService.encryptSensitiveData(key);
+
+    // Store with metadata but without the actual key value
+    await this.keyRepository.storeApiKey({
+      userId,
+      provider,
+      encryptedKey,
+      label: label || `${provider} API key`,
+      createdAt: Date.now(),
+      lastUsed: null
+    });
+
+    // Log key storage (without the key itself)
+    logger.info(`API key stored for user ${userId} and provider ${provider}`);
   }
-  
+
   // Retrieve and decrypt API key
   async getApiKey(userId: string, provider: string): Promise<string> {
-    const encryptedKey = await userRepository.getApiKey(userId, provider);
-    if (!encryptedKey) {
-      throw new Error(`No API key found for ${provider}`);
+    // Get encrypted key
+    const storedKey = await this.keyRepository.getApiKey(userId, provider);
+    if (!storedKey) {
+      throw new Error(`No API key found for provider: ${provider}`);
     }
-    return this.encryptionService.decrypt(encryptedKey);
+
+    // Update last used timestamp
+    await this.keyRepository.updateLastUsed(userId, provider, Date.now());
+
+    // Decrypt and return
+    return this.encryptionService.decryptSensitiveData(storedKey.encryptedKey);
+  }
+
+  // Validate API key with provider
+  async validateApiKey(provider: string, key: string): Promise<boolean> {
+    // Create temporary service to validate key
+    try {
+      const service = LlmServiceFactory.createService(provider, key);
+      await service.validateApiKey();
+      return true;
+    } catch (error) {
+      logger.warn(`API key validation failed for provider: ${provider}`);
+      return false;
+    }
   }
 }
+```
 
-// Encryption Service (using Node.js crypto)
+For encryption, we'll use Node.js crypto module with best practices, ensuring secure key management:
+
+```typescript
+// Secure Encryption Service
 class EncryptionService {
-  constructor(private encryptionKey: Buffer) {}
-  
-  // Encrypt string data
-  async encrypt(data: string): Promise<string> {
+  // The encryption key will be loaded from secure environment variables
+  // or a secret management service, not hardcoded
+  private encryptionKey: Buffer;
+
+  constructor() {
+    // Load encryption key securely
+    this.initializeEncryptionKey();
+  }
+
+  private initializeEncryptionKey(): void {
+    const keyString = process.env.ENCRYPTION_KEY;
+    if (!keyString) {
+      throw new Error('ENCRYPTION_KEY environment variable is required');
+    }
+
+    // Convert key from base64
+    this.encryptionKey = Buffer.from(keyString, 'base64');
+
+    // Validate key length for AES-256
+    if (this.encryptionKey.length !== 32) {
+      throw new Error('Encryption key must be 32 bytes (256 bits)');
+    }
+  }
+
+  // Encrypt sensitive data using AES-256-GCM
+  async encryptSensitiveData(data: string): Promise<string> {
+    // Generate a random initialization vector
     const iv = crypto.randomBytes(16);
+
+    // Create cipher with authenticated encryption
     const cipher = crypto.createCipheriv('aes-256-gcm', this.encryptionKey, iv);
-    
+
+    // Encrypt the data
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
+    // Get authentication tag for integrity verification
     const authTag = cipher.getAuthTag();
-    return iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
+
+    // Return IV + Auth Tag + Encrypted Data, all properly separated
+    return Buffer.concat([
+      iv,
+      authTag,
+      Buffer.from(encrypted, 'hex')
+    ]).toString('base64');
   }
-  
-  // Decrypt string data
-  async decrypt(encryptedData: string): Promise<string> {
-    const parts = encryptedData.split(':');
-    if (parts.length !== 3) {
-      throw new Error('Invalid encrypted data format');
+
+  // Decrypt sensitive data
+  async decryptSensitiveData(encryptedData: string): Promise<string> {
+    try {
+      // Convert from base64 to buffer
+      const buffer = Buffer.from(encryptedData, 'base64');
+
+      // Extract IV (first 16 bytes)
+      const iv = buffer.subarray(0, 16);
+
+      // Extract auth tag (next 16 bytes)
+      const authTag = buffer.subarray(16, 32);
+
+      // Extract encrypted data (remaining bytes)
+      const encrypted = buffer.subarray(32);
+
+      // Create decipher
+      const decipher = crypto.createDecipheriv('aes-256-gcm', this.encryptionKey, iv);
+      decipher.setAuthTag(authTag);
+
+      // Decrypt
+      let decrypted = decipher.update(encrypted);
+      decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+      return decrypted.toString('utf8');
+    } catch (error) {
+      logger.error('Decryption failed', { error: error.message });
+      throw new Error('Failed to decrypt sensitive data');
     }
-    
-    const iv = Buffer.from(parts[0], 'hex');
-    const authTag = Buffer.from(parts[1], 'hex');
-    const encrypted = parts[2];
-    
-    const decipher = crypto.createDecipheriv('aes-256-gcm', this.encryptionKey, iv);
-    decipher.setAuthTag(authTag);
-    
-    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    
-    return decrypted;
   }
 }
+```
+
+Key management guidelines:
+
+1. The encryption key will be stored in environment variables or a secure secret manager
+2. For development environments, a development key will be used with clear documentation
+3. In production, a strong random key will be generated and securely stored
+4. The application will validate encryption key presence during startup
+5. API keys will only be decrypted when needed for API calls
 ```
 
 #### Token Counting and Context Management

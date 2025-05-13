@@ -6,6 +6,8 @@ An open-source, local-first GenAI chat application designed for individuals and 
 
 - [Development Standards](docs/DEVELOPMENT_STANDARDS.md) - Coding standards, patterns, and best practices
 - [Automated Testing Guide](docs/AUTOMATED_TESTING.md) - Comprehensive testing strategy and best practices
+- [Security Architecture](docs/SECURITY_ARCHITECTURE.md) - Security principles and architecture
+- [Security Implementation](docs/SECURITY_IMPLEMENTATION.md) - Guide for implementing security features
 - [Error Codes](docs/ERROR_CODES.md) - Complete error code reference
 - [CI Workflow](docs/dev-journal-m5-ci-workflow.md) - GitHub Actions CI setup and configuration
 - [Roadmap](docs/ROADMAP.md) - Future enhancements and planned features
@@ -22,6 +24,8 @@ Navigating the project documentation:
 - **[`docs/`](./docs/):** Contains detailed developer documentation:
     - [`DEVELOPMENT_STANDARDS.md`](./docs/DEVELOPMENT_STANDARDS.md): Coding standards, patterns, and conventions.
     - [`AUTOMATED_TESTING.md`](./docs/AUTOMATED_TESTING.md): Comprehensive testing strategy, coverage requirements, and best practices.
+    - [`SECURITY_ARCHITECTURE.md`](./docs/SECURITY_ARCHITECTURE.md): Security principles, architecture, and design.
+    - [`SECURITY_IMPLEMENTATION.md`](./docs/SECURITY_IMPLEMENTATION.md): Practical guide for implementing security features.
     - [`ERROR_CODES.md`](./docs/ERROR_CODES.md): Reference for standardized error codes.
     - [`ROADMAP.md`](./docs/ROADMAP.md): Future development plans and milestones.
 - **`.cascade/`:** Contains files primarily for AI agent context, high-level project planning (`project-plan.xml`), and development history logs (dev journals).
