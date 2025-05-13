@@ -90,18 +90,21 @@ This document outlines planned enhancements and improvements to Liminal Type Cha
 - [x] Apply TDD with comprehensive test coverage (>90%)
 - [x] Implement domain API routes with full test coverage
 
-### Edge Tier API for ContextThreads (Milestone 0007)
-- [ ] Create edge tier routes for ContextThread operations (REST only)
-- [ ] Implement validation and error handling
-- [ ] Follow the domain client adapter pattern consistently
-- [ ] Implement OpenAPI specification and Swagger UI for testing
-- [ ] Apply TDD testing as we go
+### Edge Tier API for ContextThreads (Milestone 0007) - COMPLETED
+- [x] Create edge tier routes for ContextThread operations (REST only)
+- [x] Implement validation and error handling
+- [x] Follow the domain client adapter pattern consistently
+- [x] Implement OpenAPI specification and Swagger UI for testing
+- [x] Apply TDD testing as we go
 
-### LLM Integration & Basic Chat (Milestone 0008)
-- [ ] Implement OpenAI integration with streaming
-- [ ] Create LLM service in domain tier
-- [ ] Implement chat endpoints in domain and edge tiers
-- [ ] Test with GPT-4.1
+### Security & Authentication Framework (Milestone 0008) - COMPLETED
+- [x] Implement secure API key encryption for BYOK approach
+- [x] Create user entity model and repository
+- [x] Implement GitHub OAuth provider integration
+- [x] Build JWT authentication framework with token validation
+- [x] Create authentication middleware and utilities
+- [x] Implement auth and API key management routes
+- [x] Apply TDD with comprehensive test coverage
 
 ### Chat UI and Conversation Experience (Milestone 0009)
 - [ ] Design and implement chat UI components

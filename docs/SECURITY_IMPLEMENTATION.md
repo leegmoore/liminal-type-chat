@@ -29,6 +29,314 @@ graph TD
 
 This approach allows us to deliver value quickly while maintaining a strong security posture throughout development.
 
+## Current Implementation Status
+
+Phase 1 of the security implementation has been completed, including:
+
+- **API Key Encryption**: Secure encryption service for sensitive data
+- **GitHub OAuth Integration**: Authentication using GitHub OAuth provider
+- **JWT Authentication**: Token-based authentication with JWT
+- **Security Middleware**: Authentication middleware for protected routes
+- **User Entity Model**: User data model with OAuth provider support
+- **API Key Management**: Secure storage and retrieval of API keys
+
+Phase 2 and 3 features will be implemented in future milestones.
+
+## Implementation Details
+
+### Core Security Components
+
+#### Encryption Service
+
+The `EncryptionService` uses AES-256-GCM with random initialization vectors for secure encryption of sensitive data:
+
+```typescript
+// Located in: /server/src/providers/security/encryption-service.ts
+
+export class EncryptionService {
+  private encryptionKey!: Buffer;
+  
+  constructor(keyOverride?: Buffer) {
+    if (keyOverride) {
+      this.encryptionKey = keyOverride;
+    } else {
+      this.initializeEncryptionKey();
+    }
+  }
+  
+  async encryptSensitiveData(data: string): Promise<string> {
+    // Generate random IV
+    const iv = crypto.randomBytes(16);
+    
+    // Create cipher
+    const cipher = crypto.createCipheriv('aes-256-gcm', this.encryptionKey, iv);
+    
+    // Encrypt data
+    let encrypted = cipher.update(data, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    
+    // Get auth tag
+    const authTag = cipher.getAuthTag();
+    
+    // Combine IV + Auth Tag + Encrypted Data
+    return Buffer.concat([
+      iv,
+      authTag,
+      Buffer.from(encrypted, 'hex')
+    ]).toString('base64');
+  }
+  
+  // ... decryption method and other utility functions
+}
+```
+
+#### User Repository
+
+The `UserRepository` securely stores and retrieves user information, including encrypted API keys:
+
+```typescript
+// Located in: /server/src/providers/db/users/UserRepository.ts
+
+export class UserRepository implements IUserRepository {
+  constructor(
+    private dbProvider: DatabaseProvider,
+    private encryptionService: EncryptionService
+  ) {}
+  
+  async storeApiKey(userId: string, provider: LlmProvider, apiKey: string, label?: string): Promise<boolean> {
+    // Encrypt the API key
+    const encryptedKey = await this.encryptionService.encryptSensitiveData(apiKey);
+    
+    // Store in database
+    const result = await this.dbProvider.run(
+      `UPDATE users 
+       SET api_keys = json_set(COALESCE(api_keys, '{}'), '$."${provider}"', json(?)) 
+       WHERE id = ?`,
+      [JSON.stringify({
+        encryptedKey,
+        label: label || 'Default',
+        createdAt: Date.now()
+      }), userId]
+    );
+    
+    return result.changes > 0;
+  }
+  
+  // ... other methods for user management
+}
+```
+
+### Authentication Components
+
+#### JWT Service
+
+The `JwtService` handles token generation, verification, and decoding:
+
+```typescript
+// Located in: /server/src/providers/auth/jwt/JwtService.ts
+
+export class JwtService implements IJwtService {
+  private readonly secretKey: string;
+  private readonly defaultExpiresIn: string = '30m';
+  
+  generateToken(payload: TokenPayload, options?: TokenOptions): string {
+    const tokenId = uuidv4();
+    const tokenPayload = {
+      sub: payload.userId,
+      email: payload.email,
+      name: payload.name,
+      scopes: payload.scopes,
+      tier: payload.tier,
+      jti: tokenId
+    };
+    
+    const tokenOptions = {
+      expiresIn: options?.expiresIn || process.env.JWT_EXPIRES_IN || this.defaultExpiresIn
+    };
+    
+    return jwt.sign(tokenPayload, this.secretKey, tokenOptions);
+  }
+  
+  verifyToken(token: string): VerifiedToken {
+    try {
+      const decodedToken = jwt.verify(token, this.secretKey) as jwt.JwtPayload;
+      return this.mapToVerifiedToken(decodedToken);
+    } catch (error: any) {
+      // Handle different verification errors
+      if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedError(
+          'Authentication token has expired',
+          'The provided JWT token has expired',
+          AuthErrorCode.EXPIRED_TOKEN
+        );
+      }
+      // ... other error handling
+    }
+  }
+  
+  // ... other methods
+}
+```
+
+#### GitHub OAuth Provider
+
+The `GitHubOAuthProvider` implements OAuth 2.0 integration with GitHub:
+
+```typescript
+// Located in: /server/src/providers/auth/github/GitHubOAuthProvider.ts
+
+export class GitHubOAuthProvider implements IOAuthProvider {
+  public readonly providerType: OAuthProvider = 'github';
+  
+  constructor(
+    private clientId: string,
+    private clientSecret: string
+  ) {
+    if (!clientId || !clientSecret) {
+      throw new Error('GitHub OAuth provider requires client ID and secret');
+    }
+  }
+  
+  async getAuthorizationUrl(redirectUri: string, state: string): Promise<string> {
+    const authUrl = new URL('https://github.com/login/oauth/authorize');
+    authUrl.searchParams.append('client_id', this.clientId);
+    authUrl.searchParams.append('redirect_uri', redirectUri);
+    authUrl.searchParams.append('state', state);
+    authUrl.searchParams.append('scope', 'user:email');
+    
+    return authUrl.toString();
+  }
+  
+  async exchangeCodeForToken(code: string, redirectUri: string): Promise<OAuthUserProfile> {
+    // Exchange code for access token
+    const tokenResponse = await axios.post(
+      'https://github.com/login/oauth/access_token',
+      {
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
+        code,
+        redirect_uri: redirectUri
+      },
+      {
+        headers: { Accept: 'application/json' }
+      }
+    );
+    
+    // ... process response and get user information
+  }
+}
+```
+
+### Security Middleware
+
+The authentication middleware validates JWT tokens and attaches user information to requests:
+
+```typescript
+// Located in: /server/src/middleware/auth-middleware.ts
+
+export function createAuthMiddleware(jwtService: IJwtService, options: AuthOptions = {}) {
+  const { required = true, requiredScopes = [], requiredTier } = options;
+  
+  return (req: Request, res: Response, next: NextFunction) => {
+    const authHeader = req.header('Authorization');
+    
+    // Check if Authorization header is present
+    if (!authHeader) {
+      if (!required) {
+        return next();
+      }
+      return next(new UnauthorizedError('Authentication required'));
+    }
+    
+    // Validate Bearer token format
+    const parts = authHeader.split(' ');
+    if (parts.length !== 2 || parts[0] !== 'Bearer') {
+      return next(new UnauthorizedError(
+        'Invalid authorization format',
+        'Authorization header must be in the format: Bearer [token]',
+        AuthErrorCode.INVALID_CREDENTIALS
+      ));
+    }
+    
+    try {
+      // Verify token and attach user info to request
+      const verifiedToken = jwtService.verifyToken(parts[1]);
+      
+      // Check required scopes and tier
+      // ... scope and tier validation logic
+      
+      // Attach user info to request
+      (req as AuthenticatedRequest).user = {
+        userId: verifiedToken.userId,
+        email: verifiedToken.email,
+        name: verifiedToken.name,
+        scopes: verifiedToken.scopes,
+        tier: verifiedToken.tier,
+        tokenId: verifiedToken.tokenId
+      };
+      
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+}
+```
+
+### API Routes
+
+Authentication and API key management routes provide the user-facing endpoints:
+
+```typescript
+// Located in: /server/src/routes/edge/auth.ts
+
+router.post('/oauth/:provider/token', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { provider } = req.params;
+    const { code, redirectUri } = req.body;
+    
+    // Validate input and get OAuth provider
+    // ...
+    
+    // Exchange code for token and user profile
+    const profile = await oauthProvider.exchangeCodeForToken(code, redirectUri);
+    
+    // Find or create user
+    const user = await userRepository.findOrCreateUserByOAuth(
+      provider,
+      profile.id,
+      {
+        email: profile.email,
+        displayName: profile.name,
+        // ... other user data
+      }
+    );
+    
+    // Generate JWT token
+    const token = jwtService.generateToken({
+      userId: user.id,
+      email: user.email,
+      name: user.displayName,
+      scopes: ['read:profile', 'read:conversations', 'write:conversations'],
+      tier: 'edge'
+    });
+    
+    // Return user and token
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        // ... other user fields
+      },
+      token
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+```
+
 ## Development Environment Setup
 
 ### Prerequisites

@@ -9,11 +9,17 @@ import { createHealthRoutes } from './routes/domain/health';
 import { createEdgeHealthRoutes } from './routes/edge/health';
 import { createContextThreadRoutes } from './routes/domain/context-thread';
 import { createConversationRoutes } from './routes/edge/conversation';
+import { createAuthRoutes } from './routes/edge/auth';
+import { createApiKeyRoutes } from './routes/edge/api-keys';
 import { HealthService } from './services/core/health-service';
 import { ContextThreadService } from './services/core/ContextThreadService';
 import { errorHandler } from './middleware/error-handler';
 import { SQLiteProvider } from './providers/db/sqlite-provider';
 import { ContextThreadRepository } from './providers/db/ContextThreadRepository';
+import { UserRepository } from './providers/db/users/UserRepository';
+import { EncryptionService } from './providers/security/encryption-service';
+import { JwtServiceFactory } from './providers/auth/jwt/JwtServiceFactory';
+import { GitHubOAuthProvider } from './providers/auth/github/GitHubOAuthProvider';
 import config from './config';
 import { createHealthServiceClient } from './clients/domain/health-service-client-factory';
 import { createSwaggerRouter } from './middlewares/swagger';
@@ -48,6 +54,19 @@ const healthService = new HealthService(dbProvider);
 const contextThreadRepository = new ContextThreadRepository();
 const contextThreadService = new ContextThreadService(contextThreadRepository);
 
+// Create security services
+const encryptionService = new EncryptionService();
+const userRepository = new UserRepository(dbProvider, encryptionService);
+const jwtService = JwtServiceFactory.createJwtService();
+
+// Create OAuth providers
+const oauthProviders = new Map();
+const githubOAuthProvider = new GitHubOAuthProvider(
+  process.env.GITHUB_CLIENT_ID || '',
+  process.env.GITHUB_CLIENT_SECRET || ''
+);
+oauthProviders.set('github', githubOAuthProvider);
+
 // Create client adapters
 const healthServiceClient = createHealthServiceClient(healthService);
 
@@ -58,6 +77,8 @@ app.use('/api/v1/domain/threads', createContextThreadRoutes(contextThreadService
 // Mount edge routes
 app.use(createEdgeHealthRoutes(healthServiceClient));
 app.use('/api/v1/conversations', createConversationRoutes());
+app.use('/api/v1/auth', createAuthRoutes(userRepository, jwtService, oauthProviders));
+app.use('/api/v1/api-keys', createApiKeyRoutes(userRepository, jwtService));
 
 // Mount Swagger UI documentation routes
 app.use('/docs', createSwaggerRouter());

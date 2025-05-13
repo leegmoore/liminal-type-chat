@@ -21,18 +21,20 @@ Key features:
 - ✅ M0004: Edge-to-Domain Pattern Implementation
 - ✅ M0005: React TypeScript Frontend with Health Check Features
 - ✅ M0006: Core ContextThread Domain Layer
+- ✅ M0007: Edge Tier API for ContextThreads
+- ✅ M0008: Security & Authentication Framework
 
 ### In Progress
-- ⬜ M0007: Edge Tier API for ContextThreads
-  - Create Edge-tier routes for ContextThread operations (REST API)
-  - Implement transformer functions between domain and edge models
-  - Create OpenAPI specifications for both domain and edge APIs
-  - Integrate Swagger UI for interactive documentation
-  - Implement robust error handling and validation
+- ⬜ M0009: LLM Integration & Chat UI
+  - Implement OpenAI integration with streaming
+  - Create LLM service in domain tier
+  - Implement chat endpoints in domain and edge tiers
+  - Design and implement chat UI components
+  - Create conversation management interface
 
 ### Upcoming
-- ⬜ M0008: LLM Integration & Basic Chat
-- ⬜ M0009: Chat UI and Conversation Experience
+- ⬜ M0010: Enhanced User Experience & Multi-LLM Support
+- ⬜ M0011: Advanced Features (Prompt Management, Model Switching)
 
 ## Core Architecture
 
