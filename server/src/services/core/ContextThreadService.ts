@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ContextThread, Message, MessageRole } from '../../types/domain';
-import { ContextThreadRepository } from '../../providers/db/ContextThreadRepository';
+// Import the interface rather than the concrete implementation
+import { IContextThreadRepository } from '../../providers/db/IContextThreadRepository';
 import { MessagesCorruptedError } from '../../providers/db/errors';
 import { normalizeThreadMessages } from '../../utils/normalizeThreadMessages';
 
@@ -40,7 +41,7 @@ export interface UpdateContextThreadParams {
  * and message normalization.
  */
 export class ContextThreadService {
-  constructor(private repository: ContextThreadRepository) {}
+  constructor(private repository: IContextThreadRepository) {}
 
   /**
    * Get a list of context threads with pagination.

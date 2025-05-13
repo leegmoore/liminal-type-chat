@@ -3,7 +3,9 @@ console.log('conversation.ts: MODULE EXECUTION STARTED'); // Log at the very top
 // eslint-disable-next-line max-len
 import express, { Request, Response, NextFunction } from 'express';
 import Ajv from 'ajv';
-import addFormats from 'ajv-formats';
+// Import ajv-formats using a more resilient approach
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const addFormats = require('ajv-formats');
 import { ErrorObject } from 'ajv';
 import { ValidationError, AppError } from '../../utils/errors'; // Import AppError
 // Use ResourceErrorCode for resource-specific errors like NOT_FOUND
