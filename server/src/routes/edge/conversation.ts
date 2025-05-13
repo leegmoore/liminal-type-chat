@@ -333,7 +333,8 @@ export const createConversationRoutes = () => {
       try {
         const { conversationId, messageId } = req.params;
         // For simplifying type issues in commented code
-  const validatedBody = req.body as any; // Using any here is safe as this code is commented/inactive
+  // Using unknown type for commented/inactive code
+  const validatedBody = req.body as unknown;
 
         // Ensure there's something to update
         if (Object.keys(validatedBody).length === 0) {
@@ -400,10 +401,10 @@ function formatValidationErrors(errors: ErrorObject[] | null | undefined): strin
 
   return errors.map(err => {
     // Handle instancePath which might not exist in some versions of ajv
-    const path = (err as any).instancePath || '';
+    const path = (err as unknown as { instancePath?: string }).instancePath || '';
     const property = path.length > 0 
       ? path.substring(1) 
-      : ((err.params as any)?.missingProperty) || 'input';
+      : ((err.params as unknown as { missingProperty?: string })?.missingProperty) || 'input';
     return `${property}: ${err.message || 'invalid'}`;
   }).join(', ');
 }

@@ -50,8 +50,10 @@ const config = {
   /** API base URL for HTTP client mode */
   apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:8765',
   
-  /** Domain API base URL for HTTP client mode */
-  domainApiBaseUrl: process.env.DOMAIN_API_BASE_URL || process.env.API_BASE_URL || 'http://localhost:8765',
+  /** Domain API base URL (alias for apiBaseUrl for backward compatibility) */
+  domainApiBaseUrl: process.env.DOMAIN_API_BASE_URL ||
+    process.env.API_BASE_URL ||
+    'http://localhost:8765',
   
   /** Logging level */
   logLevel: process.env.LOG_LEVEL || 'debug',
