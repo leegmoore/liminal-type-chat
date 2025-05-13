@@ -1,8 +1,8 @@
 import { 
   ContextThreadService, 
-  CreateThreadParams, 
+  CreateContextThreadParams, 
   AddMessageParams, 
-  UpdateThreadParams 
+  UpdateContextThreadParams 
 } from '../ContextThreadService';
 import { ContextThreadRepository } from '../../../providers/db/ContextThreadRepository';
 import { MessagesCorruptedError } from '../../../providers/db/errors';
@@ -62,10 +62,10 @@ describe('ContextThreadService', () => {
     jest.restoreAllMocks();
   });
   
-  describe('createThread', () => {
+  describe('createContextThread', () => {
     it('should create a thread with no initial message', () => {
       // Arrange
-      const params: CreateThreadParams = {
+      const params: CreateContextThreadParams = {
         title: 'New Thread',
       };
       mockRepository.create.mockReturnValue({
@@ -77,7 +77,7 @@ describe('ContextThreadService', () => {
       });
       
       // Act
-      const result = service.createThread(params);
+      const result = service.createContextThread(params);
       
       // Assert
       expect(uuidv4).toHaveBeenCalled();
@@ -99,7 +99,7 @@ describe('ContextThreadService', () => {
     
     it('should create a thread with an initial message', () => {
       // Arrange
-      const params: CreateThreadParams = {
+      const params: CreateContextThreadParams = {
         title: 'New Thread with Message',
         initialMessage: {
           role: 'user',
@@ -124,7 +124,7 @@ describe('ContextThreadService', () => {
       mockRepository.create.mockReturnValue(expectedThread);
       
       // Act
-      const result = service.createThread(params);
+      const result = service.createContextThread(params);
       
       // Assert
       expect(mockRepository.create).toHaveBeenCalledWith(expectedThread);
@@ -134,7 +134,7 @@ describe('ContextThreadService', () => {
     it('should create a thread with metadata', () => {
       // Arrange
       const metadata = { key: 'value' };
-      const params: CreateThreadParams = {
+      const params: CreateContextThreadParams = {
         title: 'Thread with Metadata',
         metadata,
       };
@@ -149,7 +149,7 @@ describe('ContextThreadService', () => {
       mockRepository.create.mockReturnValue(expectedThread);
       
       // Act
-      const result = service.createThread(params);
+      const result = service.createContextThread(params);
       
       // Assert
       expect(mockRepository.create).toHaveBeenCalledWith(expectedThread);
@@ -157,13 +157,13 @@ describe('ContextThreadService', () => {
     });
   });
   
-  describe('getThread', () => {
+  describe('getContextThread', () => {
     it('should return a thread when found', () => {
       // Arrange
       mockRepository.findById.mockReturnValue(sampleThread);
       
       // Act
-      const result = service.getThread(mockUuid);
+      const result = service.getContextThread(mockUuid);
       
       // Assert
       expect(mockRepository.findById).toHaveBeenCalledWith(mockUuid);
@@ -175,7 +175,7 @@ describe('ContextThreadService', () => {
       mockRepository.findById.mockReturnValue(null);
       
       // Act
-      const result = service.getThread('non-existent-id');
+      const result = service.getContextThread('non-existent-id');
       
       // Assert
       expect(result).toBeNull();
@@ -189,14 +189,14 @@ describe('ContextThreadService', () => {
       });
       
       // Act & Assert
-      expect(() => service.getThread(mockUuid)).toThrow(MessagesCorruptedError);
+      expect(() => service.getContextThread(mockUuid)).toThrow(MessagesCorruptedError);
     });
   });
   
-  describe('updateThread', () => {
+  describe('updateContextThread', () => {
     it('should update a thread successfully', () => {
       // Arrange
-      const updates: UpdateThreadParams = {
+      const updates: UpdateContextThreadParams = {
         title: 'Updated Title',
       };
       const originalThread = { ...sampleThread };
@@ -210,7 +210,7 @@ describe('ContextThreadService', () => {
       mockRepository.update.mockReturnValue(updatedThread);
       
       // Act
-      const result = service.updateThread(mockUuid, updates);
+      const result = service.updateContextThread(mockUuid, updates);
       
       // Assert
       expect(mockRepository.findById).toHaveBeenCalledWith(mockUuid);
@@ -227,7 +227,7 @@ describe('ContextThreadService', () => {
       mockRepository.findById.mockReturnValue(null);
       
       // Act
-      const result = service.updateThread('non-existent-id', { title: 'New Title' });
+      const result = service.updateContextThread('non-existent-id', { title: 'New Title' });
       
       // Assert
       expect(result).toBeNull();
@@ -236,7 +236,7 @@ describe('ContextThreadService', () => {
     
     it('should handle updating metadata', () => {
       // Arrange
-      const updates: UpdateThreadParams = {
+      const updates: UpdateContextThreadParams = {
         metadata: { key: 'updated-value' },
       };
       const originalThread = { ...sampleThread };
@@ -250,7 +250,7 @@ describe('ContextThreadService', () => {
       mockRepository.update.mockReturnValue(updatedThread);
       
       // Act
-      const result = service.updateThread(mockUuid, updates);
+      const result = service.updateContextThread(mockUuid, updates);
       
       // Assert
       expect(mockRepository.update).toHaveBeenCalledWith(expect.objectContaining({
@@ -260,7 +260,7 @@ describe('ContextThreadService', () => {
     });
   });
   
-  describe('addMessage', () => {
+  describe('addMessageToContextThread', () => {
     it('should add a message to an existing thread', () => {
       // Arrange
       const messageParams: AddMessageParams = {
@@ -287,7 +287,7 @@ describe('ContextThreadService', () => {
       mockRepository.update.mockReturnValue(updatedThread);
       
       // Act
-      const result = service.addMessage(mockUuid, messageParams);
+      const result = service.addMessageToContextThread(mockUuid, messageParams);
       
       // Assert
       expect(mockRepository.findById).toHaveBeenCalledWith(mockUuid);
@@ -310,7 +310,7 @@ describe('ContextThreadService', () => {
       mockRepository.findById.mockReturnValue(null);
       
       // Act
-      const result = service.addMessage('non-existent-id', {
+      const result = service.addMessageToContextThread('non-existent-id', {
         role: 'user',
         content: 'Test message',
       });
@@ -335,7 +335,7 @@ describe('ContextThreadService', () => {
       mockRepository.update.mockImplementation(thread => thread);
       
       // Act
-      const result = service.addMessage(mockUuid, messageParams);
+      const result = service.addMessageToContextThread(mockUuid, messageParams);
       
       // Assert
       expect(mockRepository.update).toHaveBeenCalledWith(expect.objectContaining({
@@ -355,7 +355,7 @@ describe('ContextThreadService', () => {
     });
   });
   
-  describe('updateMessage', () => {
+  describe('updateMessageInContextThread', () => {
     it('should update a message in a thread', () => {
       // Arrange
       const messageId = sampleThread.messages[0].id;
@@ -381,7 +381,7 @@ describe('ContextThreadService', () => {
       mockRepository.update.mockReturnValue(updatedThread);
       
       // Act
-      const result = service.updateMessage(mockUuid, messageId, updates);
+      const result = service.updateMessageInContextThread(mockUuid, messageId, updates);
       
       // Assert
       expect(mockRepository.findById).toHaveBeenCalledWith(mockUuid);
@@ -404,7 +404,7 @@ describe('ContextThreadService', () => {
       mockRepository.findById.mockReturnValue(null);
       
       // Act
-      const result = service.updateMessage('non-existent-id', 'message-id', {
+      const result = service.updateMessageInContextThread('non-existent-id', 'message-id', {
         content: 'Updated content',
       });
       
@@ -420,7 +420,7 @@ describe('ContextThreadService', () => {
       mockRepository.findById.mockReturnValue(originalThread);
       
       // Act
-      const result = service.updateMessage(mockUuid, 'non-existent-message-id', {
+      const result = service.updateMessageInContextThread(mockUuid, 'non-existent-message-id', {
         content: 'Updated content',
       });
       
@@ -430,13 +430,13 @@ describe('ContextThreadService', () => {
     });
   });
   
-  describe('deleteThread', () => {
+  describe('deleteContextThread', () => {
     it('should delete a thread successfully', () => {
       // Arrange
       mockRepository.delete.mockReturnValue(true);
       
       // Act
-      const result = service.deleteThread(mockUuid);
+      const result = service.deleteContextThread(mockUuid);
       
       // Assert
       expect(mockRepository.delete).toHaveBeenCalledWith(mockUuid);
@@ -448,7 +448,7 @@ describe('ContextThreadService', () => {
       mockRepository.delete.mockReturnValue(false);
       
       // Act
-      const result = service.deleteThread('non-existent-id');
+      const result = service.deleteContextThread('non-existent-id');
       
       // Assert
       expect(result).toBe(false);

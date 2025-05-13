@@ -6,6 +6,7 @@ This directory contains the domain services that implement the core business log
 
 - `core/`: Core domain services that implement the main business functionalities
   - Example: `health-service.ts` - Provides health check functionality
+  - Example: `ContextThreadService.ts` - Manages context threads with standardized naming convention (createContextThread, updateContextThread, etc.)
   
 - `adapters/`: Adapter services that integrate with external systems
   - Example: Future LLM adapters that connect to various provider APIs

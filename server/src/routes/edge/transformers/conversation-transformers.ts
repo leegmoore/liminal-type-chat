@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /**
  * Transformer functions for converting between Edge API schemas and Domain models.
  * These act as an adapter layer to decouple the Edge API contracts from Domain models,
@@ -91,11 +92,39 @@ export function domainContextThreadToConversationResponse(
 export function domainContextThreadToConversationSummary(
   thread: ContextThread
 ): ConversationSummary {
+  let createdAtISO: string;
+  let updatedAtISO: string;
+  const placeholderDate = new Date(0).toISOString(); // Jan 1, 1970
+
+  if (thread.createdAt && (typeof thread.createdAt === 'number' || typeof thread.createdAt === 'string')) {
+    try {
+      createdAtISO = new Date(thread.createdAt).toISOString();
+    } catch (e) {
+      console.error(new Error('err crAt'));
+      createdAtISO = placeholderDate;
+    }
+  } else {
+    console.error(new Error('err crAt bad'));
+    createdAtISO = placeholderDate;
+  }
+
+  if (thread.updatedAt && (typeof thread.updatedAt === 'number' || typeof thread.updatedAt === 'string')) {
+    try {
+      updatedAtISO = new Date(thread.updatedAt).toISOString();
+    } catch (e) {
+      console.error(new Error('err upAt'));
+      updatedAtISO = placeholderDate;
+    }
+  } else {
+    console.error(new Error('err upAt bad'));
+    updatedAtISO = placeholderDate;
+  }
+
   return {
     conversationId: thread.id,
     title: thread.title || null,
-    createdAt: new Date(thread.createdAt).toISOString(),
-    updatedAt: new Date(thread.updatedAt).toISOString(),
+    createdAt: createdAtISO,
+    updatedAt: updatedAtISO,
     metadata: thread.metadata,
   };
 }

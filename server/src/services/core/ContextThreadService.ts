@@ -43,6 +43,14 @@ export interface UpdateContextThreadParams {
 export class ContextThreadService {
   constructor(private repository: IContextThreadRepository) {}
 
+  // Backward compatibility aliases for standardized naming
+  public createThread = this.createContextThread;
+  public getThread = this.getContextThread;
+  public updateThread = this.updateContextThread;
+  public addMessage = this.addMessageToContextThread;
+  public updateMessage = this.updateMessageInContextThread;
+  public deleteThread = this.deleteContextThread;
+
   /**
    * Get a list of context threads with pagination.
    * @param limit Maximum number of context threads to return

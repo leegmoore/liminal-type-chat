@@ -1,0 +1,272 @@
+import { ContextThread, Message, MessageRole } from '../../../../../src/types/domain';
+import {
+  domainContextThreadToConversationResponse,
+  messageRequestToDomainMessage,
+  conversationRequestToCreateContextThreadParams,
+  domainMessageToMessageResponse
+} from '../../../../../src/routes/edge/transformers/conversation-transformers';
+
+describe('Conversation Transformers', () => {
+  describe('domainContextThreadToConversationResponse', () => {
+    it('should transform a domain thread to a conversation response', () => {
+      // Arrange
+      const now = Date.now();
+      const domainThread: ContextThread = {
+        id: 'thread-123',
+        title: 'Test Thread',
+        createdAt: now,
+        updatedAt: now + 1000,
+        messages: [
+          {
+            id: 'msg-1',
+            threadId: 'thread-123',
+            role: 'user',
+            content: 'Hello',
+            createdAt: now,
+          },
+          {
+            id: 'msg-2',
+            threadId: 'thread-123',
+            role: 'assistant',
+            content: 'Hi there',
+            createdAt: now + 500,
+            status: 'complete',
+          },
+        ],
+        metadata: { test: 'data' },
+      };
+
+      // Act
+      const result = domainContextThreadToConversationResponse(domainThread);
+
+      // Assert
+      expect(result).toEqual({
+        conversationId: 'thread-123',
+        title: 'Test Thread',
+        createdAt: new Date(now).toISOString(),
+        updatedAt: new Date(now + 1000).toISOString(),
+        messages: [
+          {
+            messageId: 'msg-1',
+            role: 'user',
+            content: 'Hello',
+            createdAt: new Date(now).toISOString(),
+          },
+          {
+            messageId: 'msg-2',
+            role: 'assistant',
+            content: 'Hi there',
+            createdAt: new Date(now + 500).toISOString(),
+            status: 'complete',
+          },
+        ],
+        metadata: { test: 'data' },
+      });
+    });
+
+    it('should handle a thread with null title', () => {
+      // Arrange
+      const now = Date.now();
+      const domainThread: ContextThread = {
+        id: 'thread-123',
+        createdAt: now,
+        updatedAt: now,
+        messages: [],
+      };
+
+      // Act
+      const result = domainContextThreadToConversationResponse(domainThread);
+
+      // Assert
+      expect(result.title).toBeNull();
+    });
+
+    it('should handle a thread with no messages', () => {
+      // Arrange
+      const now = Date.now();
+      const domainThread: ContextThread = {
+        id: 'thread-123',
+        title: 'Empty Thread',
+        createdAt: now,
+        updatedAt: now,
+        messages: [],
+      };
+
+      // Act
+      const result = domainContextThreadToConversationResponse(domainThread);
+
+      // Assert
+      expect(result.messages).toEqual([]);
+    });
+  });
+
+  describe('domainMessageToMessageResponse', () => {
+    it('should transform a domain message to a message response', () => {
+      // Arrange
+      const now = Date.now();
+      const domainMessage: Message = {
+        id: 'msg-1',
+        threadId: 'thread-123',
+        role: 'user',
+        content: 'Hello',
+        createdAt: now,
+        metadata: { tokens: 5 },
+        status: 'complete',
+      };
+
+      // Act
+      const result = domainMessageToMessageResponse(domainMessage);
+
+      // Assert
+      expect(result).toEqual({
+        messageId: 'msg-1',
+        role: 'user',
+        content: 'Hello',
+        createdAt: new Date(now).toISOString(),
+        metadata: { tokens: 5 },
+        status: 'complete',
+      });
+    });
+
+    it('should handle a message with no metadata or status', () => {
+      // Arrange
+      const now = Date.now();
+      const domainMessage: Message = {
+        id: 'msg-1',
+        threadId: 'thread-123',
+        role: 'user',
+        content: 'Hello',
+        createdAt: now,
+      };
+
+      // Act
+      const result = domainMessageToMessageResponse(domainMessage);
+
+      // Assert
+      expect(result).toEqual({
+        messageId: 'msg-1',
+        role: 'user',
+        content: 'Hello',
+        createdAt: new Date(now).toISOString(),
+      });
+      expect(result.metadata).toBeUndefined();
+      expect(result.status).toBeUndefined();
+    });
+  });
+
+  describe('messageRequestToDomainMessage', () => {
+    it('should transform a message request to a domain message', () => {
+      // Arrange
+      const messageRequest = {
+        role: 'user' as MessageRole,
+        content: 'Hello',
+        metadata: { source: 'web' },
+        status: 'complete' as const,
+      };
+      const threadId = 'thread-123';
+
+      // Act
+      const result = messageRequestToDomainMessage(messageRequest, threadId);
+
+      // Assert
+      expect(result).toEqual({
+        threadId: 'thread-123',
+        role: 'user',
+        content: 'Hello',
+        metadata: { source: 'web' },
+        status: 'complete',
+      });
+      // ID and createdAt are generated by the service, so they're not included
+    });
+
+    it('should handle a message request with no metadata or status', () => {
+      // Arrange
+      const messageRequest = {
+        role: 'user' as MessageRole,
+        content: 'Hello',
+      };
+      const threadId = 'thread-123';
+
+      // Act
+      const result = messageRequestToDomainMessage(messageRequest, threadId);
+
+      // Assert
+      expect(result).toEqual({
+        threadId: 'thread-123',
+        role: 'user',
+        content: 'Hello',
+      });
+      expect(result.metadata).toBeUndefined();
+      expect(result.status).toBeUndefined();
+    });
+  });
+
+  describe('conversationRequestToCreateContextThreadParams', () => {
+    it('should transform a conversation request to thread params', () => {
+      // Arrange
+      const conversationRequest = {
+        title: 'New Conversation',
+        initialMessage: {
+          role: 'user' as MessageRole,
+          content: 'Hello',
+          metadata: { source: 'web' },
+        },
+        metadata: { category: 'general' },
+      };
+
+      // Act
+      const result = conversationRequestToCreateContextThreadParams(conversationRequest);
+
+      // Assert
+      expect(result).toEqual({
+        title: 'New Conversation',
+        initialMessage: {
+          role: 'user',
+          content: 'Hello',
+        },
+        metadata: { category: 'general' },
+      });
+    });
+
+    it('should handle a request with no initial message', () => {
+      // Arrange
+      const conversationRequest = {
+        title: 'Empty Conversation',
+        metadata: { category: 'general' },
+      };
+
+      // Act
+      const result = conversationRequestToCreateContextThreadParams(conversationRequest);
+
+      // Assert
+      expect(result).toEqual({
+        title: 'Empty Conversation',
+        metadata: { category: 'general' },
+      });
+      expect(result.initialMessage).toBeUndefined();
+    });
+
+    it('should handle a request with no title or metadata', () => {
+      // Arrange
+      const conversationRequest = {
+        initialMessage: {
+          role: 'user' as MessageRole,
+          content: 'Hello',
+        },
+      };
+
+      // Act
+      const result = conversationRequestToCreateContextThreadParams(conversationRequest);
+
+      // Assert
+      expect(result).toEqual({
+        initialMessage: {
+          role: 'user',
+          content: 'Hello',
+        },
+      });
+      expect(result.title).toBeUndefined();
+      expect(result.metadata).toBeUndefined();
+    });
+  });
+});

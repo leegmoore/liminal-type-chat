@@ -63,3 +63,5 @@ Thumbs.db
 
 # Coverage reports
 server/coverage/
+
+**/.claude/settings.local.json

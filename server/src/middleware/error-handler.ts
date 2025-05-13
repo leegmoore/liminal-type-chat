@@ -2,7 +2,7 @@
  * Global error handling middleware
  */
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../utils/errors';
+import { AppError, ValidationErrorItem } from '../utils/errors';
 import { SystemErrorCode } from '../utils/error-codes';
 
 /**
@@ -18,6 +18,14 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ) {
+  // Simplified logging to avoid max-len and no-explicit-any issues
+  if (err instanceof Error) {
+    console.log(`ERR_HNDLR name: ${err.name}, msg: ${err.message.substring(0, 50)}`);
+  } else {
+    console.log('ERR_HNDLR RX_NON_ERR:', typeof err);
+  }
+  console.log('errorHandler: err instanceof AppError:', err instanceof AppError);
+
   // Safely extract error properties
   const errorObj = err as Error;
   const message = errorObj && errorObj.message ? errorObj.message : 'Unknown error';
@@ -34,13 +42,54 @@ export function errorHandler(
     console.error(`Error occurred: ${message}`);
   }
 
-  // Handle different error types
-  if (err instanceof AppError) {
-    // Return standardized error format for known application errors
-    return res.status(err.statusCode).json(err.toJSON());
+  // Enhanced helper to check if an error has AppError's shape
+  const isAppErrorShape = (
+    error: unknown
+  ): error is {
+    statusCode: number;
+    errorCode: string; 
+    message: string;   
+    code: number;      
+    details?: string;
+    items?: ValidationErrorItem[];
+    [key: string]: unknown;
+  } => {
+    if (error && typeof error === 'object') {
+      const potentialError = error as { 
+        statusCode?: unknown;
+        errorCode?: unknown;
+        message?: unknown;
+        code?: unknown;
+      };
+      return (
+        typeof potentialError.statusCode === 'number' &&
+        typeof potentialError.errorCode === 'string' && 
+        typeof potentialError.message === 'string' &&
+        typeof potentialError.code === 'number'
+      );
+    }
+    return false;
+  };
+
+  // Handle different error types based on shape
+  if (isAppErrorShape(err)) {
+    // Manually construct response from the error's properties
+    const errorResponse = {
+      error: {
+        code: err.code,
+        message: err.message,
+        errorCode: err.errorCode, 
+        ...(err.details && { details: err.details }), 
+        ...(err.items && err.items.length > 0 && { items: err.items }),
+      }
+    };
+    console.log('errorHandler sending AppError-like response:', JSON.stringify(errorResponse));
+    return res.status(err.statusCode).json(errorResponse);
   }
 
-  // Handle unknown errors by wrapping them in an AppError
+  // Handle unknown errors by wrapping them in a standard AppError
+  console.log('errorHandler handling as unknown error');
+  // If it's not an AppError or shape, wrap it
   const unknownError = new AppError(
     SystemErrorCode.UNKNOWN_ERROR,
     'Internal server error',

@@ -19,11 +19,11 @@ module.exports = {
     }],
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-explicit-any': 'warn',
+    '@typescript-eslint/no-explicit-any': 'error',
     'quotes': ['error', 'single', { 'allowTemplateLiterals': true }],
     'semi': ['error', 'always'],
     'indent': ['error', 2],
-    'max-len': ['warn', { 'code': 100 }]
+    'max-len': ['error', { 'code': 100 }]
   },
   ignorePatterns: ['dist', 'node_modules', 'coverage'],
   overrides: [
@@ -38,7 +38,7 @@ module.exports = {
       // Relax max-len for test files
       files: ['**/*.test.ts', 'test/**/*.ts'],
       rules: {
-        'max-len': ['warn', { 'code': 120 }]
+        'max-len': ['error', { 'code': 120 }]
       }
     }
   ]

@@ -48,7 +48,7 @@ describe('ContextThread Domain API Routes', () => {
   describe('GET /api/v1/domain/threads/:id', () => {
     it('should return a thread when found', async () => {
       // Arrange
-      mockService.getThread.mockReturnValue(sampleThread);
+      mockService.getContextThread.mockReturnValue(sampleThread);
       
       // Act
       const response = await request(app)
@@ -56,26 +56,26 @@ describe('ContextThread Domain API Routes', () => {
         .expect(200);
       
       // Assert
-      expect(mockService.getThread).toHaveBeenCalledWith(sampleThread.id);
+      expect(mockService.getContextThread).toHaveBeenCalledWith(sampleThread.id);
       expect(response.body).toHaveProperty('success', true);
       expect(response.body.data).toHaveProperty('id', sampleThread.id);
     });
     
     it('should return 404 when thread not found', async () => {
       // Arrange
-      mockService.getThread.mockReturnValue(null);
+      mockService.getContextThread.mockReturnValue(null);
       
       // Act & Assert
       await request(app)
         .get('/api/v1/domain/threads/non-existent-id')
         .expect(404);
       
-      expect(mockService.getThread).toHaveBeenCalledWith('non-existent-id');
+      expect(mockService.getContextThread).toHaveBeenCalledWith('non-existent-id');
     });
     
     it('should return 500 when thread retrieval throws an error', async () => {
       // Arrange
-      mockService.getThread.mockImplementation(() => {
+      mockService.getContextThread.mockImplementation(() => {
         throw new Error('Database error');
       });
       
@@ -95,7 +95,7 @@ describe('ContextThread Domain API Routes', () => {
       const newThread = {
         title: 'New Thread',
       };
-      mockService.createThread.mockReturnValue({
+      mockService.createContextThread.mockReturnValue({
         id: 'new-thread-id',
         title: 'New Thread',
         createdAt: Date.now(),
@@ -110,7 +110,7 @@ describe('ContextThread Domain API Routes', () => {
         .expect(201);
       
       // Assert
-      expect(mockService.createThread).toHaveBeenCalledWith(newThread);
+      expect(mockService.createContextThread).toHaveBeenCalledWith(newThread);
       expect(response.body).toHaveProperty('success', true);
       expect(response.body.data).toHaveProperty('id', 'new-thread-id');
     });
@@ -124,7 +124,7 @@ describe('ContextThread Domain API Routes', () => {
           role: 'user',
         },
       };
-      mockService.createThread.mockReturnValue({
+      mockService.createContextThread.mockReturnValue({
         id: 'thread-with-message-id',
         title: 'Thread with Message',
         createdAt: Date.now(),
@@ -147,7 +147,7 @@ describe('ContextThread Domain API Routes', () => {
         .expect(201);
       
       // Assert
-      expect(mockService.createThread).toHaveBeenCalledWith(newThread);
+      expect(mockService.createContextThread).toHaveBeenCalledWith(newThread);
       expect(response.body).toHaveProperty('success', true);
       expect(response.body.data.messages).toHaveLength(1);
     });
@@ -157,7 +157,7 @@ describe('ContextThread Domain API Routes', () => {
       const newThread = {
         title: 'New Thread',
       };
-      mockService.createThread.mockImplementation(() => {
+      mockService.createContextThread.mockImplementation(() => {
         throw new Error('Database error');
       });
       
@@ -176,7 +176,7 @@ describe('ContextThread Domain API Routes', () => {
     it('should update a thread when found', async () => {
       // Arrange
       const updatedThread = { ...sampleThread, title: 'Updated Title' };
-      mockService.updateThread.mockReturnValue(updatedThread);
+      mockService.updateContextThread.mockReturnValue(updatedThread);
       
       // Act
       const response = await request(app)
@@ -185,7 +185,7 @@ describe('ContextThread Domain API Routes', () => {
         .expect(200);
       
       // Assert
-      expect(mockService.updateThread).toHaveBeenCalledWith(
+      expect(mockService.updateContextThread).toHaveBeenCalledWith(
         sampleThread.id,
         { title: 'Updated Title' }
       );
@@ -195,7 +195,7 @@ describe('ContextThread Domain API Routes', () => {
     
     it('should return 404 when thread not found', async () => {
       // Arrange
-      mockService.updateThread.mockReturnValue(null);
+      mockService.updateContextThread.mockReturnValue(null);
       
       // Act & Assert
       await request(app)
@@ -203,7 +203,7 @@ describe('ContextThread Domain API Routes', () => {
         .send({ title: 'Updated Title' })
         .expect(404);
       
-      expect(mockService.updateThread).toHaveBeenCalledWith(
+      expect(mockService.updateContextThread).toHaveBeenCalledWith(
         'non-existent-id',
         { title: 'Updated Title' }
       );
@@ -211,7 +211,7 @@ describe('ContextThread Domain API Routes', () => {
     
     it('should return 500 when thread update throws an error', async () => {
       // Arrange
-      mockService.updateThread.mockImplementation(() => {
+      mockService.updateContextThread.mockImplementation(() => {
         throw new Error('Database error');
       });
       
@@ -229,33 +229,33 @@ describe('ContextThread Domain API Routes', () => {
   describe('DELETE /api/v1/domain/threads/:id', () => {
     it('should delete a thread when found', async () => {
       // Arrange
-      mockService.deleteThread.mockReturnValue(true);
+      mockService.deleteContextThread.mockReturnValue(true);
       
       // Act & Assert
       const response = await request(app)
         .delete(`/api/v1/domain/threads/${sampleThread.id}`)
         .expect(200);
       
-      expect(mockService.deleteThread).toHaveBeenCalledWith(sampleThread.id);
+      expect(mockService.deleteContextThread).toHaveBeenCalledWith(sampleThread.id);
       expect(response.body).toHaveProperty('success', true);
       expect(response.body).toHaveProperty('message');
     });
     
     it('should return 404 when thread not found', async () => {
       // Arrange
-      mockService.deleteThread.mockReturnValue(false);
+      mockService.deleteContextThread.mockReturnValue(false);
       
       // Act & Assert
       await request(app)
         .delete('/api/v1/domain/threads/non-existent-id')
         .expect(404);
       
-      expect(mockService.deleteThread).toHaveBeenCalledWith('non-existent-id');
+      expect(mockService.deleteContextThread).toHaveBeenCalledWith('non-existent-id');
     });
     
     it('should return 500 when thread deletion throws an error', async () => {
       // Arrange
-      mockService.deleteThread.mockImplementation(() => {
+      mockService.deleteContextThread.mockImplementation(() => {
         throw new Error('Database error');
       });
       
@@ -266,7 +266,7 @@ describe('ContextThread Domain API Routes', () => {
       
       expect(response.body).toHaveProperty('success', false);
       expect(response.body).toHaveProperty('message');
-      expect(mockService.deleteThread).toHaveBeenCalledWith(sampleThread.id);
+      expect(mockService.deleteContextThread).toHaveBeenCalledWith(sampleThread.id);
     });
   });
   
@@ -290,7 +290,7 @@ describe('ContextThread Domain API Routes', () => {
           },
         ],
       } as ContextThread;
-      mockService.addMessage.mockReturnValue(updatedThread);
+      mockService.addMessageToContextThread.mockReturnValue(updatedThread);
       
       // Act
       const response = await request(app)
@@ -299,7 +299,7 @@ describe('ContextThread Domain API Routes', () => {
         .expect(201);
       
       // Assert
-      expect(mockService.addMessage).toHaveBeenCalledWith(
+      expect(mockService.addMessageToContextThread).toHaveBeenCalledWith(
         sampleThread.id,
         newMessage
       );
@@ -310,7 +310,7 @@ describe('ContextThread Domain API Routes', () => {
     
     it('should return 404 when thread not found', async () => {
       // Arrange
-      mockService.addMessage.mockReturnValue(null);
+      mockService.addMessageToContextThread.mockReturnValue(null);
       
       // Act & Assert
       await request(app)
@@ -318,7 +318,7 @@ describe('ContextThread Domain API Routes', () => {
         .send({ content: 'New message', role: 'user' as MessageRole })
         .expect(404);
       
-      expect(mockService.addMessage).toHaveBeenCalledWith(
+      expect(mockService.addMessageToContextThread).toHaveBeenCalledWith(
         'non-existent-id',
         { content: 'New message', role: 'user' }
       );
@@ -326,7 +326,7 @@ describe('ContextThread Domain API Routes', () => {
     
     it('should return 500 when message addition throws an error', async () => {
       // Arrange
-      mockService.addMessage.mockImplementation(() => {
+      mockService.addMessageToContextThread.mockImplementation(() => {
         throw new Error('Database error');
       });
       
@@ -344,7 +344,7 @@ describe('ContextThread Domain API Routes', () => {
   describe('GET /api/v1/domain/threads/:id/messages', () => {
     it('should return all messages for a thread', async () => {
       // Arrange
-      mockService.getThread.mockReturnValue(sampleThread);
+      mockService.getContextThread.mockReturnValue(sampleThread);
       
       // Act
       const response = await request(app)
@@ -352,7 +352,7 @@ describe('ContextThread Domain API Routes', () => {
         .expect(200);
       
       // Assert
-      expect(mockService.getThread).toHaveBeenCalledWith(sampleThread.id);
+      expect(mockService.getContextThread).toHaveBeenCalledWith(sampleThread.id);
       expect(response.body).toEqual({
         success: true,
         data: sampleThread.messages,
@@ -361,7 +361,7 @@ describe('ContextThread Domain API Routes', () => {
     
     it('should return 404 when thread not found', async () => {
       // Arrange
-      mockService.getThread.mockReturnValue(null);
+      mockService.getContextThread.mockReturnValue(null);
       
       // Act
       const response = await request(app)
@@ -369,7 +369,7 @@ describe('ContextThread Domain API Routes', () => {
         .expect(404);
       
       // Assert
-      expect(mockService.getThread).toHaveBeenCalledWith('non-existent-id');
+      expect(mockService.getContextThread).toHaveBeenCalledWith('non-existent-id');
       expect(response.body).toEqual({
         success: false,
         message: expect.stringContaining('not found'),
@@ -394,7 +394,7 @@ describe('ContextThread Domain API Routes', () => {
           },
         ],
       };
-      mockService.updateMessage.mockReturnValue(updatedThread);
+      mockService.updateMessageInContextThread.mockReturnValue(updatedThread);
       
       // Act
       const response = await request(app)
@@ -403,7 +403,7 @@ describe('ContextThread Domain API Routes', () => {
         .expect(200);
       
       // Assert
-      expect(mockService.updateMessage).toHaveBeenCalledWith(
+      expect(mockService.updateMessageInContextThread).toHaveBeenCalledWith(
         sampleThread.id,
         sampleThread.messages[0].id,
         expect.objectContaining(updateParams)
@@ -416,7 +416,7 @@ describe('ContextThread Domain API Routes', () => {
     
     it('should return 404 when thread or message not found', async () => {
       // Arrange
-      mockService.updateMessage.mockReturnValue(null);
+      mockService.updateMessageInContextThread.mockReturnValue(null);
       
       // Act
       const response = await request(app)
@@ -425,7 +425,7 @@ describe('ContextThread Domain API Routes', () => {
         .expect(404);
       
       // Assert
-      expect(mockService.updateMessage).toHaveBeenCalledWith(
+      expect(mockService.updateMessageInContextThread).toHaveBeenCalledWith(
         'valid-thread-id',
         'non-existent-message-id',
         expect.any(Object)

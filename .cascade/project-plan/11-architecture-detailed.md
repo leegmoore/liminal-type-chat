@@ -45,3 +45,61 @@ For the initial local-first development and execution, a simple and pragmatic pr
     -   If API testing tools (like Postman/Insomnia) are used, they run as their own distinct processes.
 
 This local setup prioritizes ease of development and a minimal number of moving parts, while still respecting the conceptual separation of the Application Tiers within the codebase of the Node.js server.
+
+## Schema Transformation and Versioning Strategy
+
+A key architectural pattern in the system is the use of transformer functions to manage the interface between the Edge API tier and Domain API tier, providing several important benefits:
+
+### Transformer Functions
+
+Transformer functions act as an adapter layer between Edge API schemas and Domain models:
+
+```typescript
+// Domain-to-Edge transformation
+export function domainThreadToConversationResponse(thread: ContextThread): ConversationResponse {
+  return {
+    conversationId: thread.id,
+    title: thread.title,
+    createdAt: new Date(thread.createdAt).toISOString(),
+    updatedAt: new Date(thread.updatedAt).toISOString(),
+    messages: thread.messages.map(domainMessageToMessageResponse),
+  };
+}
+
+// Edge-to-Domain transformation
+export function conversationRequestToThreadParams(req: CreateConversationRequest): CreateThreadParams {
+  return {
+    title: req.title,
+    initialMessage: req.initialMessage 
+      ? messageRequestToDomainMessage(req.initialMessage, '') 
+      : undefined,
+  };
+}
+```
+
+### Benefits of the Transformer Pattern
+
+1. **Schema Evolution Independence**: 
+   - Domain models can evolve independently of Edge API contracts
+   - When Domain models change, only transformers need to be updated
+   - Edge API can maintain backward compatibility for clients
+
+2. **Multi-Client Support**:
+   - Different client types (Web, iOS, CLI) can have specialized Edge APIs
+   - Each client Edge API can optimize its contract for client-specific needs
+   - All clients share the same Domain models and business logic
+
+3. **Versioning Strategy**:
+   - URL path versioning provides clear API version boundaries (`/api/v1/...`)
+   - Transformer functions insulate API contracts from internal changes
+   - Multiple API versions can be supported simultaneously during transition periods
+
+4. **Data Security and Privacy**:
+   - Transformers can filter sensitive data not intended for clients
+   - Domain models can contain internal fields never exposed to clients
+
+### Implementation Approaches
+
+- **Centralized Transformers**: Dedicated transformer utility files in `/server/src/routes/edge/transformers/`
+- **Schema Version Metadata**: JSON schemas include version property for reference
+- **Graduated Versioning**: Minor changes handled in transformers, major changes via new API versions

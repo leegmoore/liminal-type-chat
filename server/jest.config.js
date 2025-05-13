@@ -5,6 +5,9 @@ module.exports = {
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
   },
+  moduleNameMapper: {
+    '\\.(json)$': '<rootDir>/test/mocks/jsonMock.js'
+  },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],

@@ -245,6 +245,32 @@ The Liminal Type Chat application follows a tiered architecture:
    - Example implementations:
      - `DirectHealthServiceClient`: In-process communication
      - `HttpHealthServiceClient`: HTTP-based communication
+   - **Adapter Mode Toggle Mechanism**:
+     - Base configuration via environment variables: `DOMAIN_CLIENT_MODE=direct|http`
+     - Testing override via HTTP header: `X-Domain-Client-Mode: direct|http`
+     - Header override only processed in non-production environments
+     - Example implementation:
+       ```typescript
+       // Middleware to detect header override
+       app.use((req, res, next) => {
+         if (process.env.NODE_ENV !== 'production') {
+           const headerMode = req.headers['x-domain-client-mode'] as string;
+           if (headerMode && ['direct', 'http'].includes(headerMode)) {
+             req.domainClientMode = headerMode as 'direct' | 'http';
+           }
+         }
+         next();
+       });
+
+       // Factory function for getting appropriate client
+       function getDomainClient(req) {
+         const mode = req.domainClientMode || process.env.DOMAIN_CLIENT_MODE || 'direct';
+         return mode === 'direct' 
+           ? new DirectDomainClient() 
+           : new HttpDomainClient({ baseUrl: process.env.DOMAIN_API_URL });
+       }
+       ```
+     - This approach enables testing both adapter modes without server restarts
 
 ## Dependency Injection
 

@@ -8,6 +8,7 @@ import path from 'path';
 import { createHealthRoutes } from './routes/domain/health';
 import { createEdgeHealthRoutes } from './routes/edge/health';
 import { createContextThreadRoutes } from './routes/domain/context-thread';
+import { createConversationRoutes } from './routes/edge/conversation';
 import { HealthService } from './services/core/health-service';
 import { ContextThreadService } from './services/core/ContextThreadService';
 import { errorHandler } from './middleware/error-handler';
@@ -15,6 +16,7 @@ import { SQLiteProvider } from './providers/db/sqlite-provider';
 import { ContextThreadRepository } from './providers/db/ContextThreadRepository';
 import config from './config';
 import { createHealthServiceClient } from './clients/domain/health-service-client-factory';
+import { createSwaggerRouter } from './middlewares/swagger';
 
 // Load environment variables
 dotenv.config();
@@ -55,6 +57,10 @@ app.use('/api/v1/domain/threads', createContextThreadRoutes(contextThreadService
 
 // Mount edge routes
 app.use(createEdgeHealthRoutes(healthServiceClient));
+app.use('/api/v1/conversations', createConversationRoutes());
+
+// Mount Swagger UI documentation routes
+app.use('/docs', createSwaggerRouter());
 
 // Serve static files from the public directory (React UI build)
 app.use(express.static(path.join(__dirname, '../public')));

@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ErrorResponse",
+  "description": "Standard error response structure for the Edge API",
+  "type": "object",
+  "required": ["errorCode", "message"],
+  "properties": {
+    "errorCode": {
+      "type": "string",
+      "description": "Error code identifying the type of error",
+      "examples": ["VALIDATION_ERROR", "RESOURCE_NOT_FOUND", "INTERNAL_SERVER_ERROR"]
+    },
+    "message": {
+      "type": "string",
+      "description": "User-friendly error message"
+    },
+    "details": {
+      "type": ["string", "object", "null"],
+      "description": "Optional technical details or context about the error"
+    },
+    "validationErrors": {
+      "type": "array",
+      "description": "Validation errors when errorCode is VALIDATION_ERROR",
+      "items": {
+        "type": "object",
+        "required": ["field", "message"],
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "JSON path to the invalid field"
+          },
+          "message": {
+            "type": "string",
+            "description": "Description of the validation failure"
+          }
+        }
+      }
+    }
+  }
+}

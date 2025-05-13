@@ -12,25 +12,95 @@
 
 ## Plan
 
-*(Based on High-Level Tasks from overview)*
+*(Following Test-Driven Development with Regular Linting)*
 
-1.  **Setup Validation Dependency**: Install `ajv` (`npm install ajv` in the `server` workspace).
-2.  **Define Edge Schemas**: Define JSON schemas for all required Edge request/response structures (e.g., `CreateConversationRequest`, `ConversationResponse`, `MessageResponse`, `ErrorResponse`, etc.) potentially in `/server/src/schemas/edge/`.
-3.  **Define initial OpenAPI specification structure**: Create `/server/openapi.yaml` (or `.json`). Include basic info, servers, paths section. Also, identify any existing relevant **external-facing HTTP endpoints** (e.g., health checks) that need to be included alongside the new Edge API. **Note**: This specification documents the HTTP interface, not the internal Domain service layer API.
-4.  **Integrate Swagger UI middleware**: Add `swagger-ui-express` to the server, configure it to serve the OpenAPI spec.
-5.  **Implement Edge Request Validation**: Configure middleware (possibly using `ajv` directly or a library like `express-openapi-validator`) to automatically validate incoming requests against Edge request schemas defined in OpenAPI. Ensure validator is configured to report **all** errors (`ajv` option `allErrors: true`).
-6.  **Implement Domain Parameter Validation**: Within the Domain service methods (e.g., `ContextThreadService.createThread`), add explicit validation logic using `ajv` to check input parameters against the canonical Domain JSON schemas. Configure `ajv` with `allErrors: true` here as well. Propagate validation errors appropriately.
-7.  **Implement API route handlers for Conversation CRUD**: Develop routes in `/server/src/routes/edge/conversation.ts` (or similar). Handlers will perform:
-    *   *(Request validation handled by middleware - Step 5)*.
-    *   Calling the Domain Client Adapter (which now includes domain validation - Step 6).
-    *   Mapping domain service results (e.g., `ContextThread`) to response structures (e.g., `ConversationResponse`).
-    *   Standardized error handling, mapping domain errors (including validation errors) to Edge error structures.
-8.  **Implement API route handlers for Message operations**: Develop nested routes (e.g., `/conversations/:conversationId/messages`) following the same pattern as step 7 (using `AddMessageRequest`, `MessageResponse`, etc.).
-9.  **Refine OpenAPI specification**: Fully detail all paths, parameters, request bodies (referencing request schemas), and responses (referencing response schemas and error schemas) for ALL relevant **external-facing HTTP endpoints** (newly implemented Edge endpoints and existing ones like health checks).
-10. **Refine Error Handling**: Solidify the error handling strategy and middleware to catch errors (including validation errors from both Edge and Domain layers) and map them to the standard `ErrorResponse` format, ensuring detailed validation issues are included when relevant.
-11. **Write Edge API Integration Tests**: Develop tests for all new endpoints using Supertest, covering success and error paths, **specifically testing validation logic and error responses for invalid inputs**. Validate request handling and response structure. Target >90% coverage for the edge routes.
+1.  **Setup Dependencies**:
+    - Install required packages: `ajv`, `swagger-ui-express`, `express-basic-auth`, `yaml`
+    - Run linter to ensure clean starting point
+
+2.  **Edge Schemas and Transformers**:
+    - 2.1. **Write Tests**: Create tests for transformer functions (domain→edge and edge→domain transformations)
+    - 2.2. **Implement**: Define JSON schemas in `/server/src/schemas/edge/` and transformer functions in `/server/src/routes/edge/transformers/`
+    - 2.3. **Test & Fix**: Run tests and address any issues
+    - 2.4. **Lint**: Run linter and fix any issues
+
+3.  **OpenAPI Specifications**:
+    - 3.1. **Write Tests**: Create validation tests for OpenAPI specifications
+    - 3.2. **Implement**: Create `/server/openapi/edge-api.yaml` and `/server/openapi/domain-api.yaml`
+    - 3.3. **Test & Fix**: Run validation tests and correct any specification issues
+    - 3.4. **Lint**: Run linter and fix any issues
+
+4.  **Swagger UI Integration**:
+    - 4.1. **Write Tests**: Create tests for Swagger UI routes and authentication
+    - 4.2. **Implement**: Configure `swagger-ui-express` middleware with route protection for Domain API docs
+    - 4.3. **Test & Fix**: Verify Swagger UI is working correctly for both specifications
+    - 4.4. **Lint**: Run linter and fix any issues
+
+5.  **Request Validation**:
+    - 5.1. **Write Tests**: Create tests for Edge request validation middleware
+    - 5.2. **Implement**: Configure `ajv` for validation with detailed error reporting
+    - 5.3. **Test & Fix**: Verify validation correctly identifies and reports errors
+    - 5.4. **Lint**: Run linter and fix any issues
+
+6.  **Domain Client Adapter**:
+    - 6.1. **Write Tests**: Create tests for adapter toggle mechanism using both direct and HTTP modes
+    - 6.2. **Implement**: Create middleware for toggle mechanism and update client factory
+    - 6.3. **Test & Fix**: Verify correct behavior with different configuration options
+    - 6.4. **Lint**: Run linter and fix any issues
+
+7.  **Error Handling Middleware**:
+    - 7.1. **Write Tests**: Create tests for error handling middleware covering different error types
+    - 7.2. **Implement**: Create centralized error handling middleware for standardized responses
+    - 7.3. **Test & Fix**: Verify errors are properly transformed to the expected format
+    - 7.4. **Lint**: Run linter and fix any issues
+
+8.  **Conversation API Routes**:
+    - 8.1. **Write Tests**: Create integration tests for conversation CRUD endpoints
+    - 8.2. **Implement**: Create route handlers in `/server/src/routes/edge/conversation.ts`
+    - 8.3. **Test & Fix**: Verify endpoints behave as expected and fix any issues
+    - 8.4. **Lint**: Run linter and fix any issues
+
+9.  **Message API Routes**:
+    - 9.1. **Write Tests**: Create integration tests for message endpoints
+    - 9.2. **Implement**: Create nested route handlers for `/conversations/:conversationId/messages`
+    - 9.3. **Test & Fix**: Verify endpoints behave as expected and fix any issues
+    - 9.4. **Lint**: Run linter and fix any issues
+
+10. **Final Verification**:
+    - 10.1. **Complete Test Suite**: Add any missing test cases and ensure >90% coverage
+    - 10.2. **Final Lint**: Run linter across all new and modified files
+    - 10.3. **Documentation**: Update API documentation and examples as needed
+    - 10.4. **Swagger Verification**: Manually verify Swagger UI accurately represents all endpoints
 
 ## Design
+
+### OpenAPI Specifications
+
+#### Separate Specifications for Edge and Domain APIs
+
+Following the tiered architecture principles of the project, we will maintain two separate OpenAPI specifications:
+
+1. **Edge API Specification (`/server/openapi/edge-api.yaml`)**
+   - Documents the public HTTP interface intended for frontend consumption
+   - Focuses on UI-optimized data structures (`/api/v1/conversations`)
+   - Uses terminology and models aligned with UI concepts (e.g., "conversation" vs "contextThread")
+   - Defines error structures and codes specific to external consumers
+   - Will be exposed via Swagger UI at `/api-docs/edge`
+
+2. **Domain API Specification (`/server/openapi/domain-api.yaml`)**
+   - Documents the internal HTTP interface used when running in distributed mode
+   - Based on canonical domain models (`/domain/threads`)
+   - Uses domain-specific terminology and concepts
+   - Defines error structures and codes specific to the domain layer
+   - Will be exposed via Swagger UI at `/api-docs/domain` (protected in production)
+
+#### Benefits of Dual Specifications
+
+- **Architectural Clarity**: Maintains clean separation between tiers
+- **Targeted Documentation**: Frontend developers only need to understand Edge API
+- **Independent Evolution**: Each API can evolve based on different requirements
+- **Testing Precision**: Facilitates targeted testing of each tier
+- **Deployment Flexibility**: Supports both single-process and distributed deployment modes
 
 ### API Endpoint Design
 
@@ -115,11 +185,138 @@
 
 ### OpenAPI Specification Details
 
-*   **Scope**: The specification defined in `/server/openapi.yaml` will document **all external-facing HTTP endpoints** served by the application. This includes the new Edge API endpoints for conversations/messages and any pre-existing HTTP endpoints (e.g., health checks). It explicitly **does not** document the internal programmatic API of the Domain service layer.
-*   **Standard**: It will follow OpenAPI 3.x standards.
-*   **Schema Referencing**: Edge request/response schemas (e.g., `CreateConversationRequest`, `ConversationResponse`) defined in separate JSON schema files (e.g., `/server/src/schemas/edge/CreateConversationRequest.json`) will be referenced using `$ref` syntax (e.g., `$ref: './src/schemas/edge/CreateConversationRequest.json'`).
-*   **Error Schema**: The `ErrorResponse` schema will also be defined and referenced for all relevant error responses (4xx, 5xx).
-*   **Completeness**: Ensure all relevant existing endpoints are documented alongside the new conversation endpoints.
+*   **Scope**: 
+    * The Edge API specification (`/server/openapi/edge-api.yaml`) will document **all external-facing HTTP endpoints** served by the application. This includes the new Edge API endpoints for conversations/messages and any pre-existing public HTTP endpoints (e.g., health checks).
+    * The Domain API specification (`/server/openapi/domain-api.yaml`) will document the **internal Domain API endpoints** (`/domain/threads`) created in Milestone 0006.
+*   **Standard**: Both specifications will follow OpenAPI 3.x standards.
+*   **Schema Referencing**: 
+    * Edge API: Edge request/response schemas (e.g., `CreateConversationRequest`, `ConversationResponse`) defined in separate JSON schema files (e.g., `/server/src/schemas/edge/CreateConversationRequest.json`) will be referenced using `$ref` syntax.
+    * Domain API: Domain schemas (e.g., `ContextThread`, `Message`) defined in JSON schema files will be referenced similarly.
+*   **Error Schema**: Each specification will define and reference appropriate error schemas for their respective error responses (4xx, 5xx).
+*   **Completeness**: Ensure all endpoints (both Edge and Domain) are fully documented in their respective specification files.
+
+### Domain Client Adapter Strategy
+
+The Edge API needs to communicate with the Domain API, which can be done through either a direct in-process adapter or an HTTP adapter. This strategy provides flexibility for both single-process and distributed deployments.
+
+#### Toggle Mechanism
+
+- **Base Configuration**: Use environment variables to set the default adapter mode:
+  ```
+  DOMAIN_CLIENT_MODE=direct|http
+  ```
+
+- **Testing Override**: Support a special HTTP header for testing both modes without server restarts:
+  ```
+  X-Domain-Client-Mode: direct|http
+  ```
+
+- **Implementation**:
+  ```typescript
+  // In middleware
+  app.use((req, res, next) => {
+    // Only process this header in non-production environments
+    if (process.env.NODE_ENV !== 'production') {
+      const headerMode = req.headers['x-domain-client-mode'] as string;
+      if (headerMode && ['direct', 'http'].includes(headerMode)) {
+        req.domainClientMode = headerMode as 'direct' | 'http';
+      }
+    }
+    next();
+  });
+
+  // In route handlers or controllers
+  function getDomainClient(req) {
+    const mode = req.domainClientMode || process.env.DOMAIN_CLIENT_MODE || 'direct';
+    return mode === 'direct' 
+      ? new DirectDomainClient() 
+      : new HttpDomainClient({ baseUrl: process.env.DOMAIN_API_URL });
+  }
+  ```
+
+- **Testing Both Modes**:
+  ```typescript
+  // Test with direct mode
+  it('should create conversation (direct mode)', async () => {
+    const response = await request(app)
+      .post('/api/v1/conversations')
+      .set('x-domain-client-mode', 'direct')
+      .send(payload);
+    expect(response.status).toBe(201);
+  });
+
+  // Test with HTTP mode
+  it('should create conversation (HTTP mode)', async () => {
+    const response = await request(app)
+      .post('/api/v1/conversations')
+      .set('x-domain-client-mode', 'http')
+      .send(payload);
+    expect(response.status).toBe(201);
+  });
+  ```
+
+- **Security Considerations**:
+  - The header override is only processed in non-production environments
+  - Header values are validated before use
+  - The HTTP adapter requires proper configuration (URLs, credentials if needed)
+
+This approach allows for seamless switching between adapter modes for both development and testing purposes while maintaining a clean architecture.
+
+### Schema Transformation and Versioning Strategy
+
+#### Transformer Functions
+
+- **Purpose**: Transformer functions act as an adapter layer between Edge API schemas and Domain models
+- **Implementation**: Create dedicated transformer utility files in `/server/src/routes/edge/transformers/`
+- **Pattern**:
+
+  ```typescript
+  // Domain-to-Edge transformation
+  export function domainThreadToConversationResponse(thread: ContextThread): ConversationResponse {
+    return {
+      conversationId: thread.id,
+      title: thread.title,
+      createdAt: new Date(thread.createdAt).toISOString(), // Note timestamp format transformation
+      updatedAt: new Date(thread.updatedAt).toISOString(),
+      messages: thread.messages.map(domainMessageToMessageResponse),
+    };
+  }
+
+  // Edge-to-Domain transformation
+  export function conversationRequestToThreadParams(req: CreateConversationRequest): CreateThreadParams {
+    return {
+      title: req.title,
+      initialMessage: req.initialMessage 
+        ? messageRequestToDomainMessage(req.initialMessage, '') 
+        : undefined,
+    };
+  }
+  ```
+
+#### Schema Versioning Approach
+
+- **URL Path Versioning**: Initial implementation using `/api/v1/conversations` and `/domain/threads`
+- **Schema Metadata**: Include version property in JSON schemas for future reference
+  ```json
+  {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ConversationResponse",
+    "version": "1.0",
+    "type": "object",
+    // ...
+  }
+  ```
+- **Evolution Strategy**:
+  - Transformer functions insulate Edge API contracts from Domain model changes
+  - When Domain models evolve, update transformers to handle both old and new versions
+  - For breaking API changes, introduce new API versions with dedicated transformers
+  - This enables multiple client applications (Web, iOS, CLI) to have optimized interfaces
+
+#### Multi-Client Support
+
+- The transformer approach enables future client-specific Edge APIs (Web, iOS, CLI)
+- Each client can have its own transformers optimized for its specific needs
+- All clients share the same Domain models and business logic
 
 ### Data Transformation
 
@@ -128,6 +325,7 @@
     *   Domain Service results (`ContextThread`, `Message`) to Response structures (`ConversationResponse`, `MessageResponse`).
 *   This ensures the Edge API contract (schemas) is decoupled from the Domain model.
 *   Sensitive or internal domain data not relevant to the UI will be excluded during mapping.
+*   **Implementation**: Use transformer functions from `/server/src/routes/edge/transformers/` to perform these mappings.
 
 ### Error Handling
 
@@ -186,6 +384,49 @@
 *   Define distinct Edge API request/response schemas (JSON Schema) separate from Domain models to create a UI-oriented API contract (BFF pattern).
 *   Implement runtime validation using `ajv` against these schemas at both the Edge entry point (request validation) and Domain service call boundary (parameter validation), configured to report all errors.
 *   Implement centralized error handling middleware to map errors to a standard `ErrorResponse` structure.
+
+### Authentication Preparation
+
+*While full authentication implementation is planned for Milestone 0008 (GPT-4.1 Integration), this milestone will include preparation work:*
+
+- **OpenAPI Documentation**: Include authentication placeholder sections in the Edge API specification
+  ```yaml
+  components:
+    securitySchemes:
+      BearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+        description: "Authentication will be implemented in Milestone 0008"
+  ```
+
+- **Swagger UI Protection**: Configure basic protection for the Domain API Swagger UI in non-development environments
+  ```typescript
+  // Basic protection middleware for Domain API docs in non-development environments
+  if (process.env.NODE_ENV !== 'development') {
+    app.use('/api-docs/domain', basicAuth({
+      users: { 'admin': process.env.DOMAIN_DOCS_PASSWORD || 'liminal-dev' },
+      challenge: true,
+    }));
+  }
+  ```
+
+- **Route Structure**: Design routes with authentication in mind (e.g., `/api/v1/users/:userId/conversations`)
+
+- **TODO Comments**: Add explicit TODO comments in relevant code sections where authentication will be implemented in future milestones
+
+*Full authentication implementation including user management, JWT tokens, and API key storage will be addressed in Milestone 0008.*
+
+### Dependencies
+
+This milestone will introduce several new dependencies:
+
+- **`ajv`** (^8.12.0): JSON Schema validator for request/response validation
+- **`swagger-ui-express`** (^5.0.0): Middleware to serve Swagger UI for API documentation
+- **`express-basic-auth`** (^1.2.1): Basic authentication middleware for protecting Domain API docs
+- **`yaml`** (^2.3.1): YAML parser/generator for OpenAPI specification files
+
+These will be added to the server's `package.json` with specific version constraints to ensure consistency across development environments.
 
 ## Success Criteria
 

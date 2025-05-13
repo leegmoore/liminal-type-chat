@@ -99,10 +99,8 @@ export class AppError extends Error {
       response.error.details = this.details;
     }
     
-    // Include error code for debugging in non-production
-    if (process.env.NODE_ENV !== 'production') {
-      response.error.errorCode = this.errorCode;
-    }
+    // Always include error code in the response
+    response.error.errorCode = this.errorCode;
     
     // Include validation items if present
     if (this.items && this.items.length > 0) {

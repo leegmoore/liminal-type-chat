@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ConversationListResponse",
+  "description": "Response structure for listing conversations",
+  "type": "object",
+  "required": ["conversations"],
+  "properties": {
+    "conversations": {
+      "type": "array",
+      "description": "Array of conversation summaries",
+      "items": {
+        "$ref": "./ConversationSummary.json"
+      }
+    }
+  }
+}

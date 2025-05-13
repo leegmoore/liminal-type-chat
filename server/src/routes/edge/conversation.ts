@@ -3,9 +3,7 @@ console.log('conversation.ts: MODULE EXECUTION STARTED'); // Log at the very top
 // eslint-disable-next-line max-len
 import express, { Request, Response, NextFunction } from 'express';
 import Ajv from 'ajv';
-// Import ajv-formats using a more resilient approach
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const addFormats = require('ajv-formats');
+import addFormats from 'ajv-formats';
 import { ErrorObject } from 'ajv';
 import { ValidationError, AppError } from '../../utils/errors'; // Import AppError
 // Use ResourceErrorCode for resource-specific errors like NOT_FOUND
@@ -29,13 +27,23 @@ import UpdateConversationRequestSchema from '../../schemas/edge/UpdateConversati
 import AddMessageRequestSchema from '../../schemas/edge/AddMessageRequest.json';
 
 // Set up JSON schema validator
-const ajv = new Ajv({ allErrors: true });
+const ajv = new Ajv({
+  allErrors: true,
+  strict: true, // Enable strict mode
+  strictTypes: true, // Enforce strict type checking
+  strictRequired: true // Enforce required fields strictly
+});
 addFormats(ajv);
 
 // Compile schemas
 const validateCreateConversationRequest = ajv.compile(CreateConversationRequestSchema);
 const validateUpdateConversationRequest = ajv.compile(UpdateConversationRequestSchema);
 const validateAddMessageRequest = ajv.compile(AddMessageRequestSchema);
+
+// Debug validation in development
+if (process.env.NODE_ENV !== 'production') {
+  console.log('Ajv options:', ajv.opts);
+}
 
 console.log(
   'conversation.ts: contextThreadClient at module level - Type:', typeof ctcFactory,
@@ -129,21 +137,48 @@ export const createConversationRoutes = () => {
   // POST /api/v1/conversations - Create a new conversation
   router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Validate request body
-      if (!validateCreateConversationRequest(req.body)) {
-        throw new ValidationError(
-          'Invalid conversation data', 
-          formatValidationErrors(validateCreateConversationRequest.errors)
+      // Log request body in development
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(
+          'POST /api/v1/conversations - Request body:',
+          JSON.stringify(req.body, null, 2)
         );
       }
-      
+
+      // Validate request body
+      const isValid = validateCreateConversationRequest(req.body);
+
+      // Log validation result in development
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Validation result:', isValid);
+        console.log('Validation errors:', validateCreateConversationRequest.errors);
+      }
+
+      if (!isValid) {
+        // Format validation errors and create properly structured ValidationError
+        const errorDetails = formatValidationErrors(validateCreateConversationRequest.errors);
+        console.log('Formatted validation errors:', errorDetails);
+
+        // Create a ValidationError instance
+        const validationError = new ValidationError(
+          'Invalid conversation data',
+          errorDetails
+        );
+
+        // Log the validation error for debugging
+        console.log('Created ValidationError:', JSON.stringify(validationError, null, 2));
+
+        // Use res.status().json() directly instead of next()
+        return res.status(400).json(validationError.toJSON());
+      }
+
       // Transform request to domain model
-      const threadParams = 
+      const threadParams =
         conversationRequestToCreateContextThreadParams(req.body as CreateConversationRequest);
-      
+
       // Create thread in domain
       const thread = await clientInstance.createContextThread(threadParams);
-      
+
       // Transform response and send
       const conversation = domainContextThreadToConversationResponse(thread);
       return res.status(201).json(conversation);
@@ -199,10 +234,11 @@ export const createConversationRoutes = () => {
         
         // Validate request body
         if (!validateUpdateConversationRequest(req.body)) {
-          throw new ValidationError(
-            'Invalid conversation update data', 
-            formatValidationErrors(validateUpdateConversationRequest.errors)
-          );
+          const errorDetails = formatValidationErrors(validateUpdateConversationRequest.errors);
+          return next(new ValidationError(
+            'Invalid conversation update data',
+            errorDetails
+          ));
         }
         
         // Update thread in domain
@@ -256,24 +292,25 @@ export const createConversationRoutes = () => {
       
         // Validate request body
         if (!validateAddMessageRequest(req.body)) {
-          throw new ValidationError(
-            'Invalid message data', 
-            formatValidationErrors(validateAddMessageRequest.errors)
-          );
+          const errorDetails = formatValidationErrors(validateAddMessageRequest.errors);
+          return next(new ValidationError(
+            'Invalid message data',
+            errorDetails
+          ));
         }
       
         // Additional validation to ensure required fields exist
         // Check if the request has the required fields
         if (
-          !req.body || 
-        typeof req.body !== 'object' || 
-        !('content' in req.body) || 
+          !req.body ||
+        typeof req.body !== 'object' ||
+        !('content' in req.body) ||
         !('role' in req.body)
         ) {
-          throw new ValidationError(
+          return next(new ValidationError(
             'Invalid message format',
             'Request body must contain content and role fields'
-          );
+          ));
         }
       
         // Use an explicit type assertion with 'unknown' to satisfy TypeScript

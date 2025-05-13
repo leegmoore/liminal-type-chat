@@ -2,6 +2,42 @@
 
 This directory contains management scripts for the Liminal Type Chat server, providing tools for server control, database management, and development environment setup.
 
+## NPM Scripts
+
+In addition to the shell scripts in this directory, the server provides the following npm scripts in `package.json`:
+
+```bash
+# Development server with auto-reload
+npm run dev
+
+# Compile TypeScript to JavaScript
+npm run build
+
+# Run the production server (requires build first)
+npm run start
+
+# Run with ts-node without building
+npm run start:dev
+
+# Build and run in production mode
+npm run start:prod
+
+# Run tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Run linter
+npm run lint
+
+# Run linter and automatically fix issues
+npm run lint:fix
+```
+
 ## Available Scripts
 
 ### Server Control
