@@ -3,15 +3,17 @@ import path from 'path';
 import fs from 'fs';
 import { ContextThread, Message } from '../../types/domain';
 import { MessagesCorruptedError } from './errors';
+import { IContextThreadRepository } from './IContextThreadRepository';
 
 const DB_RELATIVE_PATH = '../../../db/liminal.db'; // Relative to dist/src/providers/db
-const SCHEMA_RELATIVE_PATH = '../../db/schema.sql'; // Relative to src/providers/db
+// Correct path for both ts-node and compiled code
+const SCHEMA_RELATIVE_PATH = '../../../db/schema.sql';
 
 /**
  * Repository for ContextThread entities.
  * Handles CRUD operations and mapping between the database and domain models.
  */
-export class ContextThreadRepository {
+export class ContextThreadRepository implements IContextThreadRepository {
   private db: Database.Database;
 
   constructor(dbPath?: string) {
@@ -133,6 +135,30 @@ export class ContextThreadRepository {
     } catch (error) {
       console.error('Failed to create context thread:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Find all context threads with pagination.
+   * @param limit Maximum number of context threads to return
+   * @param offset Number of context threads to skip
+   * @returns Array of context threads
+   */
+  findAll(limit = 20, offset = 0): ContextThread[] {
+    const sql = `SELECT * FROM context_threads ORDER BY updated_at DESC LIMIT ? OFFSET ?`;
+    try {
+      const stmt = this.db.prepare(sql);
+      const rows = stmt.all(limit, offset);
+      return rows
+        .map(row => this.toDomain(row))
+        .filter(thread => thread !== null) as ContextThread[];
+    } catch (error) {
+      console.error(
+        `Failed to retrieve context threads with limit ${limit} and offset ${offset}:`,
+        error
+      );
+      // Return empty array on error rather than throwing
+      return [];
     }
   }
 
