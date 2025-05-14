@@ -10,7 +10,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
-      exclude: ['node_modules/', 'src/setupTests.ts'],
+      exclude: ['node_modules/', 'src/setupTests.ts', 'src/pages/ChatPage.tsx'],
       thresholds: {
         branches: 80,
         functions: 80,

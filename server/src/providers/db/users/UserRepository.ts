@@ -31,28 +31,42 @@ export class UserRepository implements IUserRepository {
   async create(params: CreateUserParams): Promise<User> {
     try {
       const now = Date.now();
-      const id = uuidv4();
+      const userId = params.id || uuidv4(); // Use params.id if available, else generate new
       
       // Set default preferences if not provided
       const preferences = params.preferences || {
         theme: 'system'
       };
       
-      // New user object
-      const user: User = {
-        id,
-        email: params.email,
-        displayName: params.displayName,
-        createdAt: now,
-        updatedAt: now,
-        authProviders: {
+      // Conditionally build authProviders
+      let authProvidersData = {};
+      if (params.provider && params.providerId && params.providerIdentity) {
+        authProvidersData = {
           [params.provider]: {
             providerId: params.providerId,
             identity: params.providerIdentity,
             refreshToken: params.refreshToken,
             updatedAt: now
           }
-        },
+        };
+      } else if (params.id && (!params.provider || !params.providerId || !params.providerIdentity)) {
+        // If an ID is provided but no complete provider info, assume it's a system/dev user with no initial OAuth provider
+        authProvidersData = {}; 
+      } else {
+        // This case should ideally not be reached if CreateUserParams is used correctly elsewhere
+        // (i.e., either full provider info OR an ID is given)
+        // For safety, or if partial provider info is possible & undesirable:
+        throw new DatabaseError('Invalid parameters for user creation: provider information incomplete and no id provided.');
+      }
+
+      // New user object
+      const user: User = {
+        id: userId, // Use determined userId
+        email: params.email,
+        displayName: params.displayName,
+        createdAt: now,
+        updatedAt: now,
+        authProviders: authProvidersData,
         apiKeys: {},
         preferences
       };
@@ -64,7 +78,7 @@ export class UserRepository implements IUserRepository {
           auth_providers, api_keys, preferences
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          id,
+          userId, // Use determined userId
           params.email,
           params.displayName,
           now,
@@ -77,6 +91,9 @@ export class UserRepository implements IUserRepository {
       
       return user;
     } catch (error) {
+      if (error instanceof DatabaseError) { // Re-throw if it's already our specific error
+        throw error;
+      }
       throw new DatabaseError(
         'Failed to create user',
         error instanceof Error ? error.message : String(error),
@@ -102,6 +119,15 @@ export class UserRepository implements IUserRepository {
     }
     
     return this.rowToUser(rows[0]);
+  }
+  
+  /**
+   * Alias for findById, for compatibility
+   * @param id - User ID to search for
+   * @returns Promise resolving with the user if found, null if not found
+   */
+  async getUserById(id: string): Promise<User | null> {
+    return this.findById(id);
   }
 
   /**
@@ -143,6 +169,69 @@ export class UserRepository implements IUserRepository {
     }
     
     return this.rowToUser(rows[0]);
+  }
+  
+  /**
+   * Find or create a user by OAuth provider
+   * @param provider - OAuth provider type (e.g., 'github')
+   * @param providerId - Provider's user ID
+   * @param userData - User data from the provider
+   * @returns Promise resolving with the found or created user
+   */
+  async findOrCreateUserByOAuth(
+    provider: OAuthProvider,
+    providerId: string,
+    userData: {
+      email: string;
+      displayName: string;
+      providerIdentity?: string;
+      refreshToken?: string;
+    }
+  ): Promise<User> {
+    // First try to find the user by provider ID
+    const existingUser = await this.findByProviderId(provider, providerId);
+    
+    if (existingUser) {
+      // Update user data with latest from provider
+      const now = Date.now();
+      
+      // Update the provider information
+      if (existingUser.authProviders[provider]) {
+        existingUser.authProviders[provider] = {
+          ...existingUser.authProviders[provider],
+          providerId,
+          identity: userData.providerIdentity || existingUser.authProviders[provider].identity,
+          refreshToken: userData.refreshToken || existingUser.authProviders[provider].refreshToken,
+          updatedAt: now
+        };
+      }
+      
+      // Update core user data if needed
+      if (userData.email) {
+        existingUser.email = userData.email;
+      }
+      
+      if (userData.displayName) {
+        existingUser.displayName = userData.displayName;
+      }
+      
+      existingUser.updatedAt = now;
+      
+      // Save the updated user
+      await this.update(existingUser);
+      
+      return existingUser;
+    }
+    
+    // Create a new user
+    return this.create({
+      email: userData.email,
+      displayName: userData.displayName,
+      provider,
+      providerId,
+      providerIdentity: userData.providerIdentity || userData.email,
+      refreshToken: userData.refreshToken
+    });
   }
 
   /**
@@ -236,13 +325,35 @@ export class UserRepository implements IUserRepository {
   }
 
   /**
-   * Get a user's API key for a provider
+   * Get a user's API key info for a provider
+   * @param userId - ID of the user to get the key for
+   * @param provider - LLM provider to get the key for
+   * @returns Promise resolving with the API key info if found, null otherwise
+   */
+  async getApiKey(userId: string, provider: LlmProvider): Promise<ApiKeyInfo | null> {
+    // First retrieve the user
+    const user = await this.findById(userId);
+    if (!user) {
+      return null;
+    }
+    
+    // Check if the user has an API key for this provider
+    const keyInfo = user.apiKeys[provider];
+    if (!keyInfo) {
+      return null;
+    }
+    
+    return keyInfo;
+  }
+  
+  /**
+   * Get a user's decrypted API key string for a provider
    * @param userId - ID of the user to get the key for
    * @param provider - LLM provider to get the key for
    * @returns Promise resolving with the decrypted API key if found, null otherwise
    * @throws Error if decryption fails
    */
-  async getApiKey(userId: string, provider: LlmProvider): Promise<string | null> {
+  async getDecryptedApiKey(userId: string, provider: LlmProvider): Promise<string | null> {
     // First retrieve the user
     const user = await this.findById(userId);
     if (!user) {
@@ -294,6 +405,47 @@ export class UserRepository implements IUserRepository {
     
     // Check if the update was successful
     return this.getChangesCount(result) > 0;
+  }
+
+  /**
+   * Delete an API key for a user
+   * @param userId - ID of the user
+   * @param provider - LLM provider for the key
+   * @returns Promise resolving to true if successful, false if key not found
+   */
+  async deleteApiKey(userId: string, provider: LlmProvider): Promise<boolean> {
+    // First retrieve the user
+    const user = await this.findById(userId);
+    if (!user || !user.apiKeys || !user.apiKeys[provider]) {
+      return false;
+    }
+    
+    // Remove the API key
+    delete user.apiKeys[provider];
+    
+    // Update the user
+    const result = await this.dbProvider.exec(
+      'UPDATE users SET api_keys = ?, updated_at = ? WHERE id = ?',
+      [JSON.stringify(user.apiKeys), Date.now(), userId]
+    );
+    
+    // Check if the update was successful
+    return this.getChangesCount(result) > 0;
+  }
+
+  /**
+   * Get all API keys for a user
+   * @param userId - ID of the user
+   * @returns Map of provider to API key info
+   */
+  async getAllApiKeys(userId: string): Promise<Partial<Record<LlmProvider, ApiKeyInfo>>> {
+    // First retrieve the user
+    const user = await this.findById(userId);
+    if (!user) {
+      return {} as Partial<Record<LlmProvider, ApiKeyInfo>>;
+    }
+    
+    return user.apiKeys;
   }
 
   /**

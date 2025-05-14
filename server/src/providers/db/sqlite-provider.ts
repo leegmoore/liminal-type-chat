@@ -69,18 +69,18 @@ export class SQLiteProvider implements DatabaseProvider {
    * Execute a query that returns no rows
    * @param sql - SQL statement to execute
    * @param params - Parameters for the prepared statement
-   * @returns Promise resolving when execution is complete
+   * @returns Promise resolving with number of rows affected
    */
-  async exec(sql: string, params: (string | number | boolean | null)[] = []): Promise<void> {
+  async exec(sql: string, params: (string | number | boolean | null)[] = []): Promise<number> {
     try {
       if (!this.db) {
         throw new Error('Database connection not initialized');
       }
       
       const statement = this.db.prepare(sql);
-      statement.run(...params);
+      const info = statement.run(...params);
       
-      return Promise.resolve();
+      return Promise.resolve(info.changes);
     } catch (error) {
       return Promise.reject(this.handleError(error, 'Statement execution failed'));
     }
@@ -103,9 +103,10 @@ export class SQLiteProvider implements DatabaseProvider {
           const statement = this.db!.prepare(sql);
           return statement.all(...(params || [])) as U[];
         },
-        exec: (sql: string, params: (string | number | boolean | null)[] = []): void => {
+        exec: (sql: string, params: (string | number | boolean | null)[] = []): number => {
           const statement = this.db!.prepare(sql);
-          statement.run(...(params || []));
+          const info = statement.run(...(params || []));
+          return info.changes;
         }
       };
       
@@ -173,6 +174,20 @@ export class SQLiteProvider implements DatabaseProvider {
         status TEXT NOT NULL,
         message TEXT,
         timestamp TEXT NOT NULL
+      )
+    `);
+
+    // Create users table
+    this.db!.exec(`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        display_name TEXT,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        auth_providers TEXT,
+        api_keys TEXT,
+        preferences TEXT
       )
     `);
   }

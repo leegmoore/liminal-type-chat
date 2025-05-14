@@ -1,0 +1,38 @@
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import ChatPage from '../ChatPage';
+import { ChakraProvider } from '@chakra-ui/react';
+
+import { vi } from 'vitest';
+
+// Mock axios to prevent actual API calls
+vi.mock('axios', () => ({
+  default: {
+    get: vi.fn().mockResolvedValue({ data: { conversations: [] } }),
+    post: vi.fn().mockResolvedValue({ data: {} })
+  }
+}));
+
+describe('ChatPage', () => {
+  beforeEach(() => {
+    // Clear all mocks before each test
+    vi.clearAllMocks();
+  });
+
+  it('renders with no conversations', () => {
+    render(
+      <ChakraProvider>
+        <ChatPage />
+      </ChakraProvider>
+    );
+    
+    // Check that the conversations header is rendered
+    expect(screen.getByText('Conversations')).toBeInTheDocument();
+    
+    // Check that the "No conversations yet" message is rendered
+    expect(screen.getByText('No conversations yet')).toBeInTheDocument();
+    
+    // Check that the "Create New Conversation" button is rendered
+    expect(screen.getByText('Create New Conversation')).toBeInTheDocument();
+  });
+});

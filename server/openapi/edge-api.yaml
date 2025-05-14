@@ -235,9 +235,145 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/chat/models/{provider}:
+    get:
+      summary: List available LLM models for a provider
+      description: Retrieve a list of available LLM models for the specified provider
+      operationId: getModels
+      tags:
+        - Chat
+      parameters:
+        - name: provider
+          in: path
+          description: LLM provider identifier (e.g., openai, anthropic)
+          required: true
+          schema:
+            type: string
+            enum: [openai, anthropic]
+      responses:
+        '200':
+          description: List of available models
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LlmModelInfo'
+        '400':
+          description: Invalid provider
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: API key required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/chat/completions:
+    post:
+      summary: Complete a chat prompt
+      description: Send a prompt to an LLM and get a completion response
+      operationId: getChatCompletion
+      tags:
+        - Chat
+      requestBody:
+        description: Chat completion request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+      responses:
+        '200':
+          description: Chat completion response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: API key required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Thread not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/chat/completions/stream:
+    post:
+      summary: Stream a chat completion
+      description: Send a prompt to an LLM and get a streamed completion response
+      operationId: streamChatCompletion
+      tags:
+        - Chat
+      requestBody:
+        description: Chat completion request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+      responses:
+        '200':
+          description: Streamed chat completion response
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: Server-sent events stream of completion chunks
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: API key required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Thread not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /health:
     get:
-      summary: Health check
+      summary: Get server health status
       description: Check if the server is running
       operationId: healthCheck
       tags:
@@ -445,6 +581,167 @@ components:
           type: object
           description: Optional key-value pairs of metadata
           additionalProperties: true
+    LlmModelInfo:
+      type: object
+      required:
+        - id
+        - provider
+        - name
+        - maxTokens
+        - supportsStreaming
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the model
+          example: gpt-4
+        provider:
+          type: string
+          description: LLM provider identifier
+          enum: [openai, anthropic]
+          example: openai
+        name:
+          type: string
+          description: Human-readable name of the model
+          example: GPT-4
+        maxTokens:
+          type: integer
+          description: Maximum number of tokens the model can generate
+          example: 8192
+        supportsStreaming:
+          type: boolean
+          description: Whether the model supports streaming responses
+          example: true
+        contextWindow:
+          type: integer
+          description: Size of the context window in tokens
+          example: 8192
+        trainedUntil:
+          type: string
+          description: Date the model was trained until
+          example: "2023-04-01"
+        pricingPerInputToken:
+          type: number
+          format: float
+          description: Price per input token in USD
+          example: 0.00003
+        pricingPerOutputToken:
+          type: number
+          format: float
+          description: Price per output token in USD
+          example: 0.00006
+
+    ChatCompletionRequest:
+      type: object
+      required:
+        - prompt
+        - provider
+        - threadId
+      properties:
+        prompt:
+          type: string
+          description: The prompt text to send to the LLM
+          example: "What is the capital of France?"
+        provider:
+          type: string
+          description: The LLM provider to use
+          enum: [openai, anthropic]
+          example: openai
+        modelId:
+          type: string
+          description: Optional model ID, if not provided a default for the provider will be used
+          example: gpt-4
+        threadId:
+          type: string
+          format: uuid
+          description: ID of the thread to add the message to
+        options:
+          type: object
+          description: Additional options for the LLM request
+          properties:
+            temperature:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+              description: Controls randomness (0.0 to 1.0)
+              example: 0.7
+            maxTokens:
+              type: integer
+              description: Maximum tokens in the response
+              example: 1000
+            topP:
+              type: number
+              format: float
+              minimum: 0
+              maximum: 1
+              description: Controls diversity via nucleus sampling
+              example: 0.9
+            frequencyPenalty:
+              type: number
+              format: float
+              description: Penalizes frequent tokens
+              example: 0.5
+            presencePenalty:
+              type: number
+              format: float
+              description: Penalizes repeated tokens
+              example: 0.5
+            stop:
+              type: array
+              description: Sequences where the API will stop generating
+              items:
+                type: string
+              example: ["\n\n", "User:"]
+
+    ChatCompletionResponse:
+      type: object
+      required:
+        - threadId
+        - messageId
+        - content
+        - model
+        - provider
+      properties:
+        threadId:
+          type: string
+          format: uuid
+          description: The thread ID
+        messageId:
+          type: string
+          format: uuid
+          description: ID of the assistant's message
+        content:
+          type: string
+          description: Content of the assistant's response
+        model:
+          type: string
+          description: The model used for completion
+          example: gpt-4
+        provider:
+          type: string
+          description: The provider that generated the completion
+          example: openai
+        finishReason:
+          type: string
+          enum: [stop, length, content_filter, error]
+          description: Reason the completion finished
+        usage:
+          type: object
+          description: Token usage statistics
+          properties:
+            promptTokens:
+              type: integer
+              description: Tokens in the prompt
+              example: 15
+            completionTokens:
+              type: integer
+              description: Tokens in the completion
+              example: 25
+            totalTokens:
+              type: integer
+              description: Total tokens used
+              example: 40
+            
     ErrorResponse:
       type: object
       required:

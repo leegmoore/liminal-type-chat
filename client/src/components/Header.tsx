@@ -30,6 +30,9 @@ const Header: React.FC = () => {
             <Link as={RouterLink} to="/" fontWeight="medium">
               Health Dashboard
             </Link>
+            <Link as={RouterLink} to="/chat" fontWeight="medium">
+              Chat
+            </Link>
           </HStack>
         </Flex>
       </Container>

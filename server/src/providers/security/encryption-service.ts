@@ -37,6 +37,19 @@ export class EncryptionService {
       throw new Error('ENCRYPTION_KEY environment variable is required');
     }
 
+    // In development, create a predictable key for easy development
+    if (process.env.NODE_ENV === 'development') {
+      // Create a 32-byte key from the provided string (padded or truncated as needed)
+      const devKey = Buffer.alloc(32);
+      const sourceBuffer = Buffer.from(keyString, 'utf8');
+      
+      // Copy up to 32 bytes from the provided key or pad with zeros
+      sourceBuffer.copy(devKey, 0, 0, Math.min(sourceBuffer.length, 32));
+      
+      this.encryptionKey = devKey;
+      return;
+    }
+
     try {
       // Convert key from base64
       this.encryptionKey = Buffer.from(keyString, 'base64');

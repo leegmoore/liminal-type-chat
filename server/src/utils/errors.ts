@@ -182,9 +182,10 @@ export class UnauthorizedError extends AppError {
    * Create a new UnauthorizedError
    * @param message - Custom error message (optional)
    * @param details - Error details (optional)
+   * @param errorCode - Specific error code (optional, defaults to UNAUTHORIZED)
    */
-  constructor(message?: string, details?: string) {
-    super(AuthErrorCode.UNAUTHORIZED, message, details);
+  constructor(message?: string, details?: string, errorCode?: string) {
+    super(errorCode || AuthErrorCode.UNAUTHORIZED, message, details);
   }
 }
 

@@ -1,12 +1,35 @@
 /**
  * Interface for user data repository operations
  */
-import { User, CreateUserParams, OAuthProvider, LlmProvider } from '../../../models/domain/users/User';
+import { 
+  User, 
+  CreateUserParams, 
+  OAuthProvider, 
+  LlmProvider, 
+  ApiKeyInfo
+} from '../../../models/domain/users/User';
 
 /**
  * User repository interface for persistence operations
  */
 export interface IUserRepository {
+  /**
+   * Find or create a user by OAuth provider
+   * @param provider - OAuth provider type (e.g., 'github')
+   * @param providerId - Provider's user ID
+   * @param userData - User data from the provider
+   * @returns Promise resolving with the found or created user
+   */
+  findOrCreateUserByOAuth(
+    provider: OAuthProvider,
+    providerId: string,
+    userData: {
+      email: string;
+      displayName: string;
+      providerIdentity?: string;
+      refreshToken?: string;
+    }
+  ): Promise<User>;
   /**
    * Create a new user
    * @param params - User creation parameters
@@ -20,6 +43,11 @@ export interface IUserRepository {
    * @returns Promise resolving with the user if found, null if not found
    */
   findById(id: string): Promise<User | null>;
+  
+  /**
+   * Alias for findById, for compatibility
+   */
+  getUserById(id: string): Promise<User | null>;
   
   /**
    * Find a user by email address
@@ -54,12 +82,20 @@ export interface IUserRepository {
   storeApiKey(userId: string, provider: LlmProvider, apiKey: string, label?: string): Promise<boolean>;
   
   /**
-   * Get a user's API key for a provider
+   * Get a user's API key info for a provider
+   * @param userId - ID of the user to get the key for
+   * @param provider - LLM provider to get the key for
+   * @returns Promise resolving with the API key info if found, null otherwise
+   */
+  getApiKey(userId: string, provider: LlmProvider): Promise<ApiKeyInfo | null>;
+  
+  /**
+   * Get a user's decrypted API key for a provider
    * @param userId - ID of the user to get the key for
    * @param provider - LLM provider to get the key for
    * @returns Promise resolving with the decrypted API key if found, null otherwise
    */
-  getApiKey(userId: string, provider: LlmProvider): Promise<string | null>;
+  getDecryptedApiKey(userId: string, provider: LlmProvider): Promise<string | null>;
   
   /**
    * Update the "last used" timestamp for an API key
@@ -69,6 +105,21 @@ export interface IUserRepository {
    * @returns Promise resolving to true if successful, false if key not found
    */
   updateApiKeyLastUsed(userId: string, provider: LlmProvider, timestamp?: number): Promise<boolean>;
+  
+  /**
+   * Delete an API key for a user
+   * @param userId - ID of the user
+   * @param provider - LLM provider for the key
+   * @returns Promise resolving to true if successful, false if key not found
+   */
+  deleteApiKey(userId: string, provider: LlmProvider): Promise<boolean>;
+  
+  /**
+   * Get all API keys for a user
+   * @param userId - ID of the user
+   * @returns Map of provider to API key info
+   */
+  getAllApiKeys(userId: string): Promise<Partial<Record<LlmProvider, ApiKeyInfo>>>;
   
   /**
    * Delete a user

@@ -5,9 +5,10 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { IJwtService } from '../../providers/auth/jwt/IJwtService';
-import { IOAuthProvider } from '../../providers/auth/oauth/IOAuthProvider';
+import { IOAuthProvider } from '../../providers/auth/IOAuthProvider';
 import { IUserRepository } from '../../providers/db/users/IUserRepository';
 import { ValidationError, UnauthorizedError } from '../../utils/errors';
+import { OAuthProvider } from '../../models/domain/users/User';
 // Authentication errors handled by UnauthorizedError class
 
 /**
@@ -69,7 +70,7 @@ export function createAuthRoutes(
   router.post('/oauth/:provider/token', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { provider } = req.params;
-      const { code, redirectUri, state } = req.body;
+      const { code, redirectUri } = req.body;
       
       // Validate input
       if (!code || !redirectUri) {
@@ -90,17 +91,13 @@ export function createAuthRoutes(
       
       // Find or create user
       const user = await userRepository.findOrCreateUserByOAuth(
-        provider,
-        profile.id,
+        provider as OAuthProvider,
+        profile.providerId,
         {
           email: profile.email,
-          displayName: profile.name,
-          providerInfo: {
-            id: profile.id,
-            token: profile.accessToken,
-            scopes: profile.scopes || [],
-            profileImageUrl: profile.profileImageUrl
-          }
+          displayName: profile.displayName,
+          providerIdentity: profile.identity,
+          refreshToken: profile.refreshToken
         }
       );
       
@@ -119,7 +116,8 @@ export function createAuthRoutes(
           id: user.id,
           email: user.email,
           displayName: user.displayName,
-          profileImageUrl: user.authProviders[provider]?.profileImageUrl
+          // Safely access provider info
+          profileImageUrl: provider === 'github' ? user.authProviders.github?.identity : null
         },
         token
       });

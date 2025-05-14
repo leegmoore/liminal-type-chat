@@ -11,8 +11,9 @@ export interface Transaction {
    * Execute a query that returns no rows
    * @param sql - SQL statement to execute
    * @param params - Parameters for the prepared statement
+   * @returns Number of rows affected
    */
-  exec(sql: string, params?: (string | number | boolean | null)[]): void;
+  exec(sql: string, params?: (string | number | boolean | null)[]): number;
   
   /**
    * Execute a query that returns rows
@@ -42,12 +43,12 @@ export interface DatabaseProvider {
   query<T>(sql: string, params?: (string | number | boolean | null)[]): Promise<T[]>;
   
   /**
-   * Execute a query that returns no rows
+   * Execute a query that modifies data (INSERT, UPDATE, DELETE)
    * @param sql - SQL statement to execute
    * @param params - Parameters for the prepared statement
-   * @returns Promise resolving when execution is complete
+   * @returns Promise resolving with the number of rows affected
    */
-  exec(sql: string, params?: (string | number | boolean | null)[]): Promise<void>;
+  exec(sql: string, params?: (string | number | boolean | null)[]): Promise<number>;
   
   /**
    * Execute operations within a transaction

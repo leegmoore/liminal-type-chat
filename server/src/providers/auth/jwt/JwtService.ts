@@ -2,7 +2,7 @@
  * JWT Service Implementation
  * Handles JWT token generation, verification, and decoding
  */
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { IJwtService, TokenOptions, TokenPayload, VerifiedToken } from './IJwtService';
 import { AuthErrorCode } from '../../../utils/error-codes';
@@ -44,11 +44,18 @@ export class JwtService implements IJwtService {
       jti: tokenId
     };
     
-    const tokenOptions = {
-      expiresIn: options?.expiresIn || process.env.JWT_EXPIRES_IN || this.defaultExpiresIn
-    };
+    // Use type assertion to satisfy the SignOptions interface
+    // Cast expiresIn to a type that jwt.sign will accept
+    let expiresIn = options?.expiresIn || process.env.JWT_EXPIRES_IN || this.defaultExpiresIn;
     
-    return jwt.sign(tokenPayload, this.secretKey, tokenOptions);
+    // Normalize expiresIn to ensure it's properly formatted for jwt.sign
+    // This handles both string (e.g., '30m') and number (e.g., 1800) formats
+    if (typeof expiresIn === 'number') {
+      expiresIn = `${expiresIn}s`; // Convert to seconds string format
+    }
+    
+    // Pass options directly to jwt.sign
+    return jwt.sign(tokenPayload, this.secretKey, { expiresIn } as jwt.SignOptions);
   }
   
   /**

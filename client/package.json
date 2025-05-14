@@ -20,6 +20,8 @@
     "@emotion/styled": "^11.11.0",
     "@types/testing-library__jest-dom": "^5.14.9",
     "axios": "^1.6.2",
+    "caniuse-lite": "^1.0.30001718",
+    "esbuild": "^0.25.4",
     "framer-motion": "^10.16.16",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

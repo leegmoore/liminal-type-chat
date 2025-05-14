@@ -80,16 +80,18 @@ export interface User {
  * Parameters for creating a new user
  */
 export interface CreateUserParams {
+  /** Optional pre-defined user ID. If not provided, one will be generated. */
+  id?: string; 
   /** Primary email address */
   email: string;
   /** User's display name */
   displayName: string;
-  /** OAuth provider that initiated creation */
-  provider: OAuthProvider;
-  /** Provider's user ID */
-  providerId: string;
-  /** Provider-specific identity (email/username) */
-  providerIdentity: string;
+  /** OAuth provider that initiated creation (optional if id is provided) */
+  provider?: OAuthProvider;
+  /** Provider's user ID (optional if id is provided) */
+  providerId?: string;
+  /** Provider-specific identity (email/username) (optional if id is provided) */
+  providerIdentity?: string;
   /** Optional refresh token */
   refreshToken?: string;
   /** Optional initial preferences */

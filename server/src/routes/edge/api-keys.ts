@@ -5,7 +5,6 @@
 import express, { Router, Response, NextFunction } from 'express';
 import { IUserRepository } from '../../providers/db/users/IUserRepository';
 import { AuthenticatedRequest, createAuthMiddleware } from '../../middleware/auth-middleware';
-import { withAuthenticatedUser } from '../../middleware/auth-utils';
 import { IJwtService } from '../../providers/auth/jwt/IJwtService';
 import { ValidationError } from '../../utils/errors';
 import { LlmProvider } from '../../models/domain/users/User';
@@ -20,21 +19,23 @@ export function createApiKeyRoutes(
   userRepository: IUserRepository,
   jwtService: IJwtService
 ): Router {
-  const router = express.Router();
+  // Create router with correct typing
+  const router = express.Router() as any;
   
   // Add authentication middleware
-  router.use(createAuthMiddleware(jwtService));
+  router.use(createAuthMiddleware(jwtService, userRepository));
   
   /**
    * Store an API key
    * POST /api-keys/:provider
    */
-  router.post('/:provider', withAuthenticatedUser(async (
-    userId: string,
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction
-  ) => {
+  router.post('/:provider', async function(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    // Get user ID from req.user
+    if (!req.user || !req.user.userId) {
+      return next(new ValidationError('Authentication required', 'User ID not found in request'));
+    }
+    const userId = req.user.userId;
+    
     try {
       const { provider } = req.params;
       const { apiKey, label } = req.body;
@@ -68,18 +69,19 @@ export function createApiKeyRoutes(
     } catch (error) {
       next(error);
     }
-  }));
+  });
   
   /**
    * Check if user has an API key for a provider
    * GET /api-keys/:provider
    */
-  router.get('/:provider', withAuthenticatedUser(async (
-    userId: string,
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction
-  ) => {
+  router.get('/:provider', async function(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    // Get user ID from req.user
+    if (!req.user || !req.user.userId) {
+      return next(new ValidationError('Authentication required', 'User ID not found in request'));
+    }
+    const userId = req.user.userId;
+    
     try {
       const { provider } = req.params;
       
@@ -105,18 +107,19 @@ export function createApiKeyRoutes(
     } catch (error) {
       next(error);
     }
-  }));
+  });
   
   /**
    * Delete an API key
    * DELETE /api-keys/:provider
    */
-  router.delete('/:provider', withAuthenticatedUser(async (
-    userId: string,
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction
-  ) => {
+  router.delete('/:provider', async function(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    // Get user ID from req.user
+    if (!req.user || !req.user.userId) {
+      return next(new ValidationError('Authentication required', 'User ID not found in request'));
+    }
+    const userId = req.user.userId;
+    
     try {
       const { provider } = req.params;
       
@@ -149,7 +152,7 @@ export function createApiKeyRoutes(
     } catch (error) {
       next(error);
     }
-  }));
+  });
   
   return router;
 }

@@ -16,7 +16,7 @@ import { AuthErrorCode } from '../utils/error-codes';
  */
 export function requireUserId(
   req: AuthenticatedRequest, 
-  res: Response, 
+  _res: Response, 
   next: NextFunction
 ): string {
   if (!req.user || !req.user.userId) {
@@ -107,17 +107,19 @@ export function withAuthenticatedUser<T>(
     res: Response, 
     next: NextFunction
   ) => Promise<T>
-) {
-  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+): (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void | undefined> {
+  return async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void | undefined> => {
     try {
       const userId = requireUserId(req, res, next);
       
       // If userId is empty, an error was already passed to next()
-      if (!userId) return;
+      if (!userId) return undefined;
       
-      return await handler(userId, req, res, next);
+      await handler(userId, req, res, next);
+      return undefined;
     } catch (error) {
       next(error);
+      return undefined;
     }
   };
 }

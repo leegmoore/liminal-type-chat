@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude 3.7 Sonnet Demo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+      background-color: #f9f9f9;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    h1 {
+      color: #7B34B8;
+      margin-bottom: 10px;
+    }
+    .info-box {
+      background-color: #F0E5FB;
+      border-left: 4px solid #7B34B8;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+    .section {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #7B34B8;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+      margin-top: 0;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    code {
+      font-family: 'Courier New', Courier, monospace;
+    }
+    .highlight {
+      background-color: #FFF3CD;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .feature-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .feature-card {
+      flex: 1;
+      min-width: 200px;
+      background: #fcfcfc;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .feature-card h3 {
+      margin-top: 0;
+      color: #7B34B8;
+    }
+    .demo-section {
+      background-color: #F0E5FB;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 30px;
+    }
+    .message-container {
+      margin-bottom: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+      background: white;
+      border-radius: 5px;
+    }
+    .message {
+      margin-bottom: 15px;
+      padding: 10px 15px;
+      border-radius: 10px;
+      max-width: 80%;
+    }
+    .user-message {
+      background-color: #E3F2FD;
+      margin-left: auto;
+      text-align: right;
+      border-top-right-radius: 0;
+    }
+    .assistant-message {
+      background-color: #F0E5FB;
+      margin-right: auto;
+      border-top-left-radius: 0;
+    }
+    .input-area {
+      display: flex;
+      margin-top: 20px;
+    }
+    .prompt-input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-family: inherit;
+      resize: none;
+    }
+    .send-button {
+      background-color: #7B34B8;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 0 20px;
+      margin-left: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .send-button:hover {
+      background-color: #6429A5;
+    }
+    .send-button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    .api-key-section {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .api-key-input {
+      padding: 10px;
+      width: 300px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+    .api-key-button {
+      background-color: #7B34B8;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+    .thinking {
+      font-style: italic;
+      color: #888;
+      margin-left: 10px;
+    }
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(123, 52, 184, 0.3);
+      border-radius: 50%;
+      border-top-color: #7B34B8;
+      animation: spin 1s ease-in-out infinite;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Claude 3.7 Sonnet Integration Demo</h1>
+    <p>A standalone demonstration of interacting with Anthropic's Claude 3.7 Sonnet model</p>
+  </header>
+
+  <div class="info-box">
+    <strong>Note:</strong> This demo sends requests directly to Anthropic's API from your browser.
+    Your API key is stored only in your browser's memory and is never sent to any server other than Anthropic's API endpoint.
+  </div>
+
+  <section class="section">
+    <h2>About Claude 3.7 Sonnet</h2>
+    <p>Claude 3.7 Sonnet is Anthropic's latest model as of May 2024, offering significant improvements over the previous Claude 3 Sonnet model:</p>
+    
+    <div class="feature-list">
+      <div class="feature-card">
+        <h3>200K Token Context</h3>
+        <p>Claude 3.7 Sonnet supports a massive 200,000 token context window, enabling it to process and reason over extensive documents.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Enhanced Reasoning</h3>
+        <p>Improved logical reasoning, problem-solving, and nuanced understanding of complex topics.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Streaming Support</h3>
+        <p>Full token-by-token streaming support for more interactive and responsive conversations.</p>
+      </div>
+    </div>
+
+    <table>
+      <tr>
+        <th>Parameter</th>
+        <th>Value</th>
+      </tr>
+      <tr>
+        <td>Model ID</td>
+        <td>claude-3-7-sonnet-20250218</td>
+      </tr>
+      <tr>
+        <td>Context Window</td>
+        <td>200,000 tokens</td>
+      </tr>
+      <tr>
+        <td>Max Response</td>
+        <td>4,096 tokens</td>
+      </tr>
+      <tr>
+        <td>Input Price</td>
+        <td>$3.00 per million tokens</td>
+      </tr>
+      <tr>
+        <td>Output Price</td>
+        <td>$15.00 per million tokens</td>
+      </tr>
+    </table>
+  </section>
+
+  <section class="section demo-section">
+    <h2>Interactive Demo</h2>
+    <div class="api-key-section">
+      <input type="password" id="api-key-input" class="api-key-input" placeholder="Enter your Anthropic API key">
+      <button id="save-key-button" class="api-key-button">Save API Key</button>
+    </div>
+
+    <div id="messages" class="message-container">
+      <div class="message assistant-message">
+        <p>Hello! I'm Claude 3.7 Sonnet. Once you add your API key, you can ask me anything and I'll respond with the latest capabilities of Claude 3.7.</p>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <textarea id="prompt-input" class="prompt-input" placeholder="Type your message here..." rows="3"></textarea>
+      <button id="send-button" class="send-button" disabled>Send</button>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Implementation Details</h2>
+    <p>This demo showcases the following features of our Claude 3.7 Sonnet integration:</p>
+    <ul>
+      <li>Secure API key management</li>
+      <li>Streaming responses for better user experience</li>
+      <li>Special UI styling for Claude responses</li>
+      <li>Support for the latest Claude 3.7 model parameters</li>
+    </ul>
+
+    <h3>Code Sample: API Request</h3>
+    <pre><code>// Example code for making a request to Claude 3.7 Sonnet
+async function sendToAnthropic(messages, apiKey) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: 'claude-3-7-sonnet-20250218',
+      messages: messages,
+      max_tokens: 1000,
+      temperature: 0.7,
+      stream: true
+    })
+  });
+
+  return response.body;
+}</code></pre>
+  </section>
+
+  <script>
+    let apiKey = '';
+    const messages = [];
+    const messageContainer = document.getElementById('messages');
+    const promptInput = document.getElementById('prompt-input');
+    const sendButton = document.getElementById('send-button');
+    const apiKeyInput = document.getElementById('api-key-input');
+    const saveKeyButton = document.getElementById('save-key-button');
+
+    // Save API key
+    saveKeyButton.addEventListener('click', () => {
+      const key = apiKeyInput.value.trim();
+      if (key) {
+        apiKey = key;
+        apiKeyInput.value = '';
+        sendButton.disabled = false;
+        
+        // Add success message
+        const successDiv = document.createElement('div');
+        successDiv.textContent = 'API key saved! You can now chat with Claude 3.7 Sonnet.';
+        successDiv.style.color = 'green';
+        successDiv.style.marginTop = '10px';
+        successDiv.style.textAlign = 'center';
+        
+        const keySection = document.querySelector('.api-key-section');
+        keySection.appendChild(successDiv);
+        
+        // Remove the message after 3 seconds
+        setTimeout(() => {
+          keySection.removeChild(successDiv);
+        }, 3000);
+      }
+    });
+
+    // Handle enter key in textarea
+    promptInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (!sendButton.disabled) {
+          sendMessage();
+        }
+      }
+    });
+
+    // Send message
+    sendButton.addEventListener('click', sendMessage);
+
+    async function sendMessage() {
+      const prompt = promptInput.value.trim();
+      if (!prompt || !apiKey) return;
+
+      // Disable input during processing
+      sendButton.disabled = true;
+      promptInput.disabled = true;
+
+      // Add user message to UI
+      addMessageToUI('user', prompt);
+      
+      // Clear input
+      promptInput.value = '';
+
+      // Add user message to messages array
+      messages.push({
+        role: 'user',
+        content: prompt
+      });
+
+      // Create assistant message placeholder
+      const assistantMessageElement = addMessageToUI('assistant', '');
+      
+      // Add thinking indicator
+      const thinkingSpan = document.createElement('span');
+      thinkingSpan.className = 'thinking';
+      thinkingSpan.innerHTML = 'Claude is thinking <div class="loader"></div>';
+      assistantMessageElement.appendChild(thinkingSpan);
+
+      try {
+        // Make API request to Anthropic
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: 'claude-3-7-sonnet-20250218',
+            messages: messages,
+            max_tokens: 1000,
+            temperature: 0.7,
+            stream: true
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        // Remove thinking indicator
+        assistantMessageElement.removeChild(thinkingSpan);
+        
+        // Set up streaming with ReadableStream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let assistantMessage = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          // Parse chunks
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+              try {
+                const data = JSON.parse(line.substring(6));
+                
+                if (data.type === 'content_block_delta' && 
+                    data.delta && 
+                    data.delta.type === 'text_delta' && 
+                    data.delta.text) {
+                  
+                  // Update assistant message content
+                  assistantMessage += data.delta.text;
+                  assistantMessageElement.textContent = assistantMessage;
+                }
+              } catch (e) {
+                console.error('Error parsing event data:', e);
+              }
+            }
+          }
+        }
+
+        // Add the complete message to our message history
+        messages.push({
+          role: 'assistant',
+          content: assistantMessage
+        });
+        
+      } catch (error) {
+        console.error('Error sending prompt:', error);
+        assistantMessageElement.textContent = 'Error: Failed to get a response from Claude. Please check your API key and try again.';
+        assistantMessageElement.style.color = 'red';
+      } finally {
+        // Re-enable input
+        sendButton.disabled = false;
+        promptInput.disabled = false;
+        promptInput.focus();
+
+        // Scroll to bottom
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+      }
+    }
+
+    function addMessageToUI(role, content) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${role}-message`;
+      messageDiv.textContent = content;
+      messageContainer.appendChild(messageDiv);
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+      return messageDiv;
+    }
+  </script>
+</body>
+</html>

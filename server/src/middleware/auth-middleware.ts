@@ -6,6 +6,8 @@ import { Request, Response, NextFunction } from 'express';
 import { IJwtService } from '../providers/auth/jwt/IJwtService';
 import { UnauthorizedError } from '../utils/errors';
 import { AuthErrorCode } from '../utils/error-codes';
+import { IUserRepository } from '../providers/db/users/IUserRepository';
+import { CreateUserParams } from '../models/domain/users/User';
 
 /**
  * Authenticated request with user information
@@ -36,17 +38,61 @@ export interface AuthOptions {
 /**
  * Create authentication middleware
  * @param jwtService - JWT service for token verification
+ * @param userRepository - User repository for dev user creation (in bypass mode)
  * @param options - Authentication options
  * @returns Express middleware function
  */
-export function createAuthMiddleware(jwtService: IJwtService, options: AuthOptions = {}) {
+export function createAuthMiddleware(
+  jwtService: IJwtService, 
+  userRepository: IUserRepository, 
+  options: AuthOptions = {}
+) {
   const { required = true, requiredScopes = [], requiredTier } = options;
   
-  return (req: Request, _res: Response, next: NextFunction) => {
+  return async (req: Request, _res: Response, next: NextFunction) => {
     const authHeader = req.header('Authorization');
     
     // If auth is not required and no token provided, proceed without authentication
     if (!required && !authHeader) {
+      return next();
+    }
+    
+    // DEVELOPMENT ONLY - Allow unauthenticated requests for testing Claude integration
+    if (process.env.NODE_ENV === 'development' && process.env.BYPASS_AUTH === 'true') {
+      console.warn('⚠️ WARNING: Authentication bypass enabled. Do not use in production!');
+      
+      // Add minimal user information for testing
+      const mockUser = {
+        userId: 'dev-user-123',
+        email: 'dev@example.com',
+        name: 'Development User',
+        scopes: ['all'],
+        tier: 'edge' as 'edge' | 'domain',
+        tokenId: 'dev-token-123'
+      };
+      (req as AuthenticatedRequest).user = mockUser;
+      
+      // Ensure dev user exists in DB for BYPASS_AUTH mode
+      const devUserId = mockUser.userId;
+      try {
+        let user = await userRepository.findById(devUserId);
+        if (!user) {
+          console.warn(`BYPASS_AUTH: User ${devUserId} not found. Creating...`);
+          // Use the structure from CreateUserParams for userRepository.create
+          const createUserParams: CreateUserParams = {
+            id: devUserId, // Explicitly set the ID for dev user
+            email: mockUser.email,
+            displayName: mockUser.name,
+            // provider, providerId, and providerIdentity are now optional if id is provided
+            // and are not relevant for a system-generated dev user.
+          };
+          await userRepository.create(createUserParams);
+          console.warn(`BYPASS_AUTH: User ${devUserId} created successfully.`);
+        }
+      } catch (dbError) {
+        console.error(`BYPASS_AUTH: Error ensuring dev user ${devUserId} exists:`, dbError);
+      }
+      
       return next();
     }
     

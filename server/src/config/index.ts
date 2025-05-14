@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: '.env.local', override: true });
 
 /**
  * Server configuration

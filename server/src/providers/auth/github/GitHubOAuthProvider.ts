@@ -117,7 +117,7 @@ export class GitHubOAuthProvider implements IOAuthProvider {
         }
       });
       
-      const { 
+      let { 
         id, 
         login, 
         name, 

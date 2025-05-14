@@ -11,6 +11,7 @@ import { createContextThreadRoutes } from './routes/domain/context-thread';
 import { createConversationRoutes } from './routes/edge/conversation';
 import { createAuthRoutes } from './routes/edge/auth';
 import { createApiKeyRoutes } from './routes/edge/api-keys';
+import { createChatRoutes, createChatService } from './routes/edge/chat-routes';
 import { HealthService } from './services/core/health-service';
 import { ContextThreadService } from './services/core/ContextThreadService';
 import { errorHandler } from './middleware/error-handler';
@@ -18,6 +19,8 @@ import { SQLiteProvider } from './providers/db/sqlite-provider';
 import { ContextThreadRepository } from './providers/db/ContextThreadRepository';
 import { UserRepository } from './providers/db/users/UserRepository';
 import { EncryptionService } from './providers/security/encryption-service';
+import { SecureStorage } from './providers/security/secure-storage';
+import { LlmApiKeyManager } from './providers/llm/LlmApiKeyManager';
 import { JwtServiceFactory } from './providers/auth/jwt/JwtServiceFactory';
 import { GitHubOAuthProvider } from './providers/auth/github/GitHubOAuthProvider';
 import config from './config';
@@ -25,14 +28,14 @@ import { createHealthServiceClient } from './clients/domain/health-service-clien
 import { createSwaggerRouter } from './middlewares/swagger';
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 // Create Express application
 const app = express();
 
 // Middleware
 app.use(morgan('dev')); // Request logging
-app.use(cors()); // CORS headers
+app.use(cors({ origin: '*' })); // CORS headers, explicitly allow all origins for dev
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
 
@@ -56,8 +59,13 @@ const contextThreadService = new ContextThreadService(contextThreadRepository);
 
 // Create security services
 const encryptionService = new EncryptionService();
+const secureStorage = new SecureStorage();
 const userRepository = new UserRepository(dbProvider, encryptionService);
 const jwtService = JwtServiceFactory.createJwtService();
+
+// Create LLM services
+const llmApiKeyManager = new LlmApiKeyManager(secureStorage, userRepository);
+const chatService = createChatService(llmApiKeyManager, contextThreadService);
 
 // Create OAuth providers
 const oauthProviders = new Map();
@@ -70,6 +78,15 @@ oauthProviders.set('github', githubOAuthProvider);
 // Create client adapters
 const healthServiceClient = createHealthServiceClient(healthService);
 
+// Store services in app.locals for route handlers to access
+app.locals.services = {
+  healthService,
+  contextThreadService,
+  chatService,
+  llmApiKeyManager,
+  jwtService
+};
+
 // Mount domain routes
 app.use(createHealthRoutes(healthService));
 app.use('/api/v1/domain/threads', createContextThreadRoutes(contextThreadService));
@@ -79,6 +96,7 @@ app.use(createEdgeHealthRoutes(healthServiceClient));
 app.use('/api/v1/conversations', createConversationRoutes());
 app.use('/api/v1/auth', createAuthRoutes(userRepository, jwtService, oauthProviders));
 app.use('/api/v1/api-keys', createApiKeyRoutes(userRepository, jwtService));
+app.use(createChatRoutes(jwtService, userRepository)); // Pass jwtService and userRepository here
 
 // Mount Swagger UI documentation routes
 app.use('/docs', createSwaggerRouter());
