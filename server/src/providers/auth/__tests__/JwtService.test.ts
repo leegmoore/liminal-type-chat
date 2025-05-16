@@ -189,7 +189,8 @@ describe('JwtService', () => {
     it('should throw UnauthorizedError for expired token', () => {
       // Arrange
       mockedJwt.verify.mockImplementationOnce(() => {
-        const error = new Error('jwt expired') as any;
+        type JwtError = Error & { name: string };
+        const error = new Error('jwt expired') as JwtError;
         error.name = 'TokenExpiredError';
         throw error;
       });
@@ -204,7 +205,8 @@ describe('JwtService', () => {
     it('should throw UnauthorizedError for invalid token', () => {
       // Arrange
       mockedJwt.verify.mockImplementationOnce(() => {
-        const error = new Error('invalid token') as any;
+        type JwtError = Error & { name: string };
+        const error = new Error('invalid token') as JwtError;
         error.name = 'JsonWebTokenError';
         throw error;
       });

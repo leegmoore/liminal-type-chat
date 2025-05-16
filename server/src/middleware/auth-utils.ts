@@ -108,7 +108,11 @@ export function withAuthenticatedUser<T>(
     next: NextFunction
   ) => Promise<T>
 ): (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void | undefined> {
-  return async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void | undefined> => {
+  return async (
+    req: AuthenticatedRequest, 
+    res: Response, 
+    next: NextFunction
+  ): Promise<void | undefined> => {
     try {
       const userId = requireUserId(req, res, next);
       

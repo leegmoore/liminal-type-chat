@@ -1,137 +1,140 @@
 import { AnthropicService } from '../anthropic/AnthropicService';
 import { LlmErrorCode, LlmServiceError } from '../ILlmService';
 
-// Mock the Anthropic SDK client
-jest.mock('@anthropic-ai/sdk', () => {
+// Define a mock Anthropic API error class
+class MockAPIError extends Error {
+  status: number;
+  
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'APIError';
+    this.status = status;
+  }
+}
+
+// Mock message create function
+interface AnthropicMessageParams {
+  model: string;
+  messages: Array<{role: string; content: string}>;
+  max_tokens?: number;
+  [key: string]: unknown;
+}
+
+const mockCreate = jest.fn().mockImplementation(async (params: AnthropicMessageParams) => {
+  if (params.model === 'error-model') {
+    throw new MockAPIError('Model not found', 404);
+  }
+  
   return {
-    Anthropic: jest.fn().mockImplementation(() => {
-      return {
-        models: {
-          list: jest.fn().mockResolvedValue({
-            data: [
-              {
-                id: 'claude-3-opus-20240229',
-                name: 'Claude 3 Opus',
-                description: 'Anthropic\'s most powerful model',
-                context_window: 200000,
-                max_tokens: 4096
-              },
-              {
-                id: 'claude-3-sonnet-20240229',
-                name: 'Claude 3 Sonnet',
-                description: 'Excellent balance of intelligence and speed',
-                context_window: 200000,
-                max_tokens: 4096
-              },
-              {
-                id: 'claude-3-haiku-20240307',
-                name: 'Claude 3 Haiku',
-                description: 'Fast and compact model',
-                context_window: 200000,
-                max_tokens: 4096
-              }
-            ]
-          }),
-        },
-        messages: {
-          create: jest.fn().mockImplementation(async (params) => {
-            if (params.model === 'error-model') {
-              throw new Error('Model not found');
-            }
-            
-            if (params.stream) {
-              // Mock streaming response
-              const eventStream = {
-                [Symbol.asyncIterator]: function* () {
-                  yield {
-                    type: 'message_start',
-                    message: {
-                      id: 'msg_abc123',
-                      model: params.model,
-                      role: 'assistant',
-                      content: [],
-                      usage: {
-                        input_tokens: 10,
-                        output_tokens: 0
-                      }
-                    }
-                  };
-                  yield {
-                    type: 'content_block_start',
-                    content_block: {
-                      type: 'text',
-                      index: 0
-                    }
-                  };
-                  yield {
-                    type: 'content_block_delta',
-                    delta: {
-                      type: 'text_delta',
-                      text: 'Hello'
-                    },
-                    index: 0
-                  };
-                  yield {
-                    type: 'content_block_delta',
-                    delta: {
-                      type: 'text_delta',
-                      text: ' world'
-                    },
-                    index: 0
-                  };
-                  yield {
-                    type: 'content_block_delta',
-                    delta: {
-                      type: 'text_delta',
-                      text: '!'
-                    },
-                    index: 0
-                  };
-                  yield {
-                    type: 'content_block_stop',
-                    index: 0
-                  };
-                  yield {
-                    type: 'message_delta',
-                    delta: {
-                      stop_reason: 'end_turn',
-                      stop_sequence: null
-                    },
-                    usage: {
-                      output_tokens: 3
-                    }
-                  };
-                  yield {
-                    type: 'message_stop'
-                  };
-                }
-              };
-              return eventStream;
-            }
-            
-            // Mock non-streaming response
-            return {
-              id: 'msg_abc123',
-              model: params.model,
-              role: 'assistant',
-              content: [
-                {
-                  type: 'text',
-                  text: 'This is a test response from Claude'
-                }
-              ],
-              stop_reason: 'end_turn',
-              stop_sequence: null,
-              usage: {
-                input_tokens: 10,
-                output_tokens: 20
-              }
-            };
-          }),
+    id: 'msg_abc123',
+    model: params.model,
+    role: 'assistant',
+    content: [
+      {
+        type: 'text',
+        text: 'This is a test response from Claude'
+      }
+    ],
+    stop_reason: 'end_turn',
+    stop_sequence: null,
+    usage: {
+      input_tokens: 10,
+      output_tokens: 20
+    }
+  };
+});
+
+// Mock message stream function
+const mockStream = jest.fn().mockImplementation(async (params: AnthropicMessageParams) => {
+  // Mock streaming response
+  const eventStream = {
+    [Symbol.asyncIterator]: function* () {
+      yield {
+        type: 'message_start',
+        message: {
+          id: 'msg_abc123',
+          model: params.model,
+          role: 'assistant',
+          content: [],
+          usage: {
+            input_tokens: 10,
+            output_tokens: 0
+          }
         }
       };
-    })
+      yield {
+        type: 'content_block_start',
+        content_block: {
+          type: 'text',
+          index: 0
+        }
+      };
+      yield {
+        type: 'content_block_delta',
+        delta: {
+          type: 'text_delta',
+          text: 'Hello'
+        },
+        index: 0
+      };
+      yield {
+        type: 'content_block_delta',
+        delta: {
+          type: 'text_delta',
+          text: ' world'
+        },
+        index: 0
+      };
+      yield {
+        type: 'content_block_delta',
+        delta: {
+          type: 'text_delta',
+          text: '!'
+        },
+        index: 0
+      };
+      yield {
+        type: 'content_block_stop',
+        index: 0
+      };
+      yield {
+        type: 'message_delta',
+        delta: {
+          stop_reason: 'end_turn',
+          stop_sequence: null
+        },
+        usage: {
+          output_tokens: 3
+        }
+      };
+      yield {
+        type: 'message_stop'
+      };
+    }
   };
+  return eventStream;
+});
+
+// Create a mock constructor function
+interface AnthropicConfig {
+  apiKey: string;
+  [key: string]: unknown;
+}
+
+function MockAnthropic(config: AnthropicConfig) {
+  this.apiKey = config.apiKey;
+  this.messages = {
+    create: mockCreate,
+    stream: mockStream
+  };
+}
+
+// Add the custom error class
+MockAnthropic.APIError = MockAPIError;
+
+// Mock the SDK
+jest.mock('@anthropic-ai/sdk', () => {
+  return MockAnthropic;
 });
 
 describe('AnthropicService', () => {
@@ -145,7 +148,14 @@ describe('AnthropicService', () => {
   describe('constructor', () => {
     it('should throw an error if API key is not provided', () => {
       expect(() => new AnthropicService('')).toThrow(LlmServiceError);
-      expect(() => new AnthropicService('')).toThrow(LlmErrorCode.INVALID_API_KEY);
+      
+      // Test that the error contains the right error code
+      try {
+        new AnthropicService('');
+      } catch (error) {
+        expect(error).toBeInstanceOf(LlmServiceError);
+        expect((error as LlmServiceError).code).toBe(LlmErrorCode.INVALID_API_KEY);
+      }
     });
   });
   
@@ -154,7 +164,7 @@ describe('AnthropicService', () => {
       const models = await anthropicService.listModels();
       
       expect(models).toBeInstanceOf(Array);
-      expect(models.length).toBe(3);
+      expect(models.length).toBe(4); // There are 4 models in the ANTHROPIC_MODELS object
       
       // Check the model has the correct structure
       const model = models[0];
@@ -191,8 +201,8 @@ describe('AnthropicService', () => {
       
       const response = await anthropicService.sendPrompt(messages);
       
-      // Check it used the default model (claude-3-sonnet by default)
-      expect(response.modelId).toBe('claude-3-sonnet-20240229');
+      // Check it used the default model (claude-3.7-sonnet by default)
+      expect(response.modelId).toBe('claude-3-7-sonnet-20250219');
     });
     
     it('should handle API errors', async () => {
@@ -200,9 +210,26 @@ describe('AnthropicService', () => {
         { role: 'user', content: 'Hello, world!' }
       ];
       
+      // Reset mock state
+      mockCreate.mockClear();
+      
+      // Test basic error throwing
       await expect(
         anthropicService.sendPrompt(messages, { modelId: 'error-model' })
       ).rejects.toThrow(LlmServiceError);
+      
+      // Test error code mapping
+      try {
+        await anthropicService.sendPrompt(messages, { modelId: 'error-model' });
+      } catch (error) {
+        expect(error).toBeInstanceOf(LlmServiceError);
+        expect((error as LlmServiceError).code).toBe(LlmErrorCode.MODEL_NOT_FOUND);
+      }
+      
+      // Verify call was made with correct parameters
+      expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({
+        model: 'error-model'
+      }));
     });
   });
   
@@ -241,26 +268,38 @@ describe('AnthropicService', () => {
       
       // Check at least one chunk has the default model ID
       const hasDefaultModel = mockCallback.mock.calls.some(
-        call => call[0].modelId === 'claude-3-sonnet-20240229'
+        call => call[0].modelId === 'claude-3-7-sonnet-20250219'
       );
       expect(hasDefaultModel).toBe(true);
     });
   });
   
   describe('validateApiKey', () => {
-    it('should validate API key by testing models list', async () => {
+    it('should validate API key by testing a message create call', async () => {
+      // Reset mock state and make it succeed
+      mockCreate.mockClear();
+      mockCreate.mockResolvedValueOnce({
+        id: 'msg_test',
+        model: 'claude-3-7-sonnet-20250219',
+        role: 'assistant',
+        content: [{ type: 'text', text: 'Test' }]
+      });
+      
       const result = await anthropicService.validateApiKey('test-api-key');
+      
       expect(result).toBe(true);
+      expect(mockCreate).toHaveBeenCalled();
     });
     
-    it('should return false if models list fails', async () => {
-      // Mock the models.list method to throw an error
-      const Anthropic = require('@anthropic-ai/sdk').Anthropic;
-      jest.spyOn(Anthropic.prototype.models, 'list')
-        .mockRejectedValueOnce(new Error('Invalid API key'));
+    it('should return false if validation fails', async () => {
+      // Reset mock state and make it fail
+      mockCreate.mockClear();
+      mockCreate.mockRejectedValueOnce(new MockAPIError('Invalid API key', 401));
       
       const result = await anthropicService.validateApiKey('invalid-key');
+      
       expect(result).toBe(false);
+      expect(mockCreate).toHaveBeenCalled();
     });
   });
 });

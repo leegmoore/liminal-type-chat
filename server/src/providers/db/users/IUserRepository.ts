@@ -79,7 +79,12 @@ export interface IUserRepository {
    * @param label - Optional user-friendly label for the key
    * @returns Promise resolving to true if successful, false if user not found
    */
-  storeApiKey(userId: string, provider: LlmProvider, apiKey: string, label?: string): Promise<boolean>;
+  storeApiKey(
+    userId: string, 
+    provider: LlmProvider, 
+    apiKey: string, 
+    label?: string
+  ): Promise<boolean>;
   
   /**
    * Get a user's API key info for a provider

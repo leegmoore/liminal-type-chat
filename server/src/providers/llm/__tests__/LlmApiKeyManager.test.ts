@@ -1,5 +1,5 @@
 import { LlmApiKeyManager } from '../LlmApiKeyManager';
-import { LlmErrorCode, LlmProvider, LlmServiceError } from '../ILlmService';
+import { LlmProvider, LlmServiceError } from '../ILlmService';
 import { SecureStorage } from '../../security/secure-storage';
 import { UserRepository } from '../../db/users/UserRepository';
 import { LlmServiceFactory } from '../LlmServiceFactory';
@@ -32,10 +32,11 @@ describe('LlmApiKeyManager', () => {
     mockSecureStorage.decryptApiKey.mockResolvedValue(mockApiKey);
     mockUserRepository.storeApiKey.mockResolvedValue(true);
     mockUserRepository.getApiKey.mockResolvedValue({
-      encryptedKey: mockEncryptedApiKey,
+      key: mockEncryptedApiKey,
       label: 'Default',
       createdAt: Date.now()
     });
+    mockUserRepository.getDecryptedApiKey.mockResolvedValue(mockApiKey);
     
     // Mock LlmServiceFactory
     jest.spyOn(LlmServiceFactory, 'validateApiKey').mockResolvedValue(true);
@@ -89,12 +90,11 @@ describe('LlmApiKeyManager', () => {
       const apiKey = await llmApiKeyManager.getApiKey(userId, provider);
       
       expect(apiKey).toBe(mockApiKey);
-      expect(mockUserRepository.getApiKey).toHaveBeenCalledWith(userId, provider);
-      expect(mockSecureStorage.decryptApiKey).toHaveBeenCalledWith(mockEncryptedApiKey);
+      expect(mockUserRepository.getDecryptedApiKey).toHaveBeenCalledWith(userId, provider);
     });
     
     it('should throw error if no API key exists', async () => {
-      mockUserRepository.getApiKey.mockResolvedValue(null);
+      mockUserRepository.getDecryptedApiKey.mockResolvedValue(null);
       
       await expect(
         llmApiKeyManager.getApiKey(userId, provider)

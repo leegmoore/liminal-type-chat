@@ -6,8 +6,6 @@
 import {
   ILlmService,
   LlmErrorCode,
-  LlmFinishReason,
-  LlmMessage,
   LlmModelInfo,
   LlmRequestOptions,
   LlmResponse,
@@ -21,8 +19,8 @@ const CLAUDE_37_SONNET: LlmModelInfo = {
   provider: 'anthropic',
   maxTokens: 4096,
   contextWindow: 200000,
-  inputPricePerMillionTokens: 3000, // $3.00 per million tokens
-  outputPricePerMillionTokens: 15000, // $15.00 per million tokens
+  pricingPerInputToken: 0.000003, // $3.00 per million tokens
+  pricingPerOutputToken: 0.000015, // $15.00 per million tokens
   supportsStreaming: true,
 };
 
@@ -35,8 +33,8 @@ const ANTHROPIC_MODELS: LlmModelInfo[] = [
     provider: 'anthropic',
     maxTokens: 4096,
     contextWindow: 200000,
-    inputPricePerMillionTokens: 15000, // $15.00 per million tokens
-    outputPricePerMillionTokens: 75000, // $75.00 per million tokens
+    pricingPerInputToken: 0.000015, // $15.00 per million tokens
+    pricingPerOutputToken: 0.000075, // $75.00 per million tokens
     supportsStreaming: true,
   },
   {
@@ -45,8 +43,8 @@ const ANTHROPIC_MODELS: LlmModelInfo[] = [
     provider: 'anthropic',
     maxTokens: 4096,
     contextWindow: 200000,
-    inputPricePerMillionTokens: 3000, // $3.00 per million tokens
-    outputPricePerMillionTokens: 15000, // $15.00 per million tokens
+    pricingPerInputToken: 0.000003, // $3.00 per million tokens
+    pricingPerOutputToken: 0.000015, // $15.00 per million tokens
     supportsStreaming: true,
   },
   {
@@ -55,26 +53,19 @@ const ANTHROPIC_MODELS: LlmModelInfo[] = [
     provider: 'anthropic',
     maxTokens: 4096,
     contextWindow: 200000,
-    inputPricePerMillionTokens: 250, // $0.25 per million tokens
-    outputPricePerMillionTokens: 1250, // $1.25 per million tokens
+    pricingPerInputToken: 0.00000025, // $0.25 per million tokens
+    pricingPerOutputToken: 0.00000125, // $1.25 per million tokens
     supportsStreaming: true,
   },
 ];
 
-// Default request options
-const DEFAULT_OPTIONS = {
-  temperature: 0.7,
-  top_p: 0.9,
-  max_tokens: 1024,
-};
+// Model default settings are handled by the service methods
 
 /**
  * Mock implementation of the Anthropic Claude service that doesn't depend on the actual SDK
  * Used for testing when the SDK has dependency issues
  */
 export class MockAnthropicService implements ILlmService {
-  private readonly apiKey: string;
-
   /**
    * Create a new AnthropicService instance
    * @param apiKey - Anthropic API key
@@ -88,7 +79,7 @@ export class MockAnthropicService implements ILlmService {
         'Please provide a valid Anthropic API key'
       );
     }
-    this.apiKey = apiKey;
+    // We validate the API key but don't store it since this is a mock implementation
   }
 
   /**
@@ -126,7 +117,7 @@ export class MockAnthropicService implements ILlmService {
    * @throws LlmServiceError if the request fails
    */
   async sendPrompt(
-    messages: LlmMessage[],
+    messages: Array<{ role: string; content: string }>,
     options: LlmRequestOptions = {}
   ): Promise<LlmResponse> {
     try {
@@ -165,7 +156,7 @@ export class MockAnthropicService implements ILlmService {
           totalTokens: promptTokens + responseTokens,
         },
         metadata: {
-          finishReason: LlmFinishReason.STOP,
+          finishReason: 'stop',
         },
       };
     } catch (error) {
@@ -181,7 +172,7 @@ export class MockAnthropicService implements ILlmService {
    * @throws LlmServiceError if the request fails
    */
   async streamPrompt(
-    messages: LlmMessage[],
+    messages: Array<{ role: string; content: string }>,
     callback: (chunk: LlmResponse) => void,
     options: LlmRequestOptions = {}
   ): Promise<void> {
@@ -229,7 +220,7 @@ export class MockAnthropicService implements ILlmService {
             totalTokens: promptTokens + totalTokens,
           },
           metadata: {
-            finishReason: isLastChunk ? LlmFinishReason.STOP : undefined,
+            finishReason: isLastChunk ? 'stop' : undefined,
           },
         });
       }
@@ -260,7 +251,7 @@ export class MockAnthropicService implements ILlmService {
     } else if (message.includes('rate limit')) {
       throw new LlmServiceError(
         'Anthropic rate limit exceeded',
-        LlmErrorCode.RATE_LIMIT,
+        LlmErrorCode.RATE_LIMIT_EXCEEDED,
         message
       );
     } else {
@@ -284,22 +275,23 @@ export class MockAnthropicService implements ILlmService {
     
     // Default response
     let response = `This is a mock response from ${modelName}.\n\n`;
-    response += "I'm a mock implementation used for testing when the actual SDK has dependency issues. ";
-    response += "This allows you to test the integration without making actual API calls.\n\n";
+    response += 'I\'m a mock implementation used for testing when the actual SDK has ';
+    response += 'dependency issues. ';
+    response += 'This allows you to test the integration without making actual API calls.\n\n';
     
     // Add some prompt-specific content if appropriate
     if (prompt.toLowerCase().includes('hello') || prompt.toLowerCase().includes('hi ')) {
-      response += "Hello! I'm simulating a response to your greeting. How can I help you today?";
+      response += 'Hello! I\'m simulating a response to your greeting. How can I help you today?';
     } else if (prompt.toLowerCase().includes('count')) {
-      response += "1... 2... 3... 4... 5...\n\nI've counted as requested in your prompt.";
+      response += '1... 2... 3... 4... 5...\n\nI\'ve counted as requested in your prompt.';
     } else if (prompt.toLowerCase().includes('list') || prompt.toLowerCase().includes('example')) {
-      response += "Here's a sample list as requested:\n\n";
-      response += "1. First item in a mock response\n";
-      response += "2. Second item showing formatting\n";
-      response += "3. Third item demonstrating list capabilities\n";
+      response += 'Here\'s a sample list as requested:\n\n';
+      response += '1. First item in a mock response\n';
+      response += '2. Second item showing formatting\n';
+      response += '3. Third item demonstrating list capabilities\n';
     } else {
-      response += `You asked: "${prompt.substring(0, 50)}${prompt.length > 50 ? '...' : ''}"\n\n`;
-      response += "In a real implementation, I would provide a thoughtful response to this prompt.";
+      response += `You asked: '${prompt.substring(0, 50)}${prompt.length > 50 ? '...' : ''}'\n\n`;
+      response += 'In a real implementation, I would provide a thoughtful response to this prompt.';
     }
     
     return response;

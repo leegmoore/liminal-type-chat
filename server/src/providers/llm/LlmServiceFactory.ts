@@ -1,6 +1,5 @@
 import { ILlmService, LlmErrorCode, LlmProvider, LlmServiceError } from './ILlmService';
-// Temporarily comment out OpenAI to avoid dependency issues
-// import { OpenAiService } from './openai/OpenAiService';
+import { OpenAiService } from './openai/OpenAiService';
 import { AnthropicService } from './anthropic/AnthropicService';
 
 /**
@@ -14,15 +13,15 @@ export class LlmServiceFactory {
    */
   public static getDefaultModel(provider: LlmProvider): string {
     switch (provider) {
-      case 'openai':
-        return 'gpt-3.5-turbo';
-      case 'anthropic':
-        return 'claude-3-7-sonnet-20250218';
-      default:
-        throw new LlmServiceError(
-          `Unsupported LLM provider: ${provider}`,
-          LlmErrorCode.INVALID_REQUEST
-        );
+    case 'openai':
+      return 'gpt-3.5-turbo';
+    case 'anthropic':
+      return 'claude-3-7-sonnet-20250218';
+    default:
+      throw new LlmServiceError(
+        `Unsupported LLM provider: ${provider}`,
+        LlmErrorCode.INVALID_REQUEST
+      );
     }
   }
 
@@ -33,14 +32,29 @@ export class LlmServiceFactory {
   public static getSupportedProviders(): LlmProvider[] {
     return ['openai', 'anthropic'];
   }
+  
+  /**
+   * Validates if the provider is supported
+   * @param provider The provider to check
+   * @throws LlmServiceError if the provider is not supported
+   */
+  private static validateProvider(provider: string): asserts provider is LlmProvider {
+    if (!this.getSupportedProviders().includes(provider as LlmProvider)) {
+      throw new LlmServiceError(
+        `Unsupported LLM provider: ${provider}`,
+        LlmErrorCode.INVALID_REQUEST
+      );
+    }
+  }
 
   /**
    * Creates an LLM service instance for the specified provider
    * @param provider LLM provider
    * @param apiKey API key for the service
    * @returns LLM service instance
+   * @throws LlmServiceError for invalid API keys or unsupported providers
    */
-  public static createService(_provider: LlmProvider, apiKey: string): ILlmService {
+  public static createService(provider: LlmProvider, apiKey: string): ILlmService {
     if (!apiKey) {
       throw new LlmServiceError(
         'API key is required',
@@ -48,10 +62,21 @@ export class LlmServiceFactory {
         'An API key must be provided to create an LLM service'
       );
     }
+    
+    this.validateProvider(provider);
 
-    // For now, just return Anthropic service to get things working
-    // This is a temporary solution to avoid OpenAI dependency issues
-    return new AnthropicService(apiKey);
+    switch (provider) {
+    case 'openai':
+      return new OpenAiService(apiKey);
+    case 'anthropic':
+      return new AnthropicService(apiKey);
+    default:
+      // This should never be reached due to validateProvider above
+      throw new LlmServiceError(
+        `Unsupported LLM provider: ${provider}`,
+        LlmErrorCode.INVALID_REQUEST
+      );
+    }
   }
 
   /**
@@ -59,6 +84,7 @@ export class LlmServiceFactory {
    * @param provider LLM provider
    * @param apiKey API key to validate
    * @returns True if valid, false otherwise
+   * @throws LlmServiceError for unsupported providers or other validation errors
    */
   public static async validateApiKey(provider: LlmProvider, apiKey: string): Promise<boolean> {
     if (!apiKey) {
@@ -66,20 +92,33 @@ export class LlmServiceFactory {
     }
 
     try {
-      // For now, only validate Anthropic keys
-      if (provider === 'anthropic') {
-        const service = new AnthropicService(apiKey);
-        return await service.validateApiKey(apiKey);
-      } else {
-        // Temporarily accept all other provider keys for testing
-        return true;
+      // Validate the provider is supported
+      this.validateProvider(provider);
+      
+      // Create and validate with the appropriate service
+      switch (provider) {
+      case 'openai': {
+        const openaiService = new OpenAiService(apiKey);
+        return await openaiService.validateApiKey(apiKey);
+      }
+      case 'anthropic': {
+        const anthropicService = new AnthropicService(apiKey);
+        return await anthropicService.validateApiKey(apiKey);
+      }
+      default:
+        // This should never be reached due to validateProvider above
+        throw new LlmServiceError(
+          `Unsupported LLM provider: ${provider}`,
+          LlmErrorCode.INVALID_REQUEST
+        );
       }
     } catch (error) {
-      // If the service constructor throws, the key is invalid
+      // If the error is about an invalid API key, return false
       if (error instanceof LlmServiceError && 
           error.code === LlmErrorCode.INVALID_API_KEY) {
         return false;
       }
+      // Rethrow all other errors (including unsupported provider)
       throw error;
     }
   }

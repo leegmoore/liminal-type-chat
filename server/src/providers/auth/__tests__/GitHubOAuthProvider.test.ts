@@ -300,12 +300,17 @@ describe('GitHubOAuthProvider', () => {
       // Arrange
       const provider = new GitHubOAuthProvider(clientId, clientSecret);
       
-      // Mock failed API call
-      mockedAxios.get.mockRejectedValueOnce({
-        response: {
-          status: 401
-        }
-      });
+      // Mock failed API call with axios-compatible error structure
+      // Define the type for axios error
+      type AxiosErrorLike = Error & { 
+        isAxiosError: boolean; 
+        response: { status: number }; 
+      };
+      const axiosError = new Error('Unauthorized') as AxiosErrorLike;
+      axiosError.isAxiosError = true;
+      axiosError.response = { status: 401 };
+      
+      mockedAxios.get.mockRejectedValueOnce(axiosError);
       
       // Act
       const isValid = await provider.validateAccessToken('invalid-token');
@@ -318,12 +323,16 @@ describe('GitHubOAuthProvider', () => {
       // Arrange
       const provider = new GitHubOAuthProvider(clientId, clientSecret);
       
-      // Mock unexpected error
-      mockedAxios.get.mockRejectedValueOnce(new Error('Network error'));
+      // Mock unexpected error with axios-compatible structure
+      type NetworkErrorLike = Error & { isAxiosError: boolean };
+      const networkError = new Error('Network error') as NetworkErrorLike;
+      networkError.isAxiosError = false; // Not an axios error, so it will go to the "other errors" path
+      
+      mockedAxios.get.mockRejectedValueOnce(networkError);
       
       // Act & Assert
       await expect(provider.validateAccessToken(testAccessToken))
-        .rejects.toThrow(ExternalServiceError);
+        .rejects.toThrow('Failed to validate GitHub access token');
     });
   });
   

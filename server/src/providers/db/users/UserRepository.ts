@@ -4,7 +4,13 @@
 import { v4 as uuidv4 } from 'uuid';
 import { DatabaseProvider } from '../database-provider';
 import { IUserRepository } from './IUserRepository';
-import { User, CreateUserParams, OAuthProvider, LlmProvider, ApiKeyInfo } from '../../../models/domain/users/User';
+import { 
+  User, 
+  CreateUserParams, 
+  OAuthProvider, 
+  LlmProvider, 
+  ApiKeyInfo 
+} from '../../../models/domain/users/User';
 import { DatabaseError } from '../../../utils/errors';
 import { EncryptionService } from '../../security/encryption-service';
 
@@ -49,14 +55,23 @@ export class UserRepository implements IUserRepository {
             updatedAt: now
           }
         };
-      } else if (params.id && (!params.provider || !params.providerId || !params.providerIdentity)) {
-        // If an ID is provided but no complete provider info, assume it's a system/dev user with no initial OAuth provider
+      } else if (params.id && (
+        !params.provider || 
+        !params.providerId || 
+        !params.providerIdentity
+      )) {
+        // If an ID is provided but no complete provider info, 
+        // assume it's a system/dev user with no initial OAuth provider
         authProvidersData = {}; 
       } else {
-        // This case should ideally not be reached if CreateUserParams is used correctly elsewhere
+        // This case should ideally not be reached if CreateUserParams 
+        // is used correctly elsewhere
         // (i.e., either full provider info OR an ID is given)
         // For safety, or if partial provider info is possible & undesirable:
-        throw new DatabaseError('Invalid parameters for user creation: provider information incomplete and no id provided.');
+        throw new DatabaseError(
+          'Invalid parameters for user creation: ' +
+          'provider information incomplete and no id provided.'
+        );
       }
 
       // New user object
@@ -287,7 +302,12 @@ export class UserRepository implements IUserRepository {
    * @returns Promise resolving to true if successful, false if user not found
    * @throws Error if encryption or storage fails
    */
-  async storeApiKey(userId: string, provider: LlmProvider, apiKey: string, label?: string): Promise<boolean> {
+  async storeApiKey(
+    userId: string, 
+    provider: LlmProvider, 
+    apiKey: string, 
+    label?: string
+  ): Promise<boolean> {
     // First retrieve the user to get the current API keys
     const user = await this.findById(userId);
     if (!user) {
@@ -320,7 +340,9 @@ export class UserRepository implements IUserRepository {
       // Check if the update was successful
       return this.getChangesCount(result) > 0;
     } catch (error) {
-      throw new Error(`Failed to store API key: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to store API key: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -370,7 +392,9 @@ export class UserRepository implements IUserRepository {
       // Decrypt the API key
       return await this.encryptionService.decryptSensitiveData(keyInfo.key);
     } catch (error) {
-      throw new Error(`Failed to decrypt API key: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to decrypt API key: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -381,7 +405,11 @@ export class UserRepository implements IUserRepository {
    * @param timestamp - Timestamp to set (defaults to current time)
    * @returns Promise resolving to true if successful, false if key not found
    */
-  async updateApiKeyLastUsed(userId: string, provider: LlmProvider, timestamp?: number): Promise<boolean> {
+  async updateApiKeyLastUsed(
+    userId: string, 
+    provider: LlmProvider, 
+    timestamp?: number
+  ): Promise<boolean> {
     // First retrieve the user
     const user = await this.findById(userId);
     if (!user) {
@@ -478,20 +506,43 @@ export class UserRepository implements IUserRepository {
    * @returns User object
    * @throws Error if parsing fails
    */
-  private rowToUser(row: any): User {
+  /**
+   * Convert a database row to a User object with type safety
+   * @param row - Database row with user data
+   * @returns User object
+   */
+  private rowToUser(row: unknown): User {
+    // Validate and type the row data for safety
+    if (!row || typeof row !== 'object') {
+      throw new Error('Invalid row data: not an object');
+    }
+    
+    const typedRow = row as {
+      id: string;
+      email: string;
+      display_name: string;
+      created_at: number;
+      updated_at: number;
+      auth_providers: string;
+      api_keys?: string;
+      preferences?: string;
+      [key: string]: unknown;
+    };
     try {
       return {
-        id: row.id,
-        email: row.email,
-        displayName: row.display_name,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-        authProviders: JSON.parse(row.auth_providers),
-        apiKeys: JSON.parse(row.api_keys),
-        preferences: row.preferences ? JSON.parse(row.preferences) : undefined
+        id: typedRow.id,
+        email: typedRow.email,
+        displayName: typedRow.display_name,
+        createdAt: typedRow.created_at,
+        updatedAt: typedRow.updated_at,
+        authProviders: JSON.parse(typedRow.auth_providers),
+        apiKeys: typedRow.api_keys ? JSON.parse(typedRow.api_keys) : {},
+        preferences: typedRow.preferences ? JSON.parse(typedRow.preferences) : undefined
       };
     } catch (error) {
-      throw new Error(`Failed to parse user data: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to parse user data: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 

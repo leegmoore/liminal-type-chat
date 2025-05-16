@@ -3,6 +3,10 @@
  * Handles storing, retrieving, and deleting API keys
  */
 import express, { Router, Response, NextFunction } from 'express';
+// Custom type for request handlers that use AuthenticatedRequest
+// Type for handlers using the AuthenticatedRequest interface
+type AuthRequestHandler = 
+  (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
 import { IUserRepository } from '../../providers/db/users/IUserRepository';
 import { AuthenticatedRequest, createAuthMiddleware } from '../../middleware/auth-middleware';
 import { IJwtService } from '../../providers/auth/jwt/IJwtService';
@@ -20,7 +24,7 @@ export function createApiKeyRoutes(
   jwtService: IJwtService
 ): Router {
   // Create router with correct typing
-  const router = express.Router() as any;
+  const router = express.Router();
   
   // Add authentication middleware
   router.use(createAuthMiddleware(jwtService, userRepository));
@@ -29,7 +33,11 @@ export function createApiKeyRoutes(
    * Store an API key
    * POST /api-keys/:provider
    */
-  router.post('/:provider', async function(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  const postHandler: AuthRequestHandler = async function(
+    req: AuthenticatedRequest, 
+    res: Response, 
+    next: NextFunction
+  ) {
     // Get user ID from req.user
     if (!req.user || !req.user.userId) {
       return next(new ValidationError('Authentication required', 'User ID not found in request'));
@@ -48,7 +56,10 @@ export function createApiKeyRoutes(
       
       // Validate provider
       if (!isValidProvider(provider)) {
-        throw new ValidationError(`Unsupported provider: ${provider}`, `Provider ${provider} is not supported`)
+        throw new ValidationError(
+          `Unsupported provider: ${provider}`, 
+          `Provider ${provider} is not supported`
+        )
           .addError('provider', `Provider ${provider} is not supported`);
       }
       
@@ -69,13 +80,17 @@ export function createApiKeyRoutes(
     } catch (error) {
       next(error);
     }
-  });
+  };
   
   /**
    * Check if user has an API key for a provider
    * GET /api-keys/:provider
    */
-  router.get('/:provider', async function(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  const getHandler: AuthRequestHandler = async function(
+    req: AuthenticatedRequest, 
+    res: Response, 
+    next: NextFunction
+  ) {
     // Get user ID from req.user
     if (!req.user || !req.user.userId) {
       return next(new ValidationError('Authentication required', 'User ID not found in request'));
@@ -87,7 +102,10 @@ export function createApiKeyRoutes(
       
       // Validate provider
       if (!isValidProvider(provider)) {
-        throw new ValidationError(`Unsupported provider: ${provider}`, `Provider ${provider} is not supported`)
+        throw new ValidationError(
+          `Unsupported provider: ${provider}`, 
+          `Provider ${provider} is not supported`
+        )
           .addError('provider', `Provider ${provider} is not supported`);
       }
       
@@ -107,13 +125,17 @@ export function createApiKeyRoutes(
     } catch (error) {
       next(error);
     }
-  });
+  };
   
   /**
    * Delete an API key
    * DELETE /api-keys/:provider
    */
-  router.delete('/:provider', async function(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  const deleteHandler: AuthRequestHandler = async function(
+    req: AuthenticatedRequest, 
+    res: Response, 
+    next: NextFunction
+  ) {
     // Get user ID from req.user
     if (!req.user || !req.user.userId) {
       return next(new ValidationError('Authentication required', 'User ID not found in request'));
@@ -125,7 +147,10 @@ export function createApiKeyRoutes(
       
       // Validate provider
       if (!isValidProvider(provider)) {
-        throw new ValidationError(`Unsupported provider: ${provider}`, `Provider ${provider} is not supported`)
+        throw new ValidationError(
+          `Unsupported provider: ${provider}`, 
+          `Provider ${provider} is not supported`
+        )
           .addError('provider', `Provider ${provider} is not supported`);
       }
       
@@ -152,7 +177,12 @@ export function createApiKeyRoutes(
     } catch (error) {
       next(error);
     }
-  });
+  };
+  
+  // Register the handlers with the router
+  router.post('/:provider', postHandler as unknown as express.RequestHandler);
+  router.get('/:provider', getHandler as unknown as express.RequestHandler);
+  router.delete('/:provider', deleteHandler as unknown as express.RequestHandler);
   
   return router;
 }

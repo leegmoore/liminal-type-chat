@@ -117,13 +117,17 @@ export class GitHubOAuthProvider implements IOAuthProvider {
         }
       });
       
-      let { 
+      // Extract user data
+      let email: string | undefined;
+      const { 
         id, 
         login, 
         name, 
-        email, 
         avatar_url: pictureUrl 
       } = userResponse.data;
+      
+      // Get email from response if available
+      email = userResponse.data.email;
       
       // Convert ID to string for consistent handling (GitHub uses numeric IDs)
       const providerId = id.toString();
@@ -221,9 +225,10 @@ export class GitHubOAuthProvider implements IOAuthProvider {
       
       // If the request succeeds, the token is valid
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       // If the error is due to an invalid token, return false
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
+      const axiosError = error as { response?: { status: number } };
+      if (axiosError?.response?.status === 401) {
         return false;
       }
       

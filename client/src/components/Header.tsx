@@ -33,6 +33,9 @@ const Header: React.FC = () => {
             <Link as={RouterLink} to="/chat" fontWeight="medium">
               Chat
             </Link>
+            <Link href="http://localhost:8765/docs/edge" fontWeight="medium" target="_blank">
+              API Docs
+            </Link>
           </HStack>
         </Flex>
       </Container>

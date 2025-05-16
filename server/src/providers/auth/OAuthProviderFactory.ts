@@ -10,7 +10,9 @@ import { GitHubOAuthProvider } from './github/GitHubOAuthProvider';
  */
 export class OAuthProviderFactory {
   // Provider instances cache
-  private static providers: Record<OAuthProvider, IOAuthProvider> = {} as Record<OAuthProvider, IOAuthProvider>;
+  // Type alias for provider record type to avoid line length issues
+  private static providers: Record<OAuthProvider, IOAuthProvider> = {} as 
+    Record<OAuthProvider, IOAuthProvider>;
   
   /**
    * Create or retrieve an OAuth provider instance
@@ -35,17 +37,17 @@ export class OAuthProviderFactory {
     let provider: IOAuthProvider;
     
     switch (providerType) {
-      case 'github':
-        provider = new GitHubOAuthProvider(config.clientId, config.clientSecret);
-        break;
+    case 'github':
+      provider = new GitHubOAuthProvider(config.clientId, config.clientSecret);
+      break;
         
       // Add more providers here as they are implemented
       // case 'google':
       //   provider = new GoogleOAuthProvider(config.clientId, config.clientSecret);
       //   break;
         
-      default:
-        throw new Error(`Unsupported OAuth provider: ${providerType}`);
+    default:
+      throw new Error(`Unsupported OAuth provider: ${providerType}`);
     }
     
     // Cache the provider instance

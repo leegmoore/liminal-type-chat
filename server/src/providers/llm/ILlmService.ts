@@ -46,7 +46,8 @@ export interface LlmResponse {
   };
   metadata: {
     finishReason?: 'stop' | 'length' | 'content_filter' | 'error';
-    [key: string]: any;
+    // Allow other metadata properties with string, number, boolean, or undefined values
+    [key: string]: string | number | boolean | undefined | null | string[] | number[] | boolean[];
   };
 }
 

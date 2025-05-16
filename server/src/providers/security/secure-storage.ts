@@ -104,7 +104,10 @@ export class SecureStorage {
     
     // Handle object data
     if (typeof data === 'object') {
-      const result = Array.isArray(data) ? [...data] as unknown as ObjectType : { ...data as object } as ObjectType;
+      // Create a new object or array with the same values
+      const result = Array.isArray(data) 
+        ? [...data] as unknown as ObjectType 
+        : { ...data as object } as ObjectType;
       
       for (const key in result) {
         if (Object.prototype.hasOwnProperty.call(result, key)) {

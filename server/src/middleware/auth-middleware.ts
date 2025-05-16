@@ -75,7 +75,7 @@ export function createAuthMiddleware(
       // Ensure dev user exists in DB for BYPASS_AUTH mode
       const devUserId = mockUser.userId;
       try {
-        let user = await userRepository.findById(devUserId);
+        const user = await userRepository.findById(devUserId);
         if (!user) {
           console.warn(`BYPASS_AUTH: User ${devUserId} not found. Creating...`);
           // Use the structure from CreateUserParams for userRepository.create

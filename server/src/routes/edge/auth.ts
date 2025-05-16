@@ -29,7 +29,11 @@ export function createAuthRoutes(
    * Generate OAuth authorization URL
    * POST /auth/oauth/:provider/authorize
    */
-  router.post('/oauth/:provider/authorize', async (req: Request, res: Response, next: NextFunction) => {
+  router.post('/oauth/:provider/authorize', async (
+    req: Request, 
+    res: Response, 
+    next: NextFunction
+  ) => {
     try {
       const { provider } = req.params;
       const { redirectUri } = req.body;
@@ -43,7 +47,10 @@ export function createAuthRoutes(
       // Get OAuth provider
       const oauthProvider = oauthProviders.get(provider);
       if (!oauthProvider) {
-        throw new ValidationError(`Unsupported provider: ${provider}`, `Provider ${provider} is not supported`)
+        throw new ValidationError(
+          `Unsupported provider: ${provider}`, 
+          `Provider ${provider} is not supported`
+        )
           .addError('provider', `Provider ${provider} is not supported`);
       }
       
@@ -82,7 +89,10 @@ export function createAuthRoutes(
       // Get OAuth provider
       const oauthProvider = oauthProviders.get(provider);
       if (!oauthProvider) {
-        throw new ValidationError(`Unsupported provider: ${provider}`, `Provider ${provider} is not supported`)
+        throw new ValidationError(
+          `Unsupported provider: ${provider}`, 
+          `Provider ${provider} is not supported`
+        )
           .addError('provider', `Provider ${provider} is not supported`);
       }
       
@@ -143,13 +153,19 @@ export function createAuthRoutes(
       // Decode token (without verification) to get user ID
       const decodedToken = jwtService.decodeToken(token);
       if (!decodedToken) {
-        throw new UnauthorizedError('Invalid token format', 'The provided token could not be decoded');
+        throw new UnauthorizedError(
+          'Invalid token format', 
+          'The provided token could not be decoded'
+        );
       }
       
       // Get user from repository
       const user = await userRepository.getUserById(decodedToken.userId);
       if (!user) {
-        throw new UnauthorizedError('User not found', 'User associated with this token no longer exists');
+        throw new UnauthorizedError(
+          'User not found', 
+          'User associated with this token no longer exists'
+        );
       }
       
       // Generate new token

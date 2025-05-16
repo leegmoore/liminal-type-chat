@@ -1,7 +1,10 @@
 import { LlmServiceFactory } from '../LlmServiceFactory';
 import { OpenAiService } from '../openai/OpenAiService';
 import { AnthropicService } from '../anthropic/AnthropicService';
-import { LlmErrorCode, LlmProvider, LlmServiceError } from '../ILlmService';
+import { LlmErrorCode, LlmServiceError } from '../ILlmService';
+// LlmProvider is used indirectly through type checking
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { LlmProvider } from '../ILlmService';
 
 // Mock the service implementations
 jest.mock('../openai/OpenAiService');
@@ -46,24 +49,29 @@ describe('LlmServiceFactory', () => {
     
     it('should throw an error for an unsupported provider', () => {
       expect(() => {
-        // @ts-ignore - Testing invalid provider
+        // @ts-expect-error - Testing invalid provider
         LlmServiceFactory.createService('unsupported-provider', 'test-key');
       }).toThrow(LlmServiceError);
       
       expect(() => {
-        // @ts-ignore - Testing invalid provider
+        // @ts-expect-error - Testing invalid provider
         LlmServiceFactory.createService('unsupported-provider', 'test-key');
       }).toThrow('Unsupported LLM provider: unsupported-provider');
     });
     
     it('should throw an error when API key is not provided', () => {
+      // First check that it throws LlmServiceError
       expect(() => {
         LlmServiceFactory.createService('openai', '');
       }).toThrow(LlmServiceError);
       
-      expect(() => {
+      // Then check that it has the correct error code
+      try {
         LlmServiceFactory.createService('openai', '');
-      }).toThrow(LlmErrorCode.INVALID_API_KEY);
+      } catch (error) {
+        expect(error).toBeInstanceOf(LlmServiceError);
+        expect((error as LlmServiceError).code).toBe(LlmErrorCode.INVALID_API_KEY);
+      }
     });
   });
   
@@ -75,12 +83,12 @@ describe('LlmServiceFactory', () => {
     
     it('should return the default model for Anthropic', () => {
       const defaultModel = LlmServiceFactory.getDefaultModel('anthropic');
-      expect(defaultModel).toBe('claude-3-sonnet-20240229');
+      expect(defaultModel).toBe('claude-3-7-sonnet-20250218');
     });
     
     it('should throw an error for an unsupported provider', () => {
       expect(() => {
-        // @ts-ignore - Testing invalid provider
+        // @ts-expect-error - Testing invalid provider
         LlmServiceFactory.getDefaultModel('unsupported-provider');
       }).toThrow('Unsupported LLM provider: unsupported-provider');
     });
@@ -132,8 +140,10 @@ describe('LlmServiceFactory', () => {
     });
     
     it('should throw an error for an unsupported provider', async () => {
+      // Using any here to bypass TypeScript's type checking
+      // since we're intentionally testing with an invalid provider
       await expect(
-        // @ts-ignore - Testing invalid provider
+        // @ts-expect-error - Testing with invalid provider type
         LlmServiceFactory.validateApiKey('unsupported-provider', 'test-key')
       ).rejects.toThrow('Unsupported LLM provider: unsupported-provider');
     });

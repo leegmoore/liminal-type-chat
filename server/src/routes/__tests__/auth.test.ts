@@ -88,7 +88,8 @@ describe('Auth Routes', () => {
   describe('POST /auth/oauth/:provider/authorize', () => {
     it('should return authorization URL for supported provider', async () => {
       // Arrange
-      const authUrl = 'https://github.com/login/oauth/authorize?client_id=123&redirect_uri=http://localhost:3000/callback';
+      const authUrl = 
+        'https://github.com/login/oauth/authorize?client_id=123&redirect_uri=http://localhost:3000/callback';
       mockOAuthProvider.getAuthorizationUrl.mockResolvedValue(authUrl);
       
       // Act
@@ -135,12 +136,12 @@ describe('Auth Routes', () => {
     it('should exchange code for token and return user and JWT', async () => {
       // Arrange
       const oauthProfile: OAuthUserProfile = {
-        id: 'github-user-123',
-        name: 'Test User',
+        providerId: 'github-user-123',
+        displayName: 'Test User',
         email: 'test@example.com',
+        identity: 'testuser',
         accessToken: 'github-access-token',
-        scopes: ['user:email'],
-        profileImageUrl: 'https://example.com/avatar.png'
+        updatedAt: Date.now()
       };
       
       mockOAuthProvider.exchangeCodeForToken.mockResolvedValue(oauthProfile);

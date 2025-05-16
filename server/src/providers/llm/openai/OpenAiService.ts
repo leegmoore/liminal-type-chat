@@ -10,7 +10,7 @@ import {
 
 // Mock OpenAI class to avoid requiring the actual package
 class OpenAI {
-  constructor(_config: any) {}
+  constructor(_config: { apiKey: string; [key: string]: unknown }) {}
   
   models = {
     list: async () => ({
@@ -24,7 +24,14 @@ class OpenAI {
   
   chat = {
     completions: {
-      create: async (options: any) => {
+      create: async (options: { 
+        model: string;
+        messages: Array<{role: string; content: string}>; 
+        temperature?: number;
+        max_tokens?: number;
+        stream?: boolean;
+        [key: string]: unknown;
+      }) => {
         if (options.stream) {
           // Return a mock async generator for streaming
           const mockStream = async function* () {
@@ -126,16 +133,19 @@ export class OpenAiService implements ILlmService {
   private modelCache: Map<string, OpenAiModelConfig> = new Map(Object.entries(OPENAI_MODELS));
   
   // Type assertion for unknown model data
-  private asModelConfig(data: any, modelId: string): OpenAiModelConfig {
+  private asModelConfig(
+    data: { id: string; [key: string]: unknown }, 
+    modelId: string
+  ): OpenAiModelConfig {
     return {
       id: modelId,
-      name: data.name || modelId,
-      maxTokens: data.maxTokens || 4096,
-      contextWindow: data.contextWindow || 4096,
-      supportsStreaming: data.supportsStreaming ?? true,
-      trainedUntil: data.trainedUntil,
-      pricingPerInputToken: data.pricingPerInputToken,
-      pricingPerOutputToken: data.pricingPerOutputToken
+      name: (data.name as string) || modelId,
+      maxTokens: (data.maxTokens as number) || 4096,
+      contextWindow: (data.contextWindow as number) || 4096,
+      supportsStreaming: (data.supportsStreaming as boolean) ?? true,
+      trainedUntil: data.trainedUntil as string | undefined,
+      pricingPerInputToken: data.pricingPerInputToken as number | undefined,
+      pricingPerOutputToken: data.pricingPerOutputToken as number | undefined
     };
   }
 
@@ -166,11 +176,11 @@ export class OpenAiService implements ILlmService {
       
       // Filter out non-chat models and add known model info
       const chatModels = response.data
-        .filter((model: any) => {
+        .filter((model: { id: string; [key: string]: unknown }) => {
           const modelId = model.id.toLowerCase();
           return modelId.includes('gpt') && (modelId.includes('turbo') || modelId === 'gpt-4');
         })
-        .map((model: any) => {
+        .map((model: { id: string; [key: string]: unknown }) => {
           const modelId = model.id;
           const knownModel = this.modelCache.get(modelId) || 
             this.asModelConfig({
@@ -220,14 +230,24 @@ export class OpenAiService implements ILlmService {
     try {
       const response = await this.client.chat.completions.create({
         model: modelId,
-        messages: messages as any,
+        messages: messages as Array<{role: string; content: string}>,
         temperature: options?.temperature,
         max_tokens: options?.maxTokens,
         top_p: options?.topP,
         frequency_penalty: options?.frequencyPenalty,
         presence_penalty: options?.presencePenalty,
         stop: options?.stop
-      }) as any; // Type assertion for the mock implementation
+      }) as { 
+        choices: Array<{
+          message?: { content: string };
+          finish_reason: string;
+        }>;
+        usage: {
+          prompt_tokens: number;
+          completion_tokens: number;
+          total_tokens: number;
+        };
+      }; // Type assertion for the mock implementation
 
       const content = response.choices[0]?.message?.content || '';
       
@@ -272,7 +292,7 @@ export class OpenAiService implements ILlmService {
     try {
       const stream = await this.client.chat.completions.create({
         model: modelId,
-        messages: messages as any,
+        messages: messages as Array<{role: string; content: string}>,
         temperature: options?.temperature,
         max_tokens: options?.maxTokens,
         top_p: options?.topP,
@@ -280,7 +300,12 @@ export class OpenAiService implements ILlmService {
         presence_penalty: options?.presencePenalty,
         stop: options?.stop,
         stream: true
-      }) as AsyncGenerator<any>; // Type assertion for the mock implementation
+      }) as AsyncGenerator<{
+        choices: Array<{
+          delta: { content?: string };
+          finish_reason: string | null;
+        }>;
+      }>; // Type assertion for the mock implementation
 
       // Process each chunk from the stream
       for await (const chunk of stream) {
@@ -354,46 +379,61 @@ export class OpenAiService implements ILlmService {
    * Maps OpenAI finish reason to standardized enum
    */
   private mapFinishReason(
-    finishReason?: string
+    finishReason?: string | null
   ): 'stop' | 'length' | 'content_filter' | 'error' | undefined {
     if (!finishReason) return undefined;
     
     switch (finishReason) {
-      case 'stop':
-        return 'stop';
-      case 'length':
-        return 'length';
-      case 'content_filter':
-        return 'content_filter';
-      default:
-        return 'error';
+    case 'stop':
+      return 'stop';
+    case 'length':
+      return 'length';
+    case 'content_filter':
+      return 'content_filter';
+    default:
+      return 'error';
     }
   }
 
   /**
    * Handles and transforms OpenAI API errors
    */
-  private handleError(error: any): LlmServiceError {
+  /**
+   * Handles errors from OpenAI API calls with proper type safety
+   * @param errorParam Error object from API call
+   * @returns StandardizedLlmServiceError
+   */
+  private handleError(errorParam: unknown): LlmServiceError {
+    // Type guard to create a structured error object
+    const error = errorParam as {
+      message?: string;
+      status?: number;
+      statusCode?: number;
+      response?: { data?: { error?: { message?: string } } };
+      error?: { message?: string };
+      toString?: () => string;
+    };
+    
     const errorMessage = error?.message || 'Unknown error occurred';
     const statusCode = error?.status || error?.statusCode;
     
-    // Parse OpenAI error details if available
+    // Parse OpenAI error details if available (with safety checks)
     const details = error?.response?.data?.error?.message || 
                    error?.error?.message ||
-                   error?.toString();
+                   (typeof error?.toString === 'function' ? error.toString() : 'Unknown error');
     
     let errorCode = LlmErrorCode.UNKNOWN_ERROR;
     
     // Determine error code based on OpenAI error or status code
     if (errorMessage.includes('API key')) {
       errorCode = LlmErrorCode.INVALID_API_KEY;
-    } else if (statusCode === 429 || errorMessage.includes('rate limit')) {
+    } else if ((statusCode === 429) || errorMessage.includes('rate limit')) {
       errorCode = LlmErrorCode.RATE_LIMIT_EXCEEDED;
-    } else if (statusCode === 404 || errorMessage.includes('model not found')) {
+    } else if ((statusCode === 404) || errorMessage.includes('model not found')) {
       errorCode = LlmErrorCode.MODEL_NOT_FOUND;
-    } else if (statusCode === 400) {
+    } else if ((statusCode === 400)) {
       errorCode = LlmErrorCode.INVALID_REQUEST;
-    } else if (statusCode >= 500) {
+    } else if (statusCode !== undefined && statusCode >= 500) {
       errorCode = LlmErrorCode.SERVER_ERROR;
     } else if (errorMessage.includes('timeout')) {
       errorCode = LlmErrorCode.TIMEOUT;

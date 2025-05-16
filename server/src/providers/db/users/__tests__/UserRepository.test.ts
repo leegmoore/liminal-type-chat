@@ -62,7 +62,7 @@ describe('UserRepository', () => {
     mockExec = jest.fn();
     
     // Mock transaction
-    mockTx = jest.fn().mockImplementation((fn: (tx: Transaction) => any) => {
+    mockTx = jest.fn().mockImplementation((fn: (tx: Transaction) => Promise<unknown>) => {
       const mockTransaction = {
         query: mockQuery,
         exec: mockExec
@@ -395,6 +395,80 @@ describe('UserRepository', () => {
   });
 
   describe('getApiKey', () => {
+    it('should retrieve API key info', async () => {
+      // Arrange
+      const encryptedKey = 'encrypted-sk-12345api-key';
+      const provider = 'openai';
+      const apiKeyLabel = 'My API Key';
+      
+      // Mock user with encrypted API key
+      const userWithApiKey = {
+        ...testUser,
+        apiKeys: {
+          openai: {
+            key: encryptedKey,
+            label: apiKeyLabel,
+            createdAt: now
+          }
+        }
+      };
+      
+      mockQuery.mockResolvedValueOnce([{
+        id: userWithApiKey.id,
+        email: userWithApiKey.email,
+        display_name: userWithApiKey.displayName,
+        created_at: userWithApiKey.createdAt,
+        updated_at: userWithApiKey.updatedAt,
+        auth_providers: JSON.stringify(userWithApiKey.authProviders),
+        api_keys: JSON.stringify(userWithApiKey.apiKeys),
+        preferences: JSON.stringify(userWithApiKey.preferences)
+      }]);
+
+      // Act
+      const result = await repository.getApiKey(testUserId, provider);
+
+      // Assert - should return the API key info object, not the decrypted value
+      expect(result).toEqual({
+        key: encryptedKey,
+        label: apiKeyLabel,
+        createdAt: now
+      });
+    });
+
+    it('should return null when user not found', async () => {
+      // Arrange
+      mockQuery.mockResolvedValueOnce([]);
+
+      // Act
+      const result = await repository.getApiKey('non-existent', 'openai');
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('should return null when API key for provider not found', async () => {
+      // Arrange
+      mockQuery.mockResolvedValueOnce([{
+        id: testUser.id,
+        email: testUser.email,
+        display_name: testUser.displayName,
+        created_at: testUser.createdAt,
+        updated_at: testUser.updatedAt,
+        auth_providers: JSON.stringify(testUser.authProviders),
+        api_keys: JSON.stringify({}), // No API keys
+        preferences: JSON.stringify(testUser.preferences)
+      }]);
+
+      // Act
+      const result = await repository.getApiKey(testUserId, 'openai');
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+  });
+
+  describe('getDecryptedApiKey', () => {
     it('should retrieve and decrypt API key', async () => {
       // Arrange
       const encryptedKey = 'encrypted-sk-12345api-key';
@@ -424,7 +498,7 @@ describe('UserRepository', () => {
       }]);
 
       // Act
-      const result = await repository.getApiKey(testUserId, provider);
+      const result = await repository.getDecryptedApiKey(testUserId, provider);
 
       // Assert
       expect(mockEncryptionService.decryptSensitiveData).toHaveBeenCalledWith(encryptedKey);
@@ -436,7 +510,7 @@ describe('UserRepository', () => {
       mockQuery.mockResolvedValueOnce([]);
 
       // Act
-      const result = await repository.getApiKey('non-existent', 'openai');
+      const result = await repository.getDecryptedApiKey('non-existent', 'openai');
 
       // Assert
       expect(result).toBeNull();
@@ -456,7 +530,7 @@ describe('UserRepository', () => {
       }]);
 
       // Act
-      const result = await repository.getApiKey(testUserId, 'openai');
+      const result = await repository.getDecryptedApiKey(testUserId, 'openai');
 
       // Assert
       expect(result).toBeNull();
@@ -494,7 +568,7 @@ describe('UserRepository', () => {
       );
 
       // Act & Assert
-      await expect(repository.getApiKey(testUserId, 'openai'))
+      await expect(repository.getDecryptedApiKey(testUserId, 'openai'))
         .rejects.toThrow();
     });
   });

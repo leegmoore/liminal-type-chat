@@ -1,5 +1,12 @@
 import { LlmApiKeyManager } from '../../providers/llm/LlmApiKeyManager';
-import { LlmErrorCode, LlmModelInfo, LlmProvider, LlmRequestOptions, LlmResponse, LlmServiceError } from '../../providers/llm/ILlmService';
+import { 
+  LlmErrorCode, 
+  LlmModelInfo, 
+  LlmProvider, 
+  LlmRequestOptions, 
+  LlmResponse, 
+  LlmServiceError 
+} from '../../providers/llm/ILlmService';
 import { LlmServiceFactory } from '../../providers/llm/LlmServiceFactory';
 import { ContextThreadService } from './ContextThreadService';
 
@@ -35,6 +42,12 @@ export interface ChatCompletionResponse {
   provider: string;
   /** Reason the completion finished (stop, length, etc.) */
   finishReason?: string;
+  /** Token usage: prompt tokens */
+  promptTokens?: number;
+  /** Token usage: completion tokens */
+  completionTokens?: number;
+  /** Token usage: total tokens */
+  totalTokens?: number;
   /** Usage statistics */
   usage?: {
     promptTokens: number;
@@ -83,17 +96,51 @@ export class ChatService {
   ) {}
 
   /**
+   * Format messages for sending to the LLM, ensuring correct sequencing
+   * @param threadId The ID of the thread to get messages from
+   * @param includeLatest Whether to include the latest message (defaults to true)
+   * @returns Properly formatted messages for the LLM
+   */
+  private async getFormattedMessagesForLlm(
+    threadId: string
+  ): Promise<Array<{ role: string; content: string }>> {
+    // Get the thread
+    const thread = await this.contextThreadService.getThread(threadId);
+    if (!thread) {
+      throw new Error(`Thread not found: ${threadId}`);
+    }
+
+    // Ensure we only include messages from this specific thread ID
+    // This prevents message bleeding from other conversations
+    const threadMessages = thread.messages.filter(msg => msg.threadId === threadId);
+
+    // Filter messages and ensure proper alternating sequence
+    const formattedMessages = threadMessages
+      // Only include completed messages (not streaming or error)
+      .filter(msg => msg.status === 'complete')
+      // Ensure assistant messages have content
+      .filter(msg => msg.role !== 'assistant' || (msg.role === 'assistant' && !!msg.content))
+      // Map to the format expected by LLM services
+      .map(msg => ({
+        role: msg.role,
+        content: msg.content,
+      }));
+                
+    return formattedMessages;
+  }
+
+  /**
    * Get a friendly name for a provider
    * @param provider The provider identifier
    */
   private getProviderName(provider: LlmProvider): string {
     switch (provider) {
-      case 'openai':
-        return 'OpenAI';
-      case 'anthropic':
-        return 'Anthropic';
-      default:
-        return provider;
+    case 'openai':
+      return 'OpenAI';
+    case 'anthropic':
+      return 'Anthropic';
+    default:
+      return provider;
     }
   }
 
@@ -130,8 +177,12 @@ export class ChatService {
    * @param request Chat completion request
    * @returns Completion response
    */
-  async completeChatPrompt(userId: string, request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+  async completeChatPrompt(
+    userId: string, 
+    request: ChatCompletionRequest
+  ): Promise<ChatCompletionResponse> {
     const { prompt, provider, threadId, options = {} } = request;
+    // Ensure we have a model ID - either from the request or a default for the provider
     const modelId = request.modelId || LlmServiceFactory.getDefaultModel(provider);
 
     // Check if user has an API key for this provider
@@ -156,6 +207,15 @@ export class ChatService {
       throw new Error(`Thread not found: ${threadId}`);
     }
 
+    // Get the existing messages from the thread
+    const existingMessages = thread.messages
+      .filter(msg => msg.status === 'complete')
+      .filter(msg => msg.role !== 'assistant' || (msg.role === 'assistant' && !!msg.content))
+      .map(msg => ({
+        role: msg.role,
+        content: msg.content,
+      }));
+
     // Add user message to thread
     await this.contextThreadService.addMessage(threadId, {
       role: 'user',
@@ -163,26 +223,14 @@ export class ChatService {
       status: 'complete'
     });
 
-    // Prepare the messages for the LLM
-    const messagesForLlm = thread.messages
-      .filter(msg => {
-        // Only include assistant messages if they have actual content.
-        // User messages (and system messages, if applicable) are always included.
-        if (msg.role === 'assistant') {
-          return !!msg.content; // Ensures content is not null, undefined, or empty string
-        }
-        return true;
-      })
-      .map(msg => ({
-        role: msg.role,
-        content: msg.content,
-      }));
-
-    // Add the new user message
-    messagesForLlm.push({
-      role: 'user',
-      content: prompt,
-    });
+    // Prepare messages for LLM - include the existing messages and the new user message
+    const messagesForLlm = [
+      ...existingMessages,
+      {
+        role: 'user',
+        content: prompt,
+      }
+    ];
 
     // LLM request options
     const llmOptions: LlmRequestOptions = {
@@ -190,43 +238,24 @@ export class ChatService {
       ...options
     };
 
-    // 2. Add a placeholder for the assistant's response
+    // Call LLM service with the messages
+    const llmResponse = await llmService.sendPrompt(
+      messagesForLlm,
+      llmOptions
+    );
+
+    // Add assistant message with the response content
     const assistantMessage = await this.contextThreadService.addMessage(threadId, {
       role: 'assistant',
-      content: '', // Placeholder
-      timestamp: Date.now(),
-      status: 'complete', // Will be updated by LLM response
-      metadata: { provider, modelId },
+      content: llmResponse.content,
+      status: 'complete',
+      metadata: {
+        modelId: llmResponse.modelId,
+        provider: llmResponse.provider,
+        usage: llmResponse.usage,
+        finishReason: llmResponse.metadata?.finishReason
+      }
     });
-
-    // 3. Call LLM service
-    const llmResponse = await llmService.createChatCompletion({
-      ...request,
-      messages: await this.getFormattedMessagesForLlm(threadId),
-    });
-
-    // 4. Update placeholder with actual response
-    // Log what is being attempted to save
-    console.log(`ChatService (non-streaming): Attempting to save assistant message for thread ${threadId}. Message ID: ${assistantMessage?.id}, Content: "${llmResponse.content}"`);
-    try {
-      await this.contextThreadService.updateMessage(
-        threadId,
-        assistantMessage?.id || '',
-        {
-          content: llmResponse.content,
-          status: 'complete',
-          metadata: {
-            modelId: llmResponse.modelId,
-            provider: llmResponse.provider,
-            usage: llmResponse.usage,
-            finishReason: llmResponse.metadata?.finishReason // Ensure metadata and finishReason exist
-          }
-        }
-      );
-      console.log(`ChatService (non-streaming): Successfully saved assistant message for thread ${threadId}. Message ID: ${assistantMessage?.id}`);
-    } catch (saveError: any) { // Typed saveError
-      console.error(`ChatService (non-streaming): Error saving assistant message for thread ${threadId}. Message ID: ${assistantMessage?.id}:`, saveError);
-    }
 
     // Return completion response
     return {
@@ -236,6 +265,9 @@ export class ChatService {
       model: llmResponse.modelId,
       provider: llmResponse.provider,
       finishReason: llmResponse.metadata?.finishReason,
+      promptTokens: llmResponse.usage?.promptTokens,
+      completionTokens: llmResponse.usage?.completionTokens,
+      totalTokens: llmResponse.usage?.totalTokens,
       usage: llmResponse.usage
     };
   }
@@ -251,7 +283,6 @@ export class ChatService {
     request: ChatCompletionRequest,
     callback: (chunk: ChatCompletionChunk) => void
   ): Promise<void> {
-    console.log('ChatService.streamChatCompletion: Entered method with request:', JSON.stringify(request, null, 2));
 
     const { prompt, provider, threadId, options = {} } = request;
     const modelId = request.modelId || LlmServiceFactory.getDefaultModel(provider);
@@ -296,27 +327,6 @@ export class ChatService {
       }
     });
 
-    // Prepare the messages for the LLM
-    const messagesForLlm = thread.messages
-      .filter(msg => {
-        // Only include assistant messages if they have actual content.
-        // User messages (and system messages, if applicable) are always included.
-        if (msg.role === 'assistant') {
-          return !!msg.content; // Ensures content is not null, undefined, or empty string
-        }
-        return true;
-      })
-      .map(msg => ({
-        role: msg.role,
-        content: msg.content,
-      }));
-
-    // Add the new user message
-    messagesForLlm.push({
-      role: 'user',
-      content: prompt,
-    });
-
     // LLM request options
     const llmOptions: LlmRequestOptions = {
       modelId,
@@ -328,16 +338,13 @@ export class ChatService {
 
     try {
       // Stream the completion
-      await llmService.streamChatCompletion(
-        { ...request, messages: await this.getFormattedMessagesForLlm(threadId) },
-        (chunk) => {
+      await llmService.streamPrompt(
+        await this.getFormattedMessagesForLlm(threadId),
+        (chunk: LlmResponse) => {
           if (chunk.content) {
             accumulatedContent += chunk.content;
           }
 
-          const messageToLogId = assistantMessage?.id || 'unknown_id';
-          // Log attempt to update message with current chunk data
-          console.log(`ChatService (streaming): Attempting to update assistant message ID ${messageToLogId} for thread ${threadId}. Accumulated Content: "${accumulatedContent}". Finish Reason: ${chunk.metadata?.finishReason}`);
           try {
             this.contextThreadService.updateMessage(
               threadId,
@@ -354,10 +361,12 @@ export class ChatService {
                 }
               }
             );
-            // Log success of this specific update
-            console.log(`ChatService (streaming): Successfully called update for assistant message ID ${messageToLogId} for thread ${threadId}. Status: ${chunk.metadata?.finishReason ? 'complete' : 'streaming'}`);
-          } catch (saveError: any) { // Typed saveError
-            console.error(`ChatService (streaming): Error calling update for assistant message ID ${messageToLogId} for thread ${threadId}:`, saveError);
+          } catch (saveError: unknown) {
+            if (saveError instanceof Error) {
+              console.error(`Error updating message: ${saveError.message}`);
+            } else {
+              console.error('Error updating message: Unknown error');
+            }
           }
 
           // Call the client callback with the chunk

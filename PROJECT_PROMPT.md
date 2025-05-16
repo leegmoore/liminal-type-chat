@@ -425,4 +425,31 @@ npm start
    - Validate input at service boundaries
    - Use proper error handling for data corruption
 
+7. **Task Scope and Completion Integrity**
+   - When assigned tasks like "fix all lint errors" or "address all test failures," these MUST be addressed comprehensively across the entire codebase, not just recent files or a subset.
+   - Never silently reduce task scope or redefine completion criteria.
+   - If a task seems too large, propose a plan with stages rather than unilaterally reducing scope.
+   - Report completion ONLY when the task has been fulfilled as originally specified.
+
+8. **Linting Guidelines**
+   - When fixing lint errors, manually correct each issue - NEVER use automated fixes with "--fix" flags or similar.
+   - Report progress as you work through large numbers of errors.
+   - Group fixes by error type and file when addressing many issues.
+   - Fix ALL lint errors across ALL files unless explicitly instructed otherwise.
+
+9. **Testing and Coverage Guidelines**
+   - When asked to "run tests" or "fix tests," this applies to ALL tests in the entire codebase.
+   - When asked to "fix failing tests," fix EVERY failing test, not just a subset or recent files.
+   - When working on coverage:
+     - Address ALL components that don't meet their thresholds.
+     - Create tests that target EACH uncovered branch, statement, or function.
+     - Report specific coverage numbers before and after your changes.
+     - Don't cherry-pick easy coverage improvements; systematically work through all gaps.
+   - When tests fail, fix the tests OR the implementation code - don't simply modify tests to pass without solving the underlying issues.
+   - For large test suites, group work by component and provide progress updates.
+   - Report completion ONLY when:
+     - All tests pass successfully
+     - All coverage thresholds are met (or explicitly discuss exceptions)
+     - All test files compile without errors or warnings
+
 When working on any code changes, carefully consider how they fit into the existing architectural patterns and development standards outlined in this document.

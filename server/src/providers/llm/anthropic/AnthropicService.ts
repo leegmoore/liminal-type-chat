@@ -67,7 +67,8 @@ const ANTHROPIC_MODELS: Record<string, AnthropicModelConfig> = {
 /**
  * Default model ID to use when none is specified
  */
-// const DEFAULT_MODEL_NAME = 'Claude 3.7 Sonnet'; // Commented out as it's unused and causes a compiler error
+// Unused model name - keeping this commented to avoid compiler errors
+// const DEFAULT_MODEL_NAME = 'Claude 3.7 Sonnet';
 const DEFAULT_MODEL_ID = 'claude-3-7-sonnet-20250219'; 
 const DEFAULT_ANTHROPIC_MAX_TOKENS = 4096; 
 
@@ -82,11 +83,6 @@ export class AnthropicService implements ILlmService {
    * @param apiKey Anthropic API key
    */
   constructor(apiKey: string) {
-    // TEMPORARY DEBUG LOG - REMOVE AFTER TROUBLESHOOTING
-    const apiKeySuffix = apiKey && apiKey.length > 4 ? apiKey.slice(-4) : 'INVALID_OR_SHORT_KEY';
-    console.log(`AnthropicService constructor: Initializing with API key ending with "...${apiKeySuffix}"`);
-    // END TEMPORARY DEBUG LOG
-
     if (!apiKey) {
       throw new LlmServiceError(
         'Anthropic API key is required',
@@ -231,11 +227,7 @@ export class AnthropicService implements ILlmService {
         streamRequestParams.stop_sequences = options.stop;
       }
 
-      // Log the full request payload for debugging
-      console.log('AnthropicService.streamPrompt: Sending request to Anthropic with params:', JSON.stringify(streamRequestParams, null, 2));
-
-      // Log the model ID being sent to Anthropic SDK
-      console.log(`AnthropicService.streamPrompt: Calling Anthropic SDK with model: ${streamRequestParams.model}`);
+      // Request is being sent to Anthropic
 
       const stream = await this.client.messages.stream(streamRequestParams); 
 
@@ -267,22 +259,23 @@ export class AnthropicService implements ILlmService {
           // We will use the final count from the message_stop event via finalMessageSnapshot.
           if (event.delta && event.delta.stop_reason) { // event.delta is of type MessageDelta here
             lastDeltaStopReason = event.delta.stop_reason;
-            console.log(`AnthropicService.streamPrompt: Received stop_reason='${lastDeltaStopReason}' in message_delta.`);
           }
         }
 
         if (event.type === 'message_stop') {
           let finalOutputTokens = 0;
           if (finalMessageSnapshot) {
-            finalOutputTokens = finalMessageSnapshot.usage.output_tokens; // Authoritative final count
+            // Authoritative final count
+            finalOutputTokens = finalMessageSnapshot.usage.output_tokens;
           } else {
-            // This case should ideally not happen if message_start always precedes message_stop
-            console.warn('AnthropicService.streamPrompt: finalMessageSnapshot was null at message_stop. Output tokens might be inaccurate.');
+            // If message_start was somehow missed, use a fallback approach for output tokens
+            finalOutputTokens = Math.ceil(accumulatedContent.length / 4); // Rough estimate
           }
-          
-          console.log(`AnthropicService.streamPrompt: Message stop event. Final stop_reason='${lastDeltaStopReason}'. Input tokens: ${inputTokens}, Output tokens: ${finalOutputTokens}`);
+
+          // Send a final message with empty content but with metadata containing full content
+          // This pattern allows client to receive the full content as part of the final message
           const finalResponse: LlmResponse = {
-            content: '', 
+            content: '', // The actual content increment is empty for the final message
             modelId,
             provider: 'anthropic',
             usage: {
@@ -292,7 +285,7 @@ export class AnthropicService implements ILlmService {
             },
             metadata: {
               finishReason: this.mapStopReason(lastDeltaStopReason),
-              fullContent: accumulatedContent,
+              fullContent: accumulatedContent, // The complete accumulated text
             },
           };
           callback(finalResponse);

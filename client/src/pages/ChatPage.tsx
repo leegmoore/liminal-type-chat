@@ -1,4 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+
+// Add custom properties to the Window interface
+declare global {
+  interface Window {
+    activeEventSources?: EventSource[];
+  }
+}
+
 import { 
   Box, 
   Button, 
@@ -20,7 +29,6 @@ import {
   CardBody
 } from '@chakra-ui/react';
 import { AddIcon, SettingsIcon } from '@chakra-ui/icons';
-import axios from 'axios';
 import { getAuthToken, loginAsGuest, initializeAuth } from '../services/authService';
 
 // Types for LLM integration
@@ -37,6 +45,7 @@ interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: number;
+  placeholderId?: string; // ID to track placeholder messages for streaming responses
   metadata?: {
     modelId?: string;
     provider?: string;
@@ -66,7 +75,7 @@ const ChatPage: React.FC = () => {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [prompt, setPrompt] = useState('');
-  const [provider, setProvider] = useState<'openai' | 'anthropic'>('openai');
+  const [provider, setProvider] = useState<'openai' | 'anthropic'>('anthropic');
   const [models, setModels] = useState<LlmModel[]>([]);
   const [selectedModel, setSelectedModel] = useState('');
   const [loading, setLoading] = useState(false);
@@ -142,14 +151,22 @@ const ChatPage: React.FC = () => {
       try {
         const response = await axios.get('/api/v1/conversations');
         if (response.data && response.data.conversations) {
-          const fetchedThreads: ConversationThread[] = response.data.conversations.map((conv: any) => ({
-            conversationId: conv.conversationId,
-            title: conv.title,
-            messages: conv.messages || [], 
-            createdAt: conv.createdAt, 
-            updatedAt: conv.updatedAt, 
-            metadata: conv.metadata,   
-          }));
+          const fetchedThreads: ConversationThread[] = response.data.conversations.map(
+            (conv: { 
+              conversationId: string;
+              title: string;
+              messages?: ChatMessage[];
+              createdAt: string;
+              updatedAt: string;
+              metadata?: Record<string, unknown>;
+            }) => ({
+              conversationId: conv.conversationId,
+              title: conv.title,
+              messages: conv.messages || [], 
+              createdAt: conv.createdAt, 
+              updatedAt: conv.updatedAt, 
+              metadata: conv.metadata,   
+            }));
           setThreads(fetchedThreads);
           
           // Select the first thread if one exists
@@ -307,9 +324,12 @@ const ChatPage: React.FC = () => {
       
       // Safe access for axios error response
       const axiosError = error as { response?: { data?: { message?: string } } };
+      const errorMessage = axiosError.response?.data?.message || 
+        'Failed to save API key. Please try again.';
+      
       toast({
         title: 'Error saving API key',
-        description: axiosError.response?.data?.message || 'Failed to save API key. Please try again.',
+        description: errorMessage,
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -321,24 +341,30 @@ const ChatPage: React.FC = () => {
   const sendPrompt = async () => {
     if (!prompt.trim() || !selectedThreadId) return;
     
-    // Add user message to the UI immediately
+    // Create a single consistent message identifier using UUID-like approach
+    const conversationId = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+    
+    // Add user message to the UI immediately with consistent ID format
     const userMessage: ChatMessage = {
-      id: `temp-${Date.now()}`,
+      id: `user-${conversationId}`,
       role: 'user',
       content: prompt,
       timestamp: Date.now(),
     };
     
-    // Add placeholder for assistant response with streaming indicator
+    // Add placeholder for assistant response with clear identification
+    const assistantId = `assistant-${conversationId}`;
     const placeholderMessage: ChatMessage = {
-      id: `placeholder-${Date.now()}`,
+      id: assistantId,
       role: 'assistant',
       content: '',
       timestamp: Date.now(),
       metadata: {
         provider,
         modelId: selectedModel
-      }
+      },
+      // Single consistent ID for tracking this message
+      placeholderId: assistantId
     };
     
     setMessages([...messages, userMessage, placeholderMessage]);
@@ -355,40 +381,84 @@ const ChatPage: React.FC = () => {
           ? 'http://localhost:8765'
           : ''; // For production, relative path should work
         
-        const eventSourceUrl = `${baseUrl}/api/v1/chat/completions/stream?threadId=${selectedThreadId}` +
-          `&provider=${provider}&modelId=${selectedModel}&prompt=${encodeURIComponent(promptText)}`;
+        // Include placeholderId for tracking and a timestamp to prevent browser caching
+        // These URL params help server associate responses with correct UI messages
+        const urlParams = new URLSearchParams();
+        urlParams.append('threadId', selectedThreadId);
+        urlParams.append('provider', provider);
+        urlParams.append('modelId', selectedModel);
+        urlParams.append('prompt', promptText);
+        urlParams.append('placeholderId', assistantId); // Use consistent message ID
+        urlParams.append('_t', Date.now().toString()); // Cache-busting timestamp
         
-        console.log('Attempting to connect EventSource to:', eventSourceUrl); // Added for debugging
+        const eventSourceUrl = `${baseUrl}/api/v1/chat/completions/stream?${urlParams.toString()}`;
+        
+        // Store a single consistent reference to the message we're updating
+        const messageId = assistantId;
 
+        // Disable any previous event sources that might still be active
+        // This prevents issues with multiple concurrent streams
+        if (window.activeEventSources) {
+          window.activeEventSources.forEach(es => {
+            try {
+              es.close();
+            } catch (err) {
+              console.error('Error closing EventSource:', err);
+            }
+          });
+        }
+        
+        // Create a new array of active event sources if it doesn't exist
+        window.activeEventSources = window.activeEventSources || [];
+        
+        // Create a new EventSource for this request
         const eventSource = new EventSource(eventSourceUrl);
         
+        // Add this EventSource to the active ones
+        window.activeEventSources.push(eventSource);
+        
+        // Data for this specific stream
         let responseContent = '';
-        let messageId = placeholderMessage.id;
         
         eventSource.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
             
-            // Update response content
-            responseContent += data.content;
-            
-            // If this is the first chunk, save the actual message ID
-            if (messageId === placeholderMessage.id && data.messageId) {
-              messageId = data.messageId;
+            // Associate this data with the consistent message ID if not already set
+            if (!data.placeholderId) {
+              data.placeholderId = messageId;
             }
             
-            // Update the message in UI
+            // Check for metadata.fullContent on final message which contains the complete text
+            if (data.done && data.metadata && data.metadata.fullContent) {
+              // Use the full content from metadata instead of the accumulated content
+              responseContent = data.metadata.fullContent;
+            } else if (data.content) {
+              // Regular incremental update for non-empty content
+              responseContent += data.content;
+            }
+            
+            // If server returns a different message ID, we still use our consistent ID
+            // This ensures we maintain the same reference throughout the lifecycle
+            
+            // Update the message in UI - force an immediate re-render
             setMessages(prevMessages => {
               const updatedMessages = [...prevMessages];
-              const assistantMessageIndex = updatedMessages.findIndex(
-                msg => msg.id === placeholderMessage.id
+              
+              // Find message using our consistent message ID
+              // This ensures we ONLY update the message associated with this specific stream
+              const assistantMessageIndex = updatedMessages.findIndex(msg => 
+                msg.id === messageId || msg.placeholderId === messageId
               );
               
               if (assistantMessageIndex !== -1) {
+                // Create a fresh message object to ensure React detects the change
                 updatedMessages[assistantMessageIndex] = {
                   ...updatedMessages[assistantMessageIndex],
-                  id: messageId || placeholderMessage.id,
+                  id: messageId, // Always use our consistent ID
                   content: responseContent,
+                  placeholderId: messageId, // Maintain consistent ID reference
+                  timestamp: Date.now(), // Timestamp for React state update
                   metadata: {
                     provider,
                     modelId: selectedModel,
@@ -396,6 +466,8 @@ const ChatPage: React.FC = () => {
                     finishReason: data.finishReason
                   }
                 };
+              } else {
+                console.warn('Could not find message to update with ID:', messageId);
               }
               
               return updatedMessages;
@@ -403,6 +475,38 @@ const ChatPage: React.FC = () => {
             
             // Check if streaming is complete
             if (data.done) {
+              // Remove this event source from the active list
+              if (window.activeEventSources) {
+                window.activeEventSources = window.activeEventSources.filter(
+                  es => es !== eventSource
+                );
+              }
+              
+              // Ensure final state update after a small delay
+              setTimeout(() => {
+                setMessages(prevMessages => {
+                  const finalMessages = [...prevMessages];
+                  
+                  // Use our consistent ID to find the message
+                  const messageIndex = finalMessages.findIndex(msg => {
+                    return msg.id === messageId || msg.placeholderId === messageId;
+                  });
+                  
+                  const found = messageIndex !== -1;
+                  if (found && finalMessages[messageIndex].content !== responseContent) {
+                    finalMessages[messageIndex] = {
+                      ...finalMessages[messageIndex],
+                      content: responseContent,
+                      id: messageId,
+                      placeholderId: messageId,
+                      timestamp: Date.now()
+                    };
+                  }
+                  
+                  return finalMessages;
+                });
+              }, 100); // Short delay to ensure this runs after current update cycle
+              
               eventSource.close();
               setLoading(false);
             }
@@ -453,9 +557,12 @@ const ChatPage: React.FC = () => {
       }
       // Safe access for axios error response
       const axiosError = error as { response?: { data?: { message?: string } } };
+      const errorMessage = axiosError.response?.data?.message || 
+        'Failed to send prompt. Please try again.';
+      
       toast({
         title: 'Error sending prompt',
-        description: axiosError.response?.data?.message || 'Failed to send prompt. Please try again.',
+        description: errorMessage,
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -496,7 +603,9 @@ const ChatPage: React.FC = () => {
                   cursor="pointer"
                   mb={2}
                   bg={selectedThreadId === thread.conversationId ? 'teal.100' : 'gray.50'} 
-                  _hover={{ bg: selectedThreadId === thread.conversationId ? 'teal.200' : 'gray.100' }} 
+                  _hover={{ 
+                    bg: selectedThreadId === thread.conversationId ? 'teal.200' : 'gray.100'
+                  }} 
                   variant="outline"
                   size="sm"
                 >
@@ -509,7 +618,12 @@ const ChatPage: React.FC = () => {
                     </Text>
                     <Text fontSize="xs" color="gray.500">
                       {/* Display formatted updatedAt or createdAt if available */}
-                      {thread.updatedAt ? `Updated: ${formatDisplayDate(thread.updatedAt)}` : (thread.createdAt ? `Created: ${formatDisplayDate(thread.createdAt)}` : '')}
+                      {thread.updatedAt 
+                        ? `Updated: ${formatDisplayDate(thread.updatedAt)}` 
+                        : (thread.createdAt 
+                          ? `Created: ${formatDisplayDate(thread.createdAt)}` 
+                          : '')
+                      }
                     </Text>
                   </CardBody>
                 </Card>
@@ -540,8 +654,10 @@ const ChatPage: React.FC = () => {
                       >
                         <Card 
                           bg={message.role === 'user' ? 'blue.50' : 
-                            (message.role === 'assistant' && 
-                            (provider === 'anthropic' || message.metadata?.provider === 'anthropic'))
+                            (message.role === 'assistant' && (
+                              provider === 'anthropic' || 
+                              message.metadata?.provider === 'anthropic')
+                            )
                               ? (message.metadata?.modelId?.includes('claude-3-7') 
                                 ? 'purple.50' : 'purple.25')
                               : 'white'} 
@@ -561,16 +677,21 @@ const ChatPage: React.FC = () => {
                             <Flex justifyContent="space-between" alignItems="center" mb={1}>
                               <Badge colorScheme={
                                 message.role === 'user' ? 'blue' : 
-                                  (message.role === 'assistant' && 
-                                  (provider === 'anthropic' || message.metadata?.provider === 'anthropic'))
+                                  (message.role === 'assistant' && (
+                                    provider === 'anthropic' || 
+                                    message.metadata?.provider === 'anthropic')
+                                  )
                                     ? 'purple' : 'green'
                               }>
-                                {message.role === 'assistant' && 
-                                 (provider === 'anthropic' || message.metadata?.provider === 'anthropic')
+                                {message.role === 'assistant' && (
+                                  provider === 'anthropic' || 
+                                  message.metadata?.provider === 'anthropic'
+                                )
                                   ? 'Claude' : message.role}
                               </Badge>
                               
-                              {message.role === 'assistant' && message.metadata?.modelId?.includes('claude-3-7') && (
+                              {message.role === 'assistant' && 
+                               message.metadata?.modelId?.includes('claude-3-7') && (
                                 <Badge colorScheme="purple" variant="outline" ml={1} fontSize="2xs">
                                   Claude 3.7 Sonnet
                                 </Badge>

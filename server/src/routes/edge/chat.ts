@@ -6,6 +6,7 @@ import { NotFoundError } from '../../utils/errors';
 import { createAuthMiddleware } from '../../middleware/auth-middleware';
 import { IJwtService } from '../../providers/auth/jwt/IJwtService';
 import { IUserRepository } from '../../providers/db/users/IUserRepository';
+import { setupSseHeaders, sendSseData, sendSseError } from './stream-helper';
 
 // Define the extended Request type with user property
 export interface AuthenticatedRequest extends Request {
@@ -32,17 +33,28 @@ class BadRequestError extends Error {
   }
 }
 
-export function createChatSubRouter(jwtService: IJwtService, userRepository: IUserRepository): Router {
+export function createChatSubRouter(
+  jwtService: IJwtService, 
+  userRepository: IUserRepository
+): Router {
   const router = express.Router();
 
   // Apply authentication middleware correctly
-  router.use(createAuthMiddleware(jwtService, userRepository));
+  router.use(createAuthMiddleware(jwtService, userRepository, {
+    required: true,
+    requiredScopes: [],
+    requiredTier: 'edge'
+  }));
 
   /**
    * Endpoint to list available LLM models for a provider
    * GET /models/:provider  (Note: path is relative to where this router is mounted)
    */
-  router.get('/models/:provider', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  router.get('/models/:provider', async (
+    req: AuthenticatedRequest, 
+    res: Response, 
+    next: NextFunction
+  ) => {
     try {
       const { provider } = req.params;
 
@@ -79,7 +91,11 @@ export function createChatSubRouter(jwtService: IJwtService, userRepository: IUs
    * Endpoint to complete a chat prompt
    * POST /completions (Note: path is relative)
    */
-  router.post('/completions', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  router.post('/completions', async (
+    req: AuthenticatedRequest, 
+    res: Response, 
+    next: NextFunction
+  ) => {
     try {
       const { prompt, provider, modelId, threadId, options } = req.body;
 
@@ -142,17 +158,28 @@ export function createChatSubRouter(jwtService: IJwtService, userRepository: IUs
 
   /**
    * Endpoint to stream a chat completion
-   * GET /completions/stream (Note: path is relative)
+   * GET /completions/stream
+   * This endpoint is designed to work with EventSource/SSE on the client
    */
-  router.get('/completions/stream', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  router.get('/completions/stream', async (
+    req: AuthenticatedRequest, 
+    res: Response, 
+    next: NextFunction
+  ) => {
     try {
-      // Parameters are now from req.query for a GET request
+      // Parameters are from req.query for a GET request
       const { prompt, provider, modelId, threadId, options } = req.query as {
         prompt?: string;
         provider?: string;
         modelId?: string;
         threadId?: string;
-        options?: any; // Adjust type as needed for options
+        options?: {
+          temperature?: number;
+          maxTokens?: number;
+          frequencyPenalty?: number;
+          presencePenalty?: number;
+          [key: string]: unknown;
+        };
       };
 
       // Validate required fields
@@ -182,7 +209,7 @@ export function createChatSubRouter(jwtService: IJwtService, userRepository: IUs
         return next(new Error('ChatService not available on app.locals.services'));
       }
 
-      // Get current user ID (this assumes authentication middleware sets req.user)
+      // Get current user ID
       if (!req.user || !req.user.userId) {
         return next(new Error('Authentication required: User ID not found.'));
       }
@@ -191,25 +218,14 @@ export function createChatSubRouter(jwtService: IJwtService, userRepository: IUs
       // Create request
       const completionRequest: ChatCompletionRequest = {
         prompt,
-        provider: provider as LlmProvider, // Cast here after validation
+        provider: provider as LlmProvider,
         modelId,
         threadId,
-        options // options will be undefined if not provided, handle in ChatService
+        options
       };
 
-      // Set up SSE response
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-
-      // Helper function to send SSE events
-      const sendEvent = (data: any) => {
-        res.write(`data: ${JSON.stringify(data)}\n\n`);
-        // Check if flush exists before calling it
-        if (typeof (res as any).flush === 'function') {
-          (res as any).flush();
-        }
-      };
+      // Set up SSE response with proper headers for EventSource
+      setupSseHeaders(res);
 
       // Handle client disconnect
       const onClose = () => {
@@ -220,28 +236,26 @@ export function createChatSubRouter(jwtService: IJwtService, userRepository: IUs
       try {
         // Stream the completion
         await chatService.streamChatCompletion(userId, completionRequest, (chunk) => {
-          sendEvent(chunk);
+          // Send the chunk directly to the client - this format matches what the client expects
+          // EventSource.onmessage will parse this data directly
+          sendSseData(res, chunk);
 
           // End the stream when done
           if (chunk.done) {
             res.end();
           }
         });
-      } catch (streamError: any) {
+      } catch (streamError: unknown) {
         console.error('Error during chat stream processing:', streamError);
-        // Send an error event over SSE before closing
-        sendEvent({ 
-          type: 'error', 
-          message: 'Stream processing error',
-          details: streamError.message || 'Unknown error'
-        });
+        
+        // Send error using our helper
+        const error = streamError as { message?: string };
+        sendSseError(res, 'Stream processing error', error.message || 'Unknown error');
+        
         res.end(); // Ensure the stream is closed
-        // DO NOT call next(streamError) here if SSE headers are sent,
-        // as it will lead to an HTML error response and MIME type mismatch.
       }
     } catch (error) {
       // This outer catch handles errors before SSE setup (e.g., validation)
-      // or if the inner catch re-throws (which it doesn't currently)
       next(error);
     }
   });

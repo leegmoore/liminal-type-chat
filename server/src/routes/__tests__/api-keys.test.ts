@@ -104,7 +104,25 @@ describe('API Key Routes', () => {
     it('should return 401 when not authenticated', async () => {
       // Arrange
       mockJwtService.verifyToken.mockImplementation(() => {
-        throw new Error('Invalid token');
+        // Throw an UnauthorizedError to match the actual implementation
+        interface MockError extends Error {
+          statusCode: number;
+          code: number;
+          errorCode: string;
+          toJSON: () => { error: { code: number; message: string; errorCode: string } };
+        }
+        const error = new Error('Invalid token') as MockError;
+        error.statusCode = 401;
+        error.code = 4010;
+        error.errorCode = 'auth.unauthorized';
+        error.toJSON = () => ({ 
+          error: { 
+            code: 4010, 
+            message: 'Invalid token', 
+            errorCode: 'auth.unauthorized' 
+          } 
+        });
+        throw error;
       });
       
       // Act
@@ -196,7 +214,25 @@ describe('API Key Routes', () => {
     it('should return 401 when not authenticated', async () => {
       // Arrange
       mockJwtService.verifyToken.mockImplementation(() => {
-        throw new Error('Invalid token');
+        // Throw an UnauthorizedError to match the actual implementation
+        interface MockError extends Error {
+          statusCode: number;
+          code: number;
+          errorCode: string;
+          toJSON: () => { error: { code: number; message: string; errorCode: string } };
+        }
+        const error = new Error('Invalid token') as MockError;
+        error.statusCode = 401;
+        error.code = 4010;
+        error.errorCode = 'auth.unauthorized';
+        error.toJSON = () => ({ 
+          error: { 
+            code: 4010, 
+            message: 'Invalid token', 
+            errorCode: 'auth.unauthorized' 
+          } 
+        });
+        throw error;
       });
       
       // Act
@@ -261,7 +297,25 @@ describe('API Key Routes', () => {
     it('should return 401 when not authenticated', async () => {
       // Arrange
       mockJwtService.verifyToken.mockImplementation(() => {
-        throw new Error('Invalid token');
+        // Throw an UnauthorizedError to match the actual implementation
+        interface MockError extends Error {
+          statusCode: number;
+          code: number;
+          errorCode: string;
+          toJSON: () => { error: { code: number; message: string; errorCode: string } };
+        }
+        const error = new Error('Invalid token') as MockError;
+        error.statusCode = 401;
+        error.code = 4010;
+        error.errorCode = 'auth.unauthorized';
+        error.toJSON = () => ({ 
+          error: { 
+            code: 4010, 
+            message: 'Invalid token', 
+            errorCode: 'auth.unauthorized' 
+          } 
+        });
+        throw error;
       });
       
       // Act

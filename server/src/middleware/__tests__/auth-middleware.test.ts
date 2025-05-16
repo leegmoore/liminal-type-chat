@@ -7,12 +7,23 @@ import { IJwtService } from '../../providers/auth/jwt/IJwtService';
 import { VerifiedToken } from '../../providers/auth/jwt/IJwtService';
 import { UnauthorizedError } from '../../utils/errors';
 import { AuthErrorCode } from '../../utils/error-codes';
+import { IUserRepository } from '../../providers/db/users/IUserRepository';
 
 // Mock JWT service
 const mockJwtService: jest.Mocked<IJwtService> = {
   generateToken: jest.fn(),
   verifyToken: jest.fn(),
   decodeToken: jest.fn()
+};
+
+// Mock User Repository
+const mockUserRepository: jest.Mocked<IUserRepository> = {
+  findById: jest.fn(),
+  findByEmail: jest.fn(),
+  findByProviderInfo: jest.fn(),
+  create: jest.fn(),
+  update: jest.fn(),
+  delete: jest.fn()
 };
 
 describe('Auth Middleware', () => {
@@ -52,7 +63,7 @@ describe('Auth Middleware', () => {
     it('should proceed without authentication when not required and no token provided', () => {
       // Arrange
       (req.header as jest.Mock).mockReturnValue(undefined);
-      const middleware = createAuthMiddleware(mockJwtService, { required: false });
+      const middleware = createAuthMiddleware(mockJwtService, mockUserRepository, { required: false });
       
       // Act
       middleware(req as Request, res as Response, next);
@@ -65,7 +76,7 @@ describe('Auth Middleware', () => {
     it('should throw UnauthorizedError when auth is required but no token provided', () => {
       // Arrange
       (req.header as jest.Mock).mockReturnValue(undefined);
-      const middleware = createAuthMiddleware(mockJwtService);
+      const middleware = createAuthMiddleware(mockJwtService, mockUserRepository);
       
       // Act
       middleware(req as Request, res as Response, next);
@@ -78,7 +89,7 @@ describe('Auth Middleware', () => {
     it('should throw UnauthorizedError when Authorization header format is invalid', () => {
       // Arrange
       (req.header as jest.Mock).mockReturnValue('InvalidFormat');
-      const middleware = createAuthMiddleware(mockJwtService);
+      const middleware = createAuthMiddleware(mockJwtService, mockUserRepository);
       
       // Act
       middleware(req as Request, res as Response, next);
@@ -95,7 +106,7 @@ describe('Auth Middleware', () => {
     it('should attach user to request when token is valid', () => {
       // Arrange
       (req.header as jest.Mock).mockReturnValue('Bearer valid-token');
-      const middleware = createAuthMiddleware(mockJwtService);
+      const middleware = createAuthMiddleware(mockJwtService, mockUserRepository);
       
       // Act
       middleware(req as Request, res as Response, next);
@@ -120,7 +131,7 @@ describe('Auth Middleware', () => {
       mockJwtService.verifyToken.mockImplementation(() => {
         throw jwtError;
       });
-      const middleware = createAuthMiddleware(mockJwtService);
+      const middleware = createAuthMiddleware(mockJwtService, mockUserRepository);
       
       // Act
       middleware(req as Request, res as Response, next);
@@ -135,7 +146,7 @@ describe('Auth Middleware', () => {
     it('should throw UnauthorizedError when required scopes are not present', () => {
       // Arrange
       (req.header as jest.Mock).mockReturnValue('Bearer valid-token');
-      const middleware = createAuthMiddleware(mockJwtService, {
+      const middleware = createAuthMiddleware(mockJwtService, mockUserRepository, {
         requiredScopes: ['write:messages']
       });
       
@@ -154,7 +165,7 @@ describe('Auth Middleware', () => {
     it('should proceed when all required scopes are present', () => {
       // Arrange
       (req.header as jest.Mock).mockReturnValue('Bearer valid-token');
-      const middleware = createAuthMiddleware(mockJwtService, {
+      const middleware = createAuthMiddleware(mockJwtService, mockUserRepository, {
         requiredScopes: ['read:profile']
       });
       
@@ -169,7 +180,7 @@ describe('Auth Middleware', () => {
     it('should throw UnauthorizedError when required tier is not matched', () => {
       // Arrange
       (req.header as jest.Mock).mockReturnValue('Bearer valid-token');
-      const middleware = createAuthMiddleware(mockJwtService, {
+      const middleware = createAuthMiddleware(mockJwtService, mockUserRepository, {
         requiredTier: 'domain'
       });
       
@@ -188,7 +199,7 @@ describe('Auth Middleware', () => {
     it('should proceed when required tier matches', () => {
       // Arrange
       (req.header as jest.Mock).mockReturnValue('Bearer valid-token');
-      const middleware = createAuthMiddleware(mockJwtService, {
+      const middleware = createAuthMiddleware(mockJwtService, mockUserRepository, {
         requiredTier: 'edge'
       });
       

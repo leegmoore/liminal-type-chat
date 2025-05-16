@@ -1,4 +1,11 @@
-import { ILlmService, LlmModelInfo, LlmErrorCode, LlmRequestOptions, LlmResponse, LlmServiceError } from '../ILlmService';
+import { 
+  ILlmService, 
+  LlmModelInfo, 
+  LlmErrorCode, 
+  LlmRequestOptions, 
+  LlmResponse, 
+  LlmServiceError 
+} from '../ILlmService';
 
 // Mock implementation for testing the interface
 class MockLlmService implements ILlmService {
@@ -21,7 +28,10 @@ class MockLlmService implements ILlmService {
     ];
   }
 
-  async sendPrompt(messages: Array<{ role: string; content: string }>, options?: LlmRequestOptions): Promise<LlmResponse> {
+  async sendPrompt(
+    messages: Array<{ role: string; content: string }>, 
+    options?: LlmRequestOptions
+  ): Promise<LlmResponse> {
     // For testing that the interface methods are callable with proper types
     if (messages.length === 0) {
       throw new LlmServiceError(
@@ -46,9 +56,11 @@ class MockLlmService implements ILlmService {
     };
   }
 
-  async streamPrompt(messages: Array<{ role: string; content: string }>, 
-                     callback: (chunk: LlmResponse) => void, 
-                     options?: LlmRequestOptions): Promise<void> {
+  async streamPrompt(
+    messages: Array<{ role: string; content: string }>, 
+    callback: (chunk: LlmResponse) => void, 
+    options?: LlmRequestOptions
+  ): Promise<void> {
     // For testing that the streaming interface is callable with proper types
     if (messages.length === 0) {
       throw new LlmServiceError(
