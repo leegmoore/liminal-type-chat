@@ -1,6 +1,6 @@
-# Milestone 0 Development Journal
+# Milestone 0001 Development Journal
 
-This document tracks implementation decisions, problem-solving approaches, and developer notes for Milestone 0 (Project Initialization).
+This document tracks implementation decisions, problem-solving approaches, and developer notes for Milestone 0001 (Project Initialization).
 
 ## Implementation Notes
 
@@ -18,7 +18,7 @@ The in-process vs HTTP communication modes primarily support deployment scenario
 Focus on getting the real provider working first before implementing any mock or local LLMs to avoid development issues.
 
 ### API Key Management
-Detailed implementation of API key management (storage, security, UI) will be addressed in MVP 2. For MVP 1, focus on the core architecture and health endpoints. Design the system with appropriate abstractions to make future enhancements straightforward.
+Detailed implementation of API key management (storage, security, UI) will be addressed in MVP B. For MVP A, focus on the core architecture and health endpoints. Design the system with appropriate abstractions to make future enhancements straightforward.
 
 ### Error Handling
 Establish consistent error handling patterns for each milestone rather than implementing ad-hoc solutions. This includes standardized error objects, proper HTTP status codes, and clear error messages. Document the approach as we implement it to ensure consistency across the entire application.

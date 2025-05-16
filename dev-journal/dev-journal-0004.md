@@ -1,4 +1,4 @@
-# Liminal Type Chat - Development Journal for Milestone 3
+# Liminal Type Chat - Development Journal for Milestone 0004
 
 ## Edge-to-Domain Communication Implementation
 
@@ -6,7 +6,7 @@ Date: 2025-05-11
 
 ### Summary
 
-Successfully implemented the Edge-to-Domain communication pattern for the Liminal Type Chat application as part of Milestone 3. This establishes a clean separation between the edge tier (API endpoints) and domain tier (core business logic) while supporting both direct and HTTP communication modes.
+Successfully implemented the Edge-to-Domain communication pattern for the Liminal Type Chat application as part of Milestone 0004. This establishes a clean separation between the edge tier (API endpoints) and domain tier (core business logic) while supporting both direct and HTTP communication modes.
 
 ### What Was Accomplished
 

@@ -1,8 +1,8 @@
-# Milestone 1 Development Journal - ✅ COMPLETED
+# Milestone 0002 Development Journal - ✅ COMPLETED
 
-This document tracks implementation decisions, problem-solving approaches, and developer notes for Milestone 1 (Basic HTTP Server & Domain Health Endpoint).
+This document tracks implementation decisions, problem-solving approaches, and developer notes for Milestone 0002 (Basic HTTP Server & Domain Health Endpoint).
 
-## Milestone 1 Objectives - ✅ COMPLETED
+## Milestone 0002 Objectives - ✅ COMPLETED
 
 - ✅ Stand up the Node.js/Express.js application with our architectural folder structure
 - ✅ Implement the domain health check endpoint

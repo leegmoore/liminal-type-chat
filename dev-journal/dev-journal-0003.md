@@ -1,4 +1,4 @@
-# Liminal Type Chat - Development Journal for Milestone 2
+# Liminal Type Chat - Development Journal for Milestone 0003
 
 ## SQLite Database Connectivity & Health Check Implementation
 
@@ -6,7 +6,7 @@ Date: 2025-05-11
 
 ### Summary
 
-Successfully implemented SQLite database connectivity and health check features for the Liminal Type Chat application as part of Milestone 2. The implementation follows the project's tiered architecture approach and adheres to Test-Driven Development principles.
+Successfully implemented SQLite database connectivity and health check features for the Liminal Type Chat application as part of Milestone 0003. The implementation follows the project's tiered architecture approach and adheres to Test-Driven Development principles.
 
 ### What Was Accomplished
 
