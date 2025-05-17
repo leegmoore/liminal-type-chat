@@ -5,11 +5,15 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { IJwtService } from '../../providers/auth/jwt/IJwtService';
-import { IOAuthProvider } from '../../providers/auth/IOAuthProvider';
+import { IOAuthProvider, PkceOptions } from '../../providers/auth/IOAuthProvider';
 import { IUserRepository } from '../../providers/db/users/IUserRepository';
 import { ValidationError, UnauthorizedError } from '../../utils/errors';
 import { OAuthProvider } from '../../models/domain/users/User';
-// Authentication errors handled by UnauthorizedError class
+// PKCE utilities imported via PkceAuthData
+import { 
+  pkceStorage, 
+  PkceAuthData 
+} from '../../providers/auth/pkce/PkceStorage';
 
 /**
  * Create authentication routes
@@ -36,34 +40,73 @@ export function createAuthRoutes(
   ) => {
     try {
       const { provider } = req.params;
-      const { redirectUri } = req.body;
+      const { redirectUri, usePkce = true } = req.body;
       
       // Validate input
       if (!redirectUri) {
-        throw new ValidationError('Missing required field', 'redirectUri is required')
-          .addError('redirectUri', 'Redirect URI is required');
+        const error = new ValidationError('Missing required field', 'redirectUri is required');
+        error.addError('redirectUri', 'Redirect URI is required');
+        throw error;
       }
       
       // Get OAuth provider
       const oauthProvider = oauthProviders.get(provider);
       if (!oauthProvider) {
-        throw new ValidationError(
+        const error = new ValidationError(
           `Unsupported provider: ${provider}`, 
           `Provider ${provider} is not supported`
-        )
-          .addError('provider', `Provider ${provider} is not supported`);
+        );
+        error.addError('provider', `Provider ${provider} is not supported`);
+        throw error;
       }
       
       // Generate state parameter for CSRF protection
       const oauthState = uuidv4();
       
-      // Generate authorization URL
-      const authUrl = await oauthProvider.getAuthorizationUrl(redirectUri, oauthState);
+      // Setup PKCE if the provider supports it and it's not explicitly disabled
+      let authUrl: string;
+      let pkceData: PkceAuthData | undefined;
+      
+      if (usePkce && oauthProvider.supportsPkce) {
+        // Generate PKCE code verifier and challenge
+        pkceData = pkceStorage.createAuthSession(redirectUri, {
+          challengeMethod: 'S256'
+        });
+        
+        // Create PKCE options for authorization request
+        const pkceOptions: PkceOptions = {
+          codeChallenge: pkceData.codeChallenge,
+          codeChallengeMethod: pkceData.codeChallengeMethod
+        };
+        
+        // Generate authorization URL with PKCE
+        authUrl = oauthProvider.getAuthorizationUrl(
+          redirectUri, 
+          pkceData.state, 
+          undefined, // Use default scopes
+          pkceOptions
+        );
+      } else {
+        // Generate authorization URL without PKCE
+        authUrl = oauthProvider.getAuthorizationUrl(redirectUri, oauthState);
+        
+        // Store basic auth data for state validation
+        pkceData = {
+          state: oauthState,
+          codeVerifier: '', // No code verifier for non-PKCE flow
+          codeChallenge: '',
+          codeChallengeMethod: 'plain',
+          redirectUri,
+          createdAt: Date.now()
+        };
+        pkceStorage.storeAuthData(pkceData);
+      }
       
       // Return authorization URL and state
       res.json({
         authUrl,
-        state: oauthState
+        state: pkceData.state,
+        pkceEnabled: usePkce && oauthProvider.supportsPkce
       });
     } catch (error) {
       next(error);
@@ -77,27 +120,59 @@ export function createAuthRoutes(
   router.post('/oauth/:provider/token', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { provider } = req.params;
-      const { code, redirectUri } = req.body;
+      const { code, redirectUri, state } = req.body;
       
       // Validate input
-      if (!code || !redirectUri) {
-        throw new ValidationError('Missing required fields', 'code and redirectUri are required')
-          .addError('code', 'Authorization code is required')
-          .addError('redirectUri', 'Redirect URI is required');
+      if (!code || !redirectUri || !state) {
+        const error = new ValidationError(
+          'Missing required fields', 
+          'code, redirectUri and state are required'
+        );
+        error.addError('code', 'Authorization code is required');
+        error.addError('redirectUri', 'Redirect URI is required');
+        error.addError('state', 'State parameter is required');
+        throw error;
       }
       
       // Get OAuth provider
       const oauthProvider = oauthProviders.get(provider);
       if (!oauthProvider) {
-        throw new ValidationError(
+        const error = new ValidationError(
           `Unsupported provider: ${provider}`, 
           `Provider ${provider} is not supported`
-        )
-          .addError('provider', `Provider ${provider} is not supported`);
+        );
+        error.addError('provider', `Provider ${provider} is not supported`);
+        throw error;
       }
       
-      // Exchange code for token and user profile
-      const profile = await oauthProvider.exchangeCodeForToken(code, redirectUri);
+      // Verify state and get stored PKCE data
+      const authData = pkceStorage.getAuthDataByState(state);
+      if (!authData) {
+        throw new UnauthorizedError(
+          'Invalid OAuth state', 
+          'The OAuth state parameter is invalid or expired'
+        );
+      }
+      
+      // Verify the redirect URI matches what was used for authorization
+      if (authData.redirectUri !== redirectUri) {
+        throw new UnauthorizedError(
+          'Redirect URI mismatch', 
+          'The redirect URI does not match the one used for authorization'
+        );
+      }
+      
+      // Exchange code for token with or without PKCE
+      const profile = oauthProvider.supportsPkce && authData.codeVerifier
+        ? await oauthProvider.exchangeCodeForToken(
+          code, 
+          redirectUri, 
+          authData.codeVerifier
+        )
+        : await oauthProvider.exchangeCodeForToken(code, redirectUri);
+      
+      // Clean up PKCE data after use
+      pkceStorage.removeAuthDataByState(state);
       
       // Find or create user
       const user = await userRepository.findOrCreateUserByOAuth(
@@ -184,6 +259,20 @@ export function createAuthRoutes(
     } catch (error) {
       next(error);
     }
+  });
+
+  /**
+   * Cleanup expired PKCE sessions (maintenance endpoint)
+   * POST /auth/maintenance/cleanup-sessions
+   */
+  router.post('/maintenance/cleanup-sessions', (_req: Request, res: Response) => {
+    // Clean up expired PKCE sessions (default 10 minutes)
+    pkceStorage.cleanupExpiredSessions();
+    
+    res.json({ 
+      success: true, 
+      message: 'Expired authentication sessions cleaned up' 
+    });
   });
   
   return router;

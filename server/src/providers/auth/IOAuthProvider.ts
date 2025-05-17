@@ -3,6 +3,7 @@
  * Defines the common interface that all OAuth providers must implement
  */
 import { OAuthProvider as OAuthProviderType } from '../../models/domain/users/User';
+import { CodeChallengeMethod } from './pkce/PkceUtils';
 
 /**
  * OAuth user profile data returned after successful authentication
@@ -29,6 +30,16 @@ export interface OAuthUserProfile {
 }
 
 /**
+ * PKCE options for OAuth authorization
+ */
+export interface PkceOptions {
+  /** Code challenge derived from the code verifier */
+  codeChallenge: string;
+  /** Method used to create the code challenge */
+  codeChallengeMethod: CodeChallengeMethod;
+}
+
+/**
  * OAuth provider interface defining common operations for all providers
  */
 export interface IOAuthProvider {
@@ -38,25 +49,37 @@ export interface IOAuthProvider {
   readonly providerType: OAuthProviderType;
   
   /** 
+   * Determines if the provider supports PKCE
+   */
+  readonly supportsPkce: boolean;
+  
+  /** 
    * Generates the OAuth authorization URL for redirecting the user 
    * @param redirectUri - Where to redirect after authentication
    * @param state - CSRF protection state token
    * @param scopes - Optional array of permission scopes to request
+   * @param pkce - Optional PKCE parameters for enhanced security
    * @returns URL to redirect the user to for authentication
    */
   getAuthorizationUrl(
     redirectUri: string, 
     state: string, 
-    scopes?: string[]
+    scopes?: string[],
+    pkce?: PkceOptions
   ): string;
   
   /**
    * Exchanges an authorization code for tokens and user profile
    * @param code - The authorization code received from the provider
    * @param redirectUri - The same redirect URI used in getAuthorizationUrl
+   * @param codeVerifier - Optional PKCE code verifier for providers that support PKCE
    * @returns Promise resolving to the user profile data
    */
-  exchangeCodeForToken(code: string, redirectUri: string): Promise<OAuthUserProfile>;
+  exchangeCodeForToken(
+    code: string, 
+    redirectUri: string,
+    codeVerifier?: string
+  ): Promise<OAuthUserProfile>;
   
   /**
    * Refreshes an expired access token using a refresh token

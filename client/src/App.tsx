@@ -5,6 +5,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import HealthDashboard from './pages/HealthDashboard';
 import ChatPage from './pages/ChatPage';
+import AuthTester from './components/AuthTester';
 
 /**
  * Main App component that sets up routing and layout
@@ -18,6 +19,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<HealthDashboard />} />
             <Route path="/chat" element={<ChatPage />} />
+            <Route path="/auth-tester" element={<AuthTester />} />
           </Routes>
         </Box>
         <Footer />

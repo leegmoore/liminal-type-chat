@@ -1,8 +1,8 @@
 /**
- * GitHub OAuth Provider Implementation
+ * GitHub OAuth Provider Implementation with PKCE support
  */
 import axios from 'axios';
-import { IOAuthProvider, OAuthUserProfile } from '../IOAuthProvider';
+import { IOAuthProvider, OAuthUserProfile, PkceOptions } from '../IOAuthProvider';
 import { OAuthProvider } from '../../../models/domain/users/User';
 import { ExternalServiceError } from '../../../utils/errors';
 
@@ -19,13 +19,18 @@ const GITHUB_OAUTH_URLS = {
 const DEFAULT_SCOPES = ['read:user', 'user:email'];
 
 /**
- * GitHub OAuth provider implementation
+ * GitHub OAuth provider implementation with PKCE support
  */
 export class GitHubOAuthProvider implements IOAuthProvider {
   /**
    * The provider type
    */
   public readonly providerType: OAuthProvider = 'github';
+
+  /**
+   * GitHub supports PKCE
+   */
+  public readonly supportsPkce: boolean = true;
 
   /**
    * Create a GitHub OAuth provider
@@ -49,12 +54,14 @@ export class GitHubOAuthProvider implements IOAuthProvider {
    * @param redirectUri - Where to redirect after authentication
    * @param state - CSRF protection state token
    * @param scopes - Optional array of permission scopes to request
+   * @param pkce - Optional PKCE parameters for enhanced security
    * @returns URL to redirect the user to for authentication
    */
   getAuthorizationUrl(
     redirectUri: string,
     state: string,
-    scopes: string[] = DEFAULT_SCOPES
+    scopes: string[] = DEFAULT_SCOPES,
+    pkce?: PkceOptions
   ): string {
     const scopeString = scopes.join(' ');
     
@@ -66,6 +73,12 @@ export class GitHubOAuthProvider implements IOAuthProvider {
     authUrl.searchParams.append('scope', scopeString);
     authUrl.searchParams.append('response_type', 'code');
     
+    // Add PKCE parameters if provided
+    if (pkce) {
+      authUrl.searchParams.append('code_challenge', pkce.codeChallenge);
+      authUrl.searchParams.append('code_challenge_method', pkce.codeChallengeMethod);
+    }
+    
     return authUrl.toString();
   }
 
@@ -73,20 +86,33 @@ export class GitHubOAuthProvider implements IOAuthProvider {
    * Exchange an authorization code for tokens and user profile
    * @param code - The authorization code received from GitHub
    * @param redirectUri - The same redirect URI used in getAuthorizationUrl
+   * @param codeVerifier - Optional PKCE code verifier for providers that support PKCE
    * @returns Promise resolving to the user profile data
    * @throws ExternalServiceError if the exchange fails
    */
-  async exchangeCodeForToken(code: string, redirectUri: string): Promise<OAuthUserProfile> {
+  async exchangeCodeForToken(
+    code: string, 
+    redirectUri: string,
+    codeVerifier?: string
+  ): Promise<OAuthUserProfile> {
     try {
       // Step 1: Exchange code for access token
+      // Create request body
+      const tokenRequestBody: Record<string, string> = {
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
+        code,
+        redirect_uri: redirectUri
+      };
+      
+      // Add code verifier if provided (PKCE flow)
+      if (codeVerifier) {
+        tokenRequestBody.code_verifier = codeVerifier;
+      }
+      
       const tokenResponse = await axios.post(
         GITHUB_OAUTH_URLS.token, 
-        {
-          client_id: this.clientId,
-          client_secret: this.clientSecret,
-          code,
-          redirect_uri: redirectUri
-        },
+        tokenRequestBody,
         {
           headers: {
             Accept: 'application/json'
