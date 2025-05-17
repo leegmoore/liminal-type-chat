@@ -1,5 +1,4 @@
 import { ILlmService, LlmErrorCode, LlmProvider, LlmServiceError } from './ILlmService';
-import { OpenAiService } from './openai/OpenAiService';
 import { AnthropicService } from './anthropic/AnthropicService';
 
 /**
@@ -13,8 +12,6 @@ export class LlmServiceFactory {
    */
   public static getDefaultModel(provider: LlmProvider): string {
     switch (provider) {
-    case 'openai':
-      return 'gpt-3.5-turbo';
     case 'anthropic':
       return 'claude-3-7-sonnet-20250218';
     default:
@@ -30,7 +27,7 @@ export class LlmServiceFactory {
    * @returns Array of provider identifiers
    */
   public static getSupportedProviders(): LlmProvider[] {
-    return ['openai', 'anthropic'];
+    return ['anthropic'];
   }
   
   /**
@@ -66,8 +63,6 @@ export class LlmServiceFactory {
     this.validateProvider(provider);
 
     switch (provider) {
-    case 'openai':
-      return new OpenAiService(apiKey);
     case 'anthropic':
       return new AnthropicService(apiKey);
     default:
@@ -97,10 +92,6 @@ export class LlmServiceFactory {
       
       // Create and validate with the appropriate service
       switch (provider) {
-      case 'openai': {
-        const openaiService = new OpenAiService(apiKey);
-        return await openaiService.validateApiKey(apiKey);
-      }
       case 'anthropic': {
         const anthropicService = new AnthropicService(apiKey);
         return await anthropicService.validateApiKey(apiKey);

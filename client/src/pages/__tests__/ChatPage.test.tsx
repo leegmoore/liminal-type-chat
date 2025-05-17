@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import ChatPage from '../ChatPage';
 import { ChakraProvider } from '@chakra-ui/react';
 
@@ -13,18 +13,28 @@ vi.mock('axios', () => ({
   }
 }));
 
+// Mock authService functions to prevent auth-related issues
+vi.mock('../../../services/authService', () => ({
+  getAuthToken: vi.fn().mockReturnValue('mock-token'),
+  loginAsGuest: vi.fn().mockResolvedValue({}),
+  initializeAuth: vi.fn().mockReturnValue(true)
+}));
+
 describe('ChatPage', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     vi.clearAllMocks();
   });
 
-  it('renders with no conversations', () => {
-    render(
-      <ChakraProvider>
-        <ChatPage />
-      </ChakraProvider>
-    );
+  it('renders with no conversations', async () => {
+    // Wrap render in act to handle async state updates
+    await act(async () => {
+      render(
+        <ChakraProvider>
+          <ChatPage />
+        </ChakraProvider>
+      );
+    });
     
     // Check that the conversations header is rendered
     expect(screen.getByText('Conversations')).toBeInTheDocument();

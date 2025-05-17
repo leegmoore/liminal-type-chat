@@ -310,7 +310,8 @@ export class AnthropicService implements ILlmService {
         max_tokens: 1,
       });
       return true;
-    } catch (error) {
+    } catch {
+      // If validation fails for any reason, simply return false
       return false;
     }
   }

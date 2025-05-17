@@ -53,7 +53,7 @@ export class EncryptionService {
     try {
       // Convert key from base64
       this.encryptionKey = Buffer.from(keyString, 'base64');
-    } catch (error) {
+    } catch {
       throw new Error('ENCRYPTION_KEY must be a valid base64 string');
     }
 

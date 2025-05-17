@@ -99,24 +99,24 @@ export function domainContextThreadToConversationSummary(
   if (thread.createdAt && (typeof thread.createdAt === 'number' || typeof thread.createdAt === 'string')) {
     try {
       createdAtISO = new Date(thread.createdAt).toISOString();
-    } catch (e) {
-      console.error(new Error('err crAt'));
+    } catch {
+      console.error('Error converting createdAt to ISO string');
       createdAtISO = placeholderDate;
     }
   } else {
-    console.error(new Error('err crAt bad'));
+    console.error('Invalid createdAt value in thread');
     createdAtISO = placeholderDate;
   }
 
   if (thread.updatedAt && (typeof thread.updatedAt === 'number' || typeof thread.updatedAt === 'string')) {
     try {
       updatedAtISO = new Date(thread.updatedAt).toISOString();
-    } catch (e) {
-      console.error(new Error('err upAt'));
+    } catch {
+      console.error('Error converting updatedAt to ISO string');
       updatedAtISO = placeholderDate;
     }
   } else {
-    console.error(new Error('err upAt bad'));
+    console.error('Invalid updatedAt value in thread');
     updatedAtISO = placeholderDate;
   }
 

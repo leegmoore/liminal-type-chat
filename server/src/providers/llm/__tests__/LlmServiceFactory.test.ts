@@ -1,30 +1,21 @@
 import { LlmServiceFactory } from '../LlmServiceFactory';
-import { OpenAiService } from '../openai/OpenAiService';
 import { AnthropicService } from '../anthropic/AnthropicService';
 import { LlmErrorCode, LlmServiceError } from '../ILlmService';
 // LlmProvider is used indirectly through type checking
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { LlmProvider } from '../ILlmService';
 
-// Mock the service implementations
-jest.mock('../openai/OpenAiService');
+// Mock the service implementation
 jest.mock('../anthropic/AnthropicService');
 
 describe('LlmServiceFactory', () => {
-  const mockOpenAiKey = 'sk-test-openai-key';
   const mockAnthropicKey = 'sk-ant-test-anthropic-key';
   
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
     
-    // Setup default mock implementations
-    (OpenAiService as jest.Mock).mockImplementation((apiKey) => {
-      return {
-        apiKey
-      };
-    });
-    
+    // Setup default mock implementation
     (AnthropicService as jest.Mock).mockImplementation((apiKey) => {
       return {
         apiKey
@@ -33,12 +24,7 @@ describe('LlmServiceFactory', () => {
   });
   
   describe('createService', () => {
-    it('should create an OpenAI service when provider is openai', () => {
-      const service = LlmServiceFactory.createService('openai', mockOpenAiKey);
-      
-      expect(service).toBeDefined();
-      expect(OpenAiService).toHaveBeenCalledWith(mockOpenAiKey);
-    });
+    // OpenAI test removed
     
     it('should create an Anthropic service when provider is anthropic', () => {
       const service = LlmServiceFactory.createService('anthropic', mockAnthropicKey);
@@ -62,12 +48,12 @@ describe('LlmServiceFactory', () => {
     it('should throw an error when API key is not provided', () => {
       // First check that it throws LlmServiceError
       expect(() => {
-        LlmServiceFactory.createService('openai', '');
+        LlmServiceFactory.createService('anthropic', '');
       }).toThrow(LlmServiceError);
       
       // Then check that it has the correct error code
       try {
-        LlmServiceFactory.createService('openai', '');
+        LlmServiceFactory.createService('anthropic', '');
       } catch (error) {
         expect(error).toBeInstanceOf(LlmServiceError);
         expect((error as LlmServiceError).code).toBe(LlmErrorCode.INVALID_API_KEY);
@@ -76,10 +62,7 @@ describe('LlmServiceFactory', () => {
   });
   
   describe('getDefaultModels', () => {
-    it('should return the default model for OpenAI', () => {
-      const defaultModel = LlmServiceFactory.getDefaultModel('openai');
-      expect(defaultModel).toBe('gpt-3.5-turbo');
-    });
+    // OpenAI test removed
     
     it('should return the default model for Anthropic', () => {
       const defaultModel = LlmServiceFactory.getDefaultModel('anthropic');
@@ -98,30 +81,19 @@ describe('LlmServiceFactory', () => {
     it('should return all supported providers', () => {
       const providers = LlmServiceFactory.getSupportedProviders();
       
-      expect(providers).toContain('openai');
       expect(providers).toContain('anthropic');
-      expect(providers.length).toBe(2);
+      expect(providers.length).toBe(1);
     });
   });
   
   describe('validateApiKey', () => {
     it('should validate an API key with the appropriate service', async () => {
-      // Mock the validateApiKey methods
-      const openAiValidateApiKey = jest.fn().mockResolvedValue(true);
+      // Mock the validateApiKey method
       const anthropicValidateApiKey = jest.fn().mockResolvedValue(true);
-      
-      (OpenAiService as jest.Mock).mockImplementation(() => ({
-        validateApiKey: openAiValidateApiKey
-      }));
       
       (AnthropicService as jest.Mock).mockImplementation(() => ({
         validateApiKey: anthropicValidateApiKey
       }));
-      
-      // Test OpenAI validation
-      const openAiResult = await LlmServiceFactory.validateApiKey('openai', mockOpenAiKey);
-      expect(openAiResult).toBe(true);
-      expect(openAiValidateApiKey).toHaveBeenCalledWith(mockOpenAiKey);
       
       // Test Anthropic validation
       const anthropicResult = await LlmServiceFactory.validateApiKey('anthropic', mockAnthropicKey);
@@ -131,11 +103,11 @@ describe('LlmServiceFactory', () => {
     
     it('should return false when validation fails', async () => {
       // Mock the validateApiKey method to return false
-      (OpenAiService as jest.Mock).mockImplementation(() => ({
+      (AnthropicService as jest.Mock).mockImplementation(() => ({
         validateApiKey: jest.fn().mockResolvedValue(false)
       }));
       
-      const result = await LlmServiceFactory.validateApiKey('openai', 'invalid-key');
+      const result = await LlmServiceFactory.validateApiKey('anthropic', 'invalid-key');
       expect(result).toBe(false);
     });
     

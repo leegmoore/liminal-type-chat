@@ -491,7 +491,10 @@ describe('Conversation Routes', () => {
       // Assert
       expect(response.status).toBe(500);
       expect(response.body).toHaveProperty('error');
-      expect(response.body.error).toContain('Failed to retrieve added message');
+      expect(response.body).toMatchObject({
+        details: 'The message was added, but could not be retrieved from the updated thread.'
+      });
+      expect(response.body.error).toBe('Failed to retrieve added message');
     });
   });
   

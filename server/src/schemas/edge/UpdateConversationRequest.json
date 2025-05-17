@@ -5,8 +5,8 @@
   "type": "object",
   "properties": {
     "title": {
-      "type": ["string", "null"],
-      "description": "New title for the conversation. Send null to clear the title."
+      "type": "string",
+      "description": "New title for the conversation."
     },
     "metadata": {
       "type": "object",

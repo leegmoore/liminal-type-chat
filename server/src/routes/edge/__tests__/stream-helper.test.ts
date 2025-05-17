@@ -6,16 +6,11 @@ import { setupSseHeaders, sendSseData, sendSseError } from '../stream-helper';
 describe('SSE Stream Helpers', () => {
   // Mock Express response
   const mockResponse = () => {
-    const res: {
-      setHeader: jest.Mock;
-      write: jest.Mock;
-      flush: jest.Mock;
-      [key: string]: unknown;
-    } = {
-      setHeader: jest.fn().mockReturnValue(res),
-      write: jest.fn().mockReturnValue(res),
-      flush: jest.fn().mockReturnValue(res)
-    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const res: any = {};
+    res.setHeader = jest.fn().mockReturnValue(res);
+    res.write = jest.fn().mockReturnValue(res);
+    res.flush = jest.fn().mockReturnValue(res);
     return res;
   };
 

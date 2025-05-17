@@ -20,7 +20,7 @@
     "test": "npm run test:server",
     "lint:server": "cd server && npm run lint",
     "lint:client": "cd client && npm run lint",
-    "lint": "npm run lint:server"
+    "lint": "npm run lint:server && npm run lint:client"
   },
   "keywords": [
     "chat",
@@ -35,6 +35,8 @@
     "node": ">=20.0.0"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.6.3"
+    "@testing-library/jest-dom": "^6.6.3",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1"
   }
 }

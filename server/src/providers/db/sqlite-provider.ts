@@ -148,7 +148,8 @@ export class SQLiteProvider implements DatabaseProvider {
       if (!this.db) {
         try {
           this.db = new Database(this.dbPath);
-        } catch (error) {
+        } catch {
+          // Ignore specific error, just report health check failed
           return false;
         }
       }
@@ -156,7 +157,8 @@ export class SQLiteProvider implements DatabaseProvider {
       // Try to run a simple query
       const result = this.db.prepare('SELECT 1 AS test').get() as { test: number } | undefined;
       return !!result && result.test === 1;
-    } catch (error) {
+    } catch {
+      // Ignore specific error, just report health check failed
       return false;
     }
   }

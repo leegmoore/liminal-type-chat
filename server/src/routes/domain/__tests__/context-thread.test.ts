@@ -316,7 +316,7 @@ describe('ContextThread Domain API Routes', () => {
       await request(app)
         .post('/api/v1/domain/threads/non-existent-id/messages')
         .send({ content: 'New message', role: 'user' as MessageRole })
-        .expect(404);
+        .expect(404); // Expecting 404 for not found resources
       
       expect(mockService.addMessageToContextThread).toHaveBeenCalledWith(
         'non-existent-id',

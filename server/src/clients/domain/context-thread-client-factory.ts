@@ -1,4 +1,5 @@
 import { ContextThreadService } from '../../services/core/ContextThreadService';
+import { ContextThreadRepository } from '../../providers/db/ContextThreadRepository';
 import { ContextThreadClient } from './context-thread-client';
 import { DirectContextThreadClient } from './direct-context-thread-client';
 import { HttpContextThreadClient } from './http-context-thread-client';
@@ -21,11 +22,6 @@ export function getContextThreadClient(service?: ContextThreadService): ContextT
     if (!service) {
       // Import needed modules directly but with type safety
       // This is safe because we're not creating circular dependencies at the module level
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { ContextThreadRepository } = require('../../providers/db/ContextThreadRepository');
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { ContextThreadService } = require('../../services/core/ContextThreadService');
-      
       const repo = new ContextThreadRepository();
       service = new ContextThreadService(repo);
     }

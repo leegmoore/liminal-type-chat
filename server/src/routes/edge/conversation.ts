@@ -117,7 +117,13 @@ export const createConversationRoutes = () => {
           'GET /api/v1/conversations: mapError details:', 
           JSON.stringify(mapError, mapErrorProps)
         );
-        throw mapError; // Re-throw to be caught by the outer catch
+        // Return a 500 error immediately instead of re-throwing
+        return res.status(500).json({
+          error: {
+            message: 'Error processing conversation data',
+            details: 'Failed to map thread data to conversation format'
+          }
+        });
       }
       
       return res.json({ conversations });
@@ -168,8 +174,8 @@ export const createConversationRoutes = () => {
         // Log the validation error for debugging
         console.log('Created ValidationError:', JSON.stringify(validationError, null, 2));
 
-        // Use res.status().json() directly instead of next()
-        return res.status(400).json(validationError.toJSON());
+        // Use the next function to pass to error handler
+        return next(validationError);
       }
 
       // Transform request to domain model
@@ -233,12 +239,29 @@ export const createConversationRoutes = () => {
         const { conversationId } = req.params;
         
         // Validate request body
-        if (!validateUpdateConversationRequest(req.body)) {
+        const isValid = validateUpdateConversationRequest(req.body);
+        
+        // Log validation result in development
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Validation result:', isValid);
+          console.log('Validation errors:', validateUpdateConversationRequest.errors);
+        }
+        
+        if (!isValid) {
           const errorDetails = formatValidationErrors(validateUpdateConversationRequest.errors);
-          return next(new ValidationError(
+          console.log('Formatted validation errors:', errorDetails);
+          
+          // Create a ValidationError instance
+          const validationError = new ValidationError(
             'Invalid conversation update data',
             errorDetails
-          ));
+          );
+          
+          // Log the validation error for debugging
+          console.log('Created ValidationError:', JSON.stringify(validationError, null, 2));
+          
+          // Pass to error handler
+          return next(validationError);
         }
         
         // Update thread in domain
@@ -347,7 +370,7 @@ export const createConversationRoutes = () => {
           // and returned the updated thread with the new message.
           return res.status(500).json({ 
             error: 'Failed to retrieve added message',
-            message: 'The message was added, but could not be retrieved from the updated thread.'
+            details: 'The message was added, but could not be retrieved from the updated thread.'
           });
         }
       

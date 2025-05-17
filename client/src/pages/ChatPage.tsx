@@ -75,7 +75,7 @@ const ChatPage: React.FC = () => {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [prompt, setPrompt] = useState('');
-  const [provider, setProvider] = useState<'openai' | 'anthropic'>('anthropic');
+  const [provider, setProvider] = useState<'anthropic'>('anthropic');
   const [models, setModels] = useState<LlmModel[]>([]);
   const [selectedModel, setSelectedModel] = useState('');
   const [loading, setLoading] = useState(false);
@@ -741,10 +741,10 @@ const ChatPage: React.FC = () => {
                         <Select 
                           size="sm"
                           value={provider} 
-                          onChange={e => setProvider(e.target.value as 'openai' | 'anthropic')}
+                          onChange={e => setProvider(e.target.value as 'anthropic')}
                           colorScheme={provider === 'anthropic' ? 'purple' : 'green'}
                         >
-                          <option value="openai">OpenAI</option>
+                          {/* OpenAI option removed */}
                           <option value="anthropic">Anthropic Claude</option>
                         </Select>
                       </FormControl>
@@ -786,7 +786,7 @@ const ChatPage: React.FC = () => {
                         onClick={() => {
                           const userAPIKey = window.prompt( 
                             `Enter your ${provider === 'anthropic' ? 'Anthropic Claude' 
-                              : 'OpenAI'} API key`
+                              : ''} API key`
                           );
                           if (userAPIKey) {
                             saveApiKey(userAPIKey);

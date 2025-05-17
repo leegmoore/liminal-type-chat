@@ -132,7 +132,8 @@ describe('Conversation Routes - Validation', () => {
   });
   
   describe('POST /api/v1/conversations/:conversationId/messages', () => {
-    it('should validate required fields in message requests', async () => {
+    // Split into two separate tests to prevent socket hang up
+    it('should validate missing content field in message requests', async () => {
       // Missing content field
       const invalidBody1 = {
         role: 'user'
@@ -144,7 +145,9 @@ describe('Conversation Routes - Validation', () => {
       
       expect(response1.status).toBe(500);
       expect(response1.body).toHaveProperty('error');
-      
+    });
+    
+    it('should validate missing role field in message requests', async () => {
       // Missing role field
       const invalidBody2 = {
         content: 'test message'
