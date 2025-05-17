@@ -8,6 +8,27 @@ import { VerifiedToken } from '../../providers/auth/jwt/IJwtService';
 import { UnauthorizedError } from '../../utils/errors';
 import { AuthErrorCode } from '../../utils/error-codes';
 import { IUserRepository } from '../../providers/db/users/IUserRepository';
+import { Environment } from '../../services/core/EnvironmentService';
+
+// Mock the EnvironmentService
+jest.mock('../../services/core/EnvironmentService', () => {
+  const original = jest.requireActual('../../services/core/EnvironmentService');
+  
+  // Create a mock environment service
+  const mockEnvironmentService = {
+    isLocalEnvironment: jest.fn().mockReturnValue(false),
+    isAuthRequired: jest.fn().mockReturnValue(true),
+    useExtendedTokenLifetime: jest.fn().mockReturnValue(false),
+    getEnvironment: jest.fn().mockReturnValue(original.Environment.PRODUCTION)
+  };
+  
+  return {
+    __esModule: true,
+    Environment: original.Environment,
+    EnvironmentService: jest.fn(() => mockEnvironmentService),
+    environmentService: mockEnvironmentService
+  };
+});
 
 // Mock JWT service
 const mockJwtService: jest.Mocked<IJwtService> = {
@@ -31,6 +52,7 @@ describe('Auth Middleware', () => {
   let req: Partial<Request>;
   let res: Partial<Response>;
   let next: jest.Mock;
+  const { environmentService } = jest.requireMock('../../services/core/EnvironmentService');
   
   // Sample verified token data
   const verifiedToken: VerifiedToken = {
@@ -52,11 +74,19 @@ describe('Auth Middleware', () => {
     req = {
       header: jest.fn()
     };
-    res = {};
+    res = {
+      setHeader: jest.fn()
+    };
     next = jest.fn();
     
     // Set up JWT service mock
     mockJwtService.verifyToken.mockReturnValue(verifiedToken);
+
+    // Reset environment service mock defaults
+    (environmentService.isLocalEnvironment as jest.Mock).mockReturnValue(false);
+    (environmentService.isAuthRequired as jest.Mock).mockReturnValue(true);
+    (environmentService.useExtendedTokenLifetime as jest.Mock).mockReturnValue(false);
+    (environmentService.getEnvironment as jest.Mock).mockReturnValue(Environment.PRODUCTION);
   });
   
   describe('Token validation', () => {
@@ -208,6 +238,67 @@ describe('Auth Middleware', () => {
       
       // Assert
       expect(mockJwtService.verifyToken).toHaveBeenCalledWith('valid-token');
+      expect(next).toHaveBeenCalledWith();
+    });
+  });
+  
+  describe('Environment awareness', () => {
+    it('should create a dev user when in local environment with auth bypass', async () => {
+      // Arrange
+      (environmentService.isLocalEnvironment as jest.Mock).mockReturnValue(true);
+      (environmentService.isAuthRequired as jest.Mock).mockReturnValue(false);
+      mockUserRepository.findById.mockResolvedValue(null);
+      mockUserRepository.create.mockResolvedValue({
+        id: 'dev-user-123',
+        email: 'dev@example.com',
+        displayName: 'Development User',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        authProviders: {},
+        apiKeys: {}
+      });
+      
+      const middleware = createAuthMiddleware(mockJwtService, mockUserRepository);
+      
+      // Act
+      await middleware(req as Request, res as Response, next);
+      
+      // Assert
+      expect(mockUserRepository.findById).toHaveBeenCalledWith('dev-user-123');
+      expect(mockUserRepository.create).toHaveBeenCalled();
+      expect(next).toHaveBeenCalledWith();
+      expect(res.setHeader).toHaveBeenCalledWith('X-Dev-Auth-Bypass', 'true');
+      expect((req as AuthenticatedRequest).user).toBeDefined();
+    });
+    
+    it('should set extended token lifetime header when configured', async () => {
+      // Arrange
+      (req.header as jest.Mock).mockReturnValue('Bearer valid-token');
+      (environmentService.useExtendedTokenLifetime as jest.Mock).mockReturnValue(true);
+      
+      const middleware = createAuthMiddleware(mockJwtService, mockUserRepository);
+      
+      // Act
+      await middleware(req as Request, res as Response, next);
+      
+      // Assert
+      expect(res.setHeader).toHaveBeenCalledWith('X-Token-Extended-Lifetime', 'true');
+      expect(next).toHaveBeenCalledWith();
+    });
+    
+    it('should not create a dev user in non-local environments', async () => {
+      // Arrange
+      (environmentService.isLocalEnvironment as jest.Mock).mockReturnValue(false);
+      (req.header as jest.Mock).mockReturnValue('Bearer valid-token');
+      
+      const middleware = createAuthMiddleware(mockJwtService, mockUserRepository);
+      
+      // Act
+      await middleware(req as Request, res as Response, next);
+      
+      // Assert
+      expect(mockUserRepository.findById).not.toHaveBeenCalled();
+      expect(mockUserRepository.create).not.toHaveBeenCalled();
       expect(next).toHaveBeenCalledWith();
     });
   });

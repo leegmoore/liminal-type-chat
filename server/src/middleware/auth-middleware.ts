@@ -8,6 +8,8 @@ import { UnauthorizedError } from '../utils/errors';
 import { AuthErrorCode } from '../utils/error-codes';
 import { IUserRepository } from '../providers/db/users/IUserRepository';
 import { CreateUserParams } from '../models/domain/users/User';
+import { environmentService } from '../services/core/EnvironmentService';
+import { logger } from '../utils/logger';
 
 /**
  * Authenticated request with user information
@@ -57,9 +59,12 @@ export function createAuthMiddleware(
       return next();
     }
     
-    // DEVELOPMENT ONLY - Allow unauthenticated requests for testing Claude integration
-    if (process.env.NODE_ENV === 'development' && process.env.BYPASS_AUTH === 'true') {
-      console.warn('⚠️ WARNING: Authentication bypass enabled. Do not use in production!');
+    // Local environment only - Allow auth bypass if configured
+    if (environmentService.isLocalEnvironment() && !environmentService.isAuthRequired()) {
+      logger.warn('⚠️ WARNING: Authentication bypass enabled. For local development only!');
+      
+      // Add development user header for UI to display warning
+      _res.setHeader('X-Dev-Auth-Bypass', 'true');
       
       // Add minimal user information for testing
       const mockUser = {
@@ -72,12 +77,12 @@ export function createAuthMiddleware(
       };
       (req as AuthenticatedRequest).user = mockUser;
       
-      // Ensure dev user exists in DB for BYPASS_AUTH mode
+      // Ensure dev user exists in DB for dev mode
       const devUserId = mockUser.userId;
       try {
         const user = await userRepository.findById(devUserId);
         if (!user) {
-          console.warn(`BYPASS_AUTH: User ${devUserId} not found. Creating...`);
+          logger.info(`Dev User ${devUserId} not found. Creating...`);
           // Use the structure from CreateUserParams for userRepository.create
           const createUserParams: CreateUserParams = {
             id: devUserId, // Explicitly set the ID for dev user
@@ -87,10 +92,10 @@ export function createAuthMiddleware(
             // and are not relevant for a system-generated dev user.
           };
           await userRepository.create(createUserParams);
-          console.warn(`BYPASS_AUTH: User ${devUserId} created successfully.`);
+          logger.info(`Dev User ${devUserId} created successfully.`);
         }
       } catch (dbError) {
-        console.error(`BYPASS_AUTH: Error ensuring dev user ${devUserId} exists:`, dbError);
+        logger.error(`Error ensuring dev user ${devUserId} exists:`, dbError);
       }
       
       return next();
@@ -153,6 +158,20 @@ export function createAuthMiddleware(
         tier: verifiedToken.tier,
         tokenId: verifiedToken.tokenId
       };
+      
+      // Apply extended token lifetime if configured
+      if (environmentService.useExtendedTokenLifetime()) {
+        // Add header for frontend to know token lifetime is extended
+        _res.setHeader('X-Token-Extended-Lifetime', 'true');
+        
+        // Log extended token usage in non-local environments
+        if (!environmentService.isLocalEnvironment()) {
+          logger.warn('Using extended token lifetime in non-local environment', {
+            userId: verifiedToken.userId, 
+            environment: environmentService.getEnvironment() 
+          });
+        }
+      }
       
       next();
     } catch (error) {
