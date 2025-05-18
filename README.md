@@ -4,15 +4,20 @@ An open-source, local-first GenAI chat application designed for individuals and 
 
 ## Documentation
 
-- [Development Standards](docs/DEVELOPMENT_STANDARDS.md) - Coding standards, patterns, and best practices
-- [Automated Testing Guide](docs/AUTOMATED_TESTING.md) - Comprehensive testing strategy and best practices
-- [Security Architecture](docs/SECURITY_ARCHITECTURE.md) - Security principles and architecture
-- [Security Implementation](docs/SECURITY_IMPLEMENTATION.md) - Guide for implementing security features
-- [Error Codes](docs/ERROR_CODES.md) - Complete error code reference
-- [CI Workflow](docs/dev-journal-m5-ci-workflow.md) - GitHub Actions CI setup and configuration
-- [Roadmap](docs/ROADMAP.md) - Future enhancements and planned features
+### Core Reference Documentation
+
+- [Development Standards](wiki/engineering/standards/development-standards.md) - Coding standards, patterns, and best practices
+- [Automated Testing Guide](wiki/engineering/standards/automated-testing.md) - Comprehensive testing strategy and best practices
+- [Security Architecture](wiki/security/architecture.md) - Security principles and architecture
+- [Security Implementation](wiki/security/implementation.md) - Guide for implementing security features
+- [Error Codes](wiki/engineering/reference/error-codes.md) - Complete error code reference
+- [Roadmap](wiki/project/roadmap.md) - Future enhancements and planned features
+
+### Other Resources
+
 - [Security Policy](.github/SECURITY.md) - Security information and reporting vulnerabilities
 - [Contributing](.github/CONTRIBUTING.md) - Guidelines for contributing to the project
+- [Development Journals](in-progress-docs/journals/) - Historical development records and insights
 
 ## Documentation Structure
 
@@ -21,25 +26,22 @@ Navigating the project documentation:
 - **`/README.md` (this file):** Project overview, top-level setup, and main entry point.
 - **[`server/README.md`](./server/README.md):** Backend (Node.js/Express) specific setup, architecture details, and API information.
 - **[`client/README.md`](./client/README.md):** Frontend (React/TypeScript) specific setup, components, and state management details.
-- **[`docs/`](./docs/):** Contains detailed developer documentation:
-    - [`DEVELOPMENT_STANDARDS.md`](./docs/DEVELOPMENT_STANDARDS.md): Coding standards, patterns, and conventions.
-    - [`AUTOMATED_TESTING.md`](./docs/AUTOMATED_TESTING.md): Comprehensive testing strategy, coverage requirements, and best practices.
-    - [`SECURITY_ARCHITECTURE.md`](./docs/SECURITY_ARCHITECTURE.md): Security principles, architecture, and design.
-    - [`SECURITY_IMPLEMENTATION.md`](./docs/SECURITY_IMPLEMENTATION.md): Practical guide for implementing security features.
-    - [`ERROR_CODES.md`](./docs/ERROR_CODES.md): Reference for standardized error codes.
-    - [`ROADMAP.md`](./docs/ROADMAP.md): Future development plans and milestones.
 - **[`wiki/`](./wiki/):** Contains stable, curated reference documentation:
-    - [`architecture/`](./wiki/architecture/): System design, component interactions, and patterns.
-    - [`guides/`](./wiki/guides/): Developer guides for common tasks and workflows.
-    - [`security/`](./wiki/security/): Security model, implementation details, and best practices.
-    - [`api/`](./wiki/api/): API documentation and usage examples.
-    - [`data-models/`](./wiki/data-models/): Database schemas and data relationships.
+    - [`wiki/engineering/`](./wiki/engineering/): Technical standards, reference material, and implementation guides.
+        - [`standards/`](./wiki/engineering/standards/): Coding standards, testing requirements, and best practices.
+        - [`reference/`](./wiki/engineering/reference/): Technical reference material like error codes and API design.
+        - [`frontend/`](./wiki/engineering/frontend/): Frontend architecture and component documentation.
+        - [`backend/`](./wiki/engineering/backend/): Backend architecture and service documentation.
+        - [`database/`](./wiki/engineering/database/): Database schema and data access information.
+    - [`wiki/security/`](./wiki/security/): Security model, implementation details, and best practices.
+    - [`wiki/project/`](./wiki/project/): Project planning, roadmap, and milestone information.
+    - [`wiki/api/`](./wiki/api/): API documentation and usage examples.
+    - [`wiki/guides/`](./wiki/guides/): Developer guides for common tasks and workflows.
 - **[`in-progress-docs/`](./in-progress-docs/):** Contains working documentation in active development:
-    - [`dev-journal/`](./in-progress-docs/dev-journal/): Development journals and historical logs.
+    - [`journals/`](./in-progress-docs/journals/): Development journals and historical logs.
     - [`evaluations/`](./in-progress-docs/evaluations/): Product and feature evaluations.
     - [`planning/`](./in-progress-docs/planning/): Working plans and design documents.
     - [`archive/`](./in-progress-docs/archive/): Outdated content pending review.
-- **`.cascade/`:** Contains files primarily for AI agent context and high-level project planning (`project-plan.xml`).
 
 ## Project Status
 
@@ -144,7 +146,8 @@ liminal-type-chat/
 │   │   └── integration/     # Integration tests
 │   ├── package.json         # Backend dependencies
 │   └── tsconfig.json        # TypeScript configuration for backend
-└── docs/                    # Project documentation
+├── wiki/                    # Stable reference documentation
+└── in-progress-docs/        # Working documentation
 ```
 
 The application follows a tiered architecture within each package:
@@ -163,7 +166,7 @@ Liminal Type Chat is designed as a local-first application, meaning your data pr
 - The application stores conversations in a local SQLite database by default
 - Always keep your API keys secure and never share them
 
-For more details, see our [Security Policy](.github/SECURITY.md).
+For more details, see our [Security Policy](.github/SECURITY.md) and [Security Architecture](wiki/security/architecture.md).
 
 ## Getting Started
 
@@ -264,7 +267,7 @@ The project implements a tiered coverage threshold system based on component cri
 - **Data Access**: 80% statements, 45% branches, 75% functions, 80% lines
 - **Client Components**: 85% statements, 70% branches, 80% functions, 85% lines
 
-These thresholds are checked during CI builds and must be met for PRs to be merged. See our [Automated Testing Guide](docs/AUTOMATED_TESTING.md) for comprehensive details.
+These thresholds are checked during CI builds and must be met for PRs to be merged. See our [Automated Testing Guide](wiki/engineering/standards/automated-testing.md) for comprehensive details.
 
 ### Building for Production
 

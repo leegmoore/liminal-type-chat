@@ -91,45 +91,48 @@ When you need specific information about project components, refer to these docu
 | Topic | Document | Description |
 |-------|----------|-------------|
 | Project Overview | [README.md](/README.md) | Project structure, features, and setup |
-| Code Standards | [DEVELOPMENT_STANDARDS.md](/docs/DEVELOPMENT_STANDARDS.md) | Coding standards and architectural patterns |
-| Testing Standards | [AUTOMATED_TESTING.md](/docs/AUTOMATED_TESTING.md) | Testing strategy and coverage requirements |
-| Error Handling | [ERROR_CODES.md](/docs/ERROR_CODES.md) | Error system with standardized codes |
+| Code Standards | [Development Standards](/wiki/engineering/standards/development-standards.md) | Coding standards and architectural patterns |
+| Testing Standards | [Automated Testing Guide](/wiki/engineering/standards/automated-testing.md) | Testing strategy and coverage requirements |
+| Error Handling | [Error Codes Reference](/wiki/engineering/reference/error-codes.md) | Error system with standardized codes |
 
 ### Security Implementation
 | Topic | Document | Description |
 |-------|----------|-------------|
-| Security Architecture | [SECURITY_ARCHITECTURE.md](/docs/SECURITY_ARCHITECTURE.md) | Overall security design principles |
-| Security Implementation | [SECURITY_IMPLEMENTATION.md](/docs/SECURITY_IMPLEMENTATION.md) | Practical security implementation guide |
-| OAuth & PKCE | [OAUTH_PKCE.md](/docs/OAUTH_PKCE.md) | Authentication flow with code examples |
-| Security Testing | [SECURITY_TESTING.md](/docs/SECURITY_TESTING.md) | Testing procedures for security features |
+| Security Architecture | [Security Architecture](/wiki/security/architecture.md) | Overall security design principles |
+| Security Implementation | [Security Implementation](/wiki/security/implementation.md) | Practical security implementation guide |
+| OAuth & PKCE | [OAuth PKCE Flow](/wiki/security/auth/oauth-pkce.md) | Authentication flow with code examples |
+| Environment Security | [Environment Security](/wiki/security/environment-security.md) | Environment-specific security controls |
 
 ### API Structure
 | Topic | Document | Description |
 |-------|----------|-------------|
 | Edge API | [edge-api.yaml](/server/openapi/edge-api.yaml) | Client-facing API specification |
 | Domain API | [domain-api.yaml](/server/openapi/domain-api.yaml) | Internal service API specification |
-| Database Schema | [database-schema.md](/docs/database-schema.md) | Data models and relationships |
+| Database Schema | [Database Schema](/wiki/engineering/database/schema.md) | Data models and relationships |
 
 ### Project Components
 | Topic | Document | Description |
 |-------|----------|-------------|
 | Server Structure | [server/README.md](/server/README.md) | Server organization and features |
 | Client Structure | [client/README.md](/client/README.md) | Client organization and features |
-| Components | [client/src/components/README.md](/client/src/components/README.md) | UI component guidelines |
-| Services | [server/src/services/README.md](/server/src/services/README.md) | Service layer implementation |
+| Components | [Frontend Components](/wiki/engineering/frontend/components.md) | UI component guidelines |
+| Backend Services | [Backend Services](/wiki/engineering/backend/services.md) | Service layer implementation |
 
 ### Current Development
 | Topic | Document | Description |
 |-------|----------|-------------|
-| Project Milestones | [10-mvp-001-milestones.md](/project-planning/10-mvp-001-milestones.md) | Milestone tracking and roadmap |
-| Latest Work | [dev-journal-0009.md](/in-progress-docs/dev-journal/dev-journal-0009.md) | Recent development progress |
-| Auth Testing | [AUTH_TEST_IN_PROCESS.md](/docs/AUTH_TEST_IN_PROCESS.md) | Ongoing authentication testing |
+| Project Roadmap | [Roadmap](/wiki/project/roadmap.md) | Future development plans |
+| Current Milestones | [Current Milestones](/wiki/project/milestones/current/) | Milestones in progress |
+| Latest Work | [Development Journals](/in-progress-docs/journals/) | Development progress logs |
+| Auth Testing | [Authentication Testing](/in-progress-docs/evaluations/auth-testing.md) | Authentication testing records |
 
 ### Documentation Structure
 | Topic | Document | Description |
 |-------|----------|-------------|
-| Wiki Reference | [wiki/README.md](/wiki/README.md) | Stable, curated documentation |
-| Working Docs | [in-progress-docs/README.md](/in-progress-docs/README.md) | Active and historical documentation |
+| Wiki Structure | [Wiki README](/wiki/README.md) | Stable, curated documentation |
+| Working Docs | [In-Progress Docs README](/in-progress-docs/README.md) | Active and historical documentation |
+| Documentation Standards | [Documentation Classification](/docs/DOCUMENTATION_CLASSIFICATION.md) | Rules for organizing documentation |
+| Migration Plan | [Documentation Migration](/docs/DOCUMENTATION_MIGRATION_PLAN.md) | Plan for migrating docs to new structure |
 
 ## 🛠️ KEY IMPLEMENTATION RULES
 
