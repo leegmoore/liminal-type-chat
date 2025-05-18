@@ -33,7 +33,7 @@ export class JwtService implements IJwtService {
    * @param options - Optional token configuration
    * @returns JWT token string
    */
-  generateToken(payload: TokenPayload, options?: TokenOptions): string {
+  async generateToken(payload: TokenPayload, options?: TokenOptions): Promise<string> {
     const tokenId = uuidv4();
     const tokenPayload = {
       sub: payload.userId,
@@ -64,9 +64,9 @@ export class JwtService implements IJwtService {
    * @returns Verified token data
    * @throws UnauthorizedError if token is invalid, expired, or malformed
    */
-  verifyToken(token: string): VerifiedToken {
+  async verifyToken(token: string, options?: jwt.VerifyOptions): Promise<VerifiedToken> {
     try {
-      const decodedToken = jwt.verify(token, this.secretKey) as jwt.JwtPayload;
+      const decodedToken = jwt.verify(token, this.secretKey, options) as jwt.JwtPayload;
       
       return this.mapToVerifiedToken(decodedToken);
     } catch (error) {
@@ -99,7 +99,7 @@ export class JwtService implements IJwtService {
    * @param token - JWT token to decode
    * @returns Decoded token data or null if token is invalid
    */
-  decodeToken(token: string): VerifiedToken | null {
+  async decodeToken(token: string): Promise<VerifiedToken | null> {
     const decodedToken = jwt.decode(token) as jwt.JwtPayload | null;
     
     if (!decodedToken) {
@@ -122,8 +122,8 @@ export class JwtService implements IJwtService {
       scopes: Array.isArray(decodedToken.scopes) ? decodedToken.scopes : [],
       tier: (decodedToken.tier as 'edge' | 'domain') || 'edge',
       tokenId: decodedToken.jti || '',
-      issuedAt: decodedToken.iat ? new Date(decodedToken.iat * 1000) : new Date(),
-      expiresAt: decodedToken.exp ? new Date(decodedToken.exp * 1000) : new Date()
+      issuedAt: decodedToken.iat ? Number(decodedToken.iat) : Math.floor(Date.now() / 1000),
+      expiresAt: decodedToken.exp ? Number(decodedToken.exp) : Math.floor(Date.now() / 1000) + 3600
     };
   }
 }

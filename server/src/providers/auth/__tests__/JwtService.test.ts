@@ -62,7 +62,7 @@ describe('JwtService', () => {
       expect(() => new JwtService()).toThrow('JWT_SECRET environment variable is required');
     });
     
-    it('should use default expiration time if JWT_EXPIRES_IN is not set', () => {
+    it('should use default expiration time if JWT_EXPIRES_IN is not set', async () => {
       // Arrange
       delete process.env.JWT_EXPIRES_IN;
       
@@ -70,13 +70,13 @@ describe('JwtService', () => {
       const service = new JwtService();
       
       // Assert - use a separate method to check private property indirectly
-      expect(() => service.generateToken({
+      await expect(service.generateToken({
         userId,
         email: userEmail,
         name: 'Test User',
         scopes: ['read:profile'],
         tier: 'edge'
-      })).not.toThrow();
+      })).resolves.not.toThrow();
       
       expect(mockedJwt.sign).toHaveBeenCalledWith(
         expect.anything(),
@@ -89,7 +89,7 @@ describe('JwtService', () => {
   });
   
   describe('generateToken', () => {
-    it('should generate a JWT with correct payload', () => {
+    it('should generate a JWT with correct payload', async () => {
       // Arrange
       const payload = {
         userId,
@@ -100,7 +100,7 @@ describe('JwtService', () => {
       };
       
       // Act
-      const token = jwtService.generateToken(payload);
+      const token = await jwtService.generateToken(payload);
       
       // Assert
       expect(token).toBe(mockToken);
@@ -119,7 +119,7 @@ describe('JwtService', () => {
       );
     });
     
-    it('should include a jti (JWT ID) in the token', () => {
+    it('should include a jti (JWT ID) in the token', async () => {
       // Arrange
       const payload = {
         userId,
@@ -130,7 +130,7 @@ describe('JwtService', () => {
       };
       
       // Act
-      jwtService.generateToken(payload);
+      await jwtService.generateToken(payload);
       
       // Assert
       expect(mockedJwt.sign).toHaveBeenCalledWith(
@@ -142,7 +142,7 @@ describe('JwtService', () => {
       );
     });
     
-    it('should use provided expiresIn option if specified', () => {
+    it('should use provided expiresIn option if specified', async () => {
       // Arrange
       const payload = {
         userId,
@@ -154,7 +154,7 @@ describe('JwtService', () => {
       const customExpiresIn = '1h';
       
       // Act
-      jwtService.generateToken(payload, { expiresIn: customExpiresIn });
+      await jwtService.generateToken(payload, { expiresIn: customExpiresIn });
       
       // Assert
       expect(mockedJwt.sign).toHaveBeenCalledWith(
@@ -168,12 +168,12 @@ describe('JwtService', () => {
   });
   
   describe('verifyToken', () => {
-    it('should verify a valid token and return the payload', () => {
+    it('should verify a valid token and return the payload', async () => {
       // Act
-      const result = jwtService.verifyToken(mockToken);
+      const result = await jwtService.verifyToken(mockToken);
       
       // Assert
-      expect(mockedJwt.verify).toHaveBeenCalledWith(mockToken, secretKey);
+      expect(mockedJwt.verify).toHaveBeenCalledWith(mockToken, secretKey, undefined);
       expect(result).toEqual({
         userId: mockDecodedToken.sub,
         email: mockDecodedToken.email,
@@ -181,12 +181,12 @@ describe('JwtService', () => {
         scopes: mockDecodedToken.scopes,
         tokenId: mockDecodedToken.jti,
         tier: mockDecodedToken.tier,
-        issuedAt: expect.any(Date),
-        expiresAt: expect.any(Date)
+        issuedAt: expect.any(Number),
+        expiresAt: expect.any(Number)
       });
     });
     
-    it('should throw UnauthorizedError for expired token', () => {
+    it('should throw UnauthorizedError for expired token', async () => {
       // Arrange
       mockedJwt.verify.mockImplementationOnce(() => {
         type JwtError = Error & { name: string };
@@ -196,13 +196,13 @@ describe('JwtService', () => {
       });
       
       // Act & Assert
-      expect(() => jwtService.verifyToken(mockToken))
-        .toThrow(expect.objectContaining({
+      await expect(jwtService.verifyToken(mockToken))
+        .rejects.toMatchObject({
           errorCode: AuthErrorCode.EXPIRED_TOKEN
-        }));
+        });
     });
     
-    it('should throw UnauthorizedError for invalid token', () => {
+    it('should throw UnauthorizedError for invalid token', async () => {
       // Arrange
       mockedJwt.verify.mockImplementationOnce(() => {
         type JwtError = Error & { name: string };
@@ -212,33 +212,33 @@ describe('JwtService', () => {
       });
       
       // Act & Assert
-      expect(() => jwtService.verifyToken(mockToken))
-        .toThrow(expect.objectContaining({
+      await expect(jwtService.verifyToken(mockToken))
+        .rejects.toMatchObject({
           errorCode: AuthErrorCode.INVALID_CREDENTIALS
-        }));
+        });
     });
     
-    it('should throw UnauthorizedError for other verification errors', () => {
+    it('should throw UnauthorizedError for other verification errors', async () => {
       // Arrange
       mockedJwt.verify.mockImplementationOnce(() => {
         throw new Error('other error');
       });
       
       // Act & Assert
-      expect(() => jwtService.verifyToken(mockToken))
-        .toThrow(expect.objectContaining({
+      await expect(jwtService.verifyToken(mockToken))
+        .rejects.toMatchObject({
           errorCode: AuthErrorCode.UNAUTHORIZED
-        }));
+        });
     });
   });
   
   describe('decodeToken', () => {
-    it('should decode a token without verification', () => {
+    it('should decode a token without verification', async () => {
       // Arrange
       mockedJwt.decode.mockReturnValueOnce(mockDecodedToken);
       
       // Act
-      const result = jwtService.decodeToken(mockToken);
+      const result = await jwtService.decodeToken(mockToken);
       
       // Assert
       expect(mockedJwt.decode).toHaveBeenCalledWith(mockToken);
@@ -249,23 +249,23 @@ describe('JwtService', () => {
         scopes: mockDecodedToken.scopes,
         tokenId: mockDecodedToken.jti,
         tier: mockDecodedToken.tier,
-        issuedAt: expect.any(Date),
-        expiresAt: expect.any(Date)
+        issuedAt: expect.any(Number),
+        expiresAt: expect.any(Number)
       });
     });
     
-    it('should return null for invalid token', () => {
+    it('should return null for invalid token', async () => {
       // Arrange
       mockedJwt.decode.mockReturnValueOnce(null);
       
       // Act
-      const result = jwtService.decodeToken('invalid-token');
+      const result = await jwtService.decodeToken('invalid-token');
       
       // Assert
       expect(result).toBeNull();
     });
     
-    it('should handle tokens with missing fields', () => {
+    it('should handle tokens with missing fields', async () => {
       // Arrange
       const incompleteToken = {
         sub: userId,
@@ -274,7 +274,7 @@ describe('JwtService', () => {
       mockedJwt.decode.mockReturnValueOnce(incompleteToken);
       
       // Act
-      const result = jwtService.decodeToken(mockToken);
+      const result = await jwtService.decodeToken(mockToken);
       
       // Assert
       expect(result).toEqual(expect.objectContaining({

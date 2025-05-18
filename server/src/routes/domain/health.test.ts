@@ -17,8 +17,8 @@ describe('Health Routes', () => {
     app = express();
     app.use(express.json());
     
-    // Add the health routes to the app
-    app.use(createHealthRoutes(mockHealthService));
+    // Add the health routes to the app with correct path
+    app.use('/api/v1/domain/health', createHealthRoutes(mockHealthService));
     
     // Add basic error handler
     app.use((err: Error, 

@@ -54,9 +54,13 @@ export enum SystemErrorCode {
 export enum AuthErrorCode {
   UNAUTHORIZED = 'UNAUTHORIZED',
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+  INVALID_TOKEN = 'INVALID_TOKEN',
   EXPIRED_TOKEN = 'EXPIRED_TOKEN',
   INSUFFICIENT_PERMISSIONS = 'INSUFFICIENT_PERMISSIONS',
   FORBIDDEN = 'FORBIDDEN',
+  INVALID_TOKEN_TIER = 'INVALID_TOKEN_TIER',
+  USER_NOT_FOUND = 'USER_NOT_FOUND',
+  MISSING_TOKEN = 'MISSING_TOKEN'
 }
 
 /**
@@ -149,6 +153,11 @@ export const ERROR_CODES: Record<string, ErrorCodeDefinition> = {
     message: 'Invalid credentials provided',
     httpStatus: HttpStatus.UNAUTHORIZED,
   },
+  [AuthErrorCode.INVALID_TOKEN]: {
+    code: 2015,
+    message: 'Invalid token format or signature',
+    httpStatus: HttpStatus.UNAUTHORIZED,
+  },
   [AuthErrorCode.EXPIRED_TOKEN]: {
     code: 2020,
     message: 'Authentication token has expired',
@@ -163,6 +172,21 @@ export const ERROR_CODES: Record<string, ErrorCodeDefinition> = {
     code: 2040,
     message: 'Access forbidden',
     httpStatus: HttpStatus.FORBIDDEN,
+  },
+  [AuthErrorCode.INVALID_TOKEN_TIER]: {
+    code: 2050,
+    message: 'Invalid token security tier',
+    httpStatus: HttpStatus.UNAUTHORIZED,
+  },
+  [AuthErrorCode.USER_NOT_FOUND]: {
+    code: 2060,
+    message: 'User not found',
+    httpStatus: HttpStatus.UNAUTHORIZED,
+  },
+  [AuthErrorCode.MISSING_TOKEN]: {
+    code: 2070,
+    message: 'Missing authentication token',
+    httpStatus: HttpStatus.UNAUTHORIZED,
   },
 
   // Validation Error Codes (3000-3999)

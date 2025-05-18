@@ -7,7 +7,7 @@ import { createAuthRoutes } from '../edge/auth';
 import { IOAuthProvider } from '../../providers/auth/IOAuthProvider';
 import { IJwtService } from '../../providers/auth/jwt/IJwtService';
 import { IUserRepository } from '../../providers/db/users/IUserRepository';
-import { pkceStorage } from '../../providers/auth/pkce/PkceStorage';
+import { pkceStorage } from '../../providers/auth/pkce/PkceStorageFactory';
 import { User } from '../../models/domain/users/User';
 
 // Mock dependencies

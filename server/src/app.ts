@@ -22,6 +22,8 @@ import { EncryptionService } from './providers/security/encryption-service';
 import { SecureStorage } from './providers/security/secure-storage';
 import { LlmApiKeyManager } from './providers/llm/LlmApiKeyManager';
 import { JwtServiceFactory } from './providers/auth/jwt/JwtServiceFactory';
+import { IJwtService } from './providers/auth/jwt/IJwtService';
+import { JwtService } from './providers/auth/jwt/JwtService';
 import { GitHubOAuthProvider } from './providers/auth/github/GitHubOAuthProvider';
 import config from './config';
 import { createHealthServiceClient } from './clients/domain/health-service-client-factory';
@@ -61,7 +63,22 @@ const contextThreadService = new ContextThreadService(contextThreadRepository);
 const encryptionService = new EncryptionService();
 const secureStorage = new SecureStorage();
 const userRepository = new UserRepository(dbProvider, encryptionService);
-const jwtService = JwtServiceFactory.createJwtService();
+
+// Initialize JWT service
+// Create a default service first, will be replaced with enhanced service if available
+let jwtService: IJwtService = new JwtService();
+
+// Try to initialize enhanced JWT service asynchronously
+(async () => {
+  try {
+    const enhancedService = await JwtServiceFactory.createJwtService(true); // Use enhanced service
+    jwtService = enhancedService;
+    console.log('JWT service initialized with enhanced security');
+  } catch (error) {
+    console.error('Failed to initialize enhanced JWT service, using legacy:', error);
+    // jwtService already set to JwtService
+  }
+})();
 
 // Create LLM services
 const llmApiKeyManager = new LlmApiKeyManager(secureStorage, userRepository);

@@ -10,15 +10,15 @@ import { HealthService } from '../../services/core/health-service';
  * @param healthService - The health service to use
  * @returns Express router with health routes
  */
-export const createHealthRoutes = (healthService: HealthService) => {
+export const createHealthCheckRoutes = (healthService: HealthService) => {
   const router = Router();
   
   /**
-   * @route GET /api/v1/domain/health
+   * @route GET /
    * @description Get the current system health status
    * @returns {Object} Health status object
    */
-  router.get('/api/v1/domain/health', async (_req, res, next) => {
+  router.get('/', async (_req, res, next) => {
     try {
       const status = await healthService.getSystemStatus();
       res.json(status);
@@ -28,11 +28,11 @@ export const createHealthRoutes = (healthService: HealthService) => {
   });
   
   /**
-   * @route GET /api/v1/domain/health/db
+   * @route GET /db
    * @description Get the current database health status
    * @returns {Object} Database health status object
    */
-  router.get('/api/v1/domain/health/db', async (_req, res, next) => {
+  router.get('/db', async (_req, res, next) => {
     try {
       const status = await healthService.checkDbConnection();
       res.json(status);
@@ -43,3 +43,5 @@ export const createHealthRoutes = (healthService: HealthService) => {
   
   return router;
 };
+
+export { createHealthCheckRoutes as createHealthRoutes };

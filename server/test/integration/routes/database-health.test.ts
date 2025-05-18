@@ -20,7 +20,7 @@ describe('Database Health Endpoint', () => {
     app.use(express.json());
     
     // Add the health routes to the app
-    app.use(createHealthRoutes(mockHealthService));
+    app.use('/api/v1/domain/health', createHealthRoutes(mockHealthService));
     
     // Add basic error handler
     app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

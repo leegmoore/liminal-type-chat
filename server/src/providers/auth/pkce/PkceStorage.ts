@@ -27,7 +27,7 @@ export interface IPkceStorage {
    * Create a new PKCE authorization session
    * @param redirectUri The redirect URI for the authorization request
    * @param options Optional configuration (challenge method, code verifier length)
-   * @returns The created PKCE authorization data
+   * @returns The created PKCE authorization data (or Promise for async implementations)
    */
   createAuthSession(
     redirectUri: string,
@@ -35,33 +35,33 @@ export interface IPkceStorage {
       challengeMethod?: CodeChallengeMethod;
       codeVerifierLength?: number;
     }
-  ): PkceAuthData;
+  ): PkceAuthData | Promise<PkceAuthData>;
   
   /**
    * Store PKCE authorization data with state as key
    * @param authData The PKCE auth data to store
    */
-  storeAuthData(authData: PkceAuthData): void;
+  storeAuthData(authData: PkceAuthData): void | Promise<void>;
   
   /**
    * Get PKCE auth data by state
    * @param state The state parameter to look up
    * @returns The stored auth data or null if not found
    */
-  getAuthDataByState(state: string): PkceAuthData | null;
+  getAuthDataByState(state: string): PkceAuthData | null | Promise<PkceAuthData | null>;
   
   /**
    * Remove PKCE auth data by state (after it's used or expired)
    * @param state The state parameter to remove
    * @returns True if data was found and removed, false otherwise
    */
-  removeAuthDataByState(state: string): boolean;
+  removeAuthDataByState(state: string): boolean | Promise<boolean>;
   
   /**
    * Clean up expired auth sessions
    * @param maxAgeMs Maximum age in milliseconds (default: 10 minutes)
    */
-  cleanupExpiredSessions(maxAgeMs?: number): void;
+  cleanupExpiredSessions(maxAgeMs?: number): void | Promise<void>;
 }
 
 /**

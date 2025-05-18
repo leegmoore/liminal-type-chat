@@ -13,6 +13,9 @@ export class SecureStorage {
   /** Encryption service for encrypting/decrypting sensitive data */
   private encryptionService: EncryptionService;
   
+  /** Storage for encrypted key-value pairs */
+  private storage = new Map<string, string>();
+  
   /** Regex patterns for identifying sensitive data like API keys */
   private readonly sensitivePatterns = [
     /sk[-_][a-zA-Z0-9]{10,}/g, // OpenAI, Stripe format: sk-xxx or sk_xxx
@@ -79,6 +82,73 @@ export class SecureStorage {
         'SecureStorage'
       );
     }
+  }
+  
+  /**
+   * Store a key-value pair securely
+   * @param key - The key to store the value under
+   * @param value - The value to store
+   * @returns Promise resolving when the value is stored
+   * @throws ExternalServiceError if storage fails
+   */
+  async set(key: string, value: string): Promise<void> {
+    try {
+      const encryptedValue = await this.encryptionService.encryptSensitiveData(value);
+      this.storage.set(key, encryptedValue);
+    } catch (error) {
+      throw new ExternalServiceError(
+        'Failed to store secure value',
+        error instanceof Error ? error.message : String(error),
+        'SecureStorage'
+      );
+    }
+  }
+  
+  /**
+   * Retrieve a stored value by key
+   * @param key - The key to retrieve
+   * @returns Promise resolving to the stored value, or null if not found
+   * @throws ExternalServiceError if retrieval fails
+   */
+  async get(key: string): Promise<string | null> {
+    try {
+      const encryptedValue = this.storage.get(key);
+      if (!encryptedValue) {
+        return null;
+      }
+      return await this.encryptionService.decryptSensitiveData(encryptedValue);
+    } catch (error) {
+      throw new ExternalServiceError(
+        'Failed to retrieve secure value',
+        error instanceof Error ? error.message : String(error),
+        'SecureStorage'
+      );
+    }
+  }
+  
+  /**
+   * Delete a stored value by key
+   * @param key - The key to delete
+   * @returns true if the key existed and was deleted, false otherwise
+   */
+  delete(key: string): boolean {
+    return this.storage.delete(key);
+  }
+  
+  /**
+   * Check if a key exists in storage
+   * @param key - The key to check
+   * @returns true if the key exists, false otherwise
+   */
+  has(key: string): boolean {
+    return this.storage.has(key);
+  }
+  
+  /**
+   * Clear all stored values
+   */
+  clear(): void {
+    this.storage.clear();
   }
   
   /**

@@ -20,21 +20,21 @@ describe('JwtServiceFactory', () => {
   });
   
   describe('createJwtService', () => {
-    it('should create a JwtService instance', () => {
+    it('should create a JwtService instance', async () => {
       // Act
-      const jwtService = JwtServiceFactory.createJwtService();
+      const jwtService = await JwtServiceFactory.createJwtService(false); // Use synchronous version for test
       
       // Assert
       expect(jwtService).toBeInstanceOf(JwtService);
     });
     
-    it('should throw error if JWT_SECRET is not set', () => {
+    it('should throw error if JWT_SECRET is not set', async () => {
       // Arrange
       delete process.env.JWT_SECRET;
       
       // Act & Assert
-      expect(() => JwtServiceFactory.createJwtService())
-        .toThrow('JWT_SECRET environment variable is required');
+      await expect(JwtServiceFactory.createJwtService(false))
+        .rejects.toThrow('JWT_SECRET environment variable is required');
     });
   });
 });

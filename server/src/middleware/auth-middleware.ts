@@ -123,7 +123,7 @@ export function createAuthMiddleware(
     
     try {
       // Verify the token
-      const verifiedToken = jwtService.verifyToken(token);
+      const verifiedToken = await jwtService.verifyToken(token);
       
       // Check if the token has the required scopes
       if (requiredScopes.length > 0) {
@@ -153,7 +153,7 @@ export function createAuthMiddleware(
       (req as AuthenticatedRequest).user = {
         userId: verifiedToken.userId,
         email: verifiedToken.email,
-        name: verifiedToken.name,
+        name: verifiedToken.name || '',
         scopes: verifiedToken.scopes,
         tier: verifiedToken.tier,
         tokenId: verifiedToken.tokenId

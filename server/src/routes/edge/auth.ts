@@ -9,11 +9,9 @@ import { IOAuthProvider, PkceOptions } from '../../providers/auth/IOAuthProvider
 import { IUserRepository } from '../../providers/db/users/IUserRepository';
 import { ValidationError, UnauthorizedError } from '../../utils/errors';
 import { OAuthProvider } from '../../models/domain/users/User';
-// PKCE utilities imported via PkceAuthData
-import { 
-  pkceStorage, 
-  PkceAuthData 
-} from '../../providers/auth/pkce/PkceStorage';
+// PKCE utilities
+import { PkceAuthData } from '../../providers/auth/pkce/PkceStorage';
+import { pkceStorage } from '../../providers/auth/pkce/PkceStorageFactory';
 
 /**
  * Create authentication routes
@@ -65,13 +63,13 @@ export function createAuthRoutes(
       
       // Setup PKCE if the provider supports it and it's not explicitly disabled
       let authUrl: string;
-      let pkceData: PkceAuthData | undefined;
+      let pkceData: PkceAuthData;
       
       if (usePkce && oauthProvider.supportsPkce) {
         // Generate PKCE code verifier and challenge
-        pkceData = pkceStorage.createAuthSession(redirectUri, {
+        pkceData = await Promise.resolve(pkceStorage.createAuthSession(redirectUri, {
           challengeMethod: 'S256'
-        });
+        }));
         
         // Create PKCE options for authorization request
         const pkceOptions: PkceOptions = {
@@ -99,7 +97,7 @@ export function createAuthRoutes(
           redirectUri,
           createdAt: Date.now()
         };
-        pkceStorage.storeAuthData(pkceData);
+        await Promise.resolve(pkceStorage.storeAuthData(pkceData));
       }
       
       // Return authorization URL and state
@@ -146,7 +144,7 @@ export function createAuthRoutes(
       }
       
       // Verify state and get stored PKCE data
-      const authData = pkceStorage.getAuthDataByState(state);
+      const authData = await Promise.resolve(pkceStorage.getAuthDataByState(state));
       if (!authData) {
         throw new UnauthorizedError(
           'Invalid OAuth state', 
@@ -226,7 +224,7 @@ export function createAuthRoutes(
       }
       
       // Decode token (without verification) to get user ID
-      const decodedToken = jwtService.decodeToken(token);
+      const decodedToken = await jwtService.decodeToken(token);
       if (!decodedToken) {
         throw new UnauthorizedError(
           'Invalid token format', 
@@ -244,7 +242,7 @@ export function createAuthRoutes(
       }
       
       // Generate new token
-      const newToken = jwtService.generateToken({
+      const newToken = await jwtService.generateToken({
         userId: user.id,
         email: user.email,
         name: user.displayName,
