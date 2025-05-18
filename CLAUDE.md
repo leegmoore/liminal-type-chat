@@ -122,8 +122,14 @@ When you need specific information about project components, refer to these docu
 | Topic | Document | Description |
 |-------|----------|-------------|
 | Project Milestones | [10-mvp-001-milestones.md](/project-planning/10-mvp-001-milestones.md) | Milestone tracking and roadmap |
-| Latest Work | [dev-journal-0009.md](/dev-journal/dev-journal-0009.md) | Recent development progress |
+| Latest Work | [dev-journal-0009.md](/in-progress-docs/dev-journal/dev-journal-0009.md) | Recent development progress |
 | Auth Testing | [AUTH_TEST_IN_PROCESS.md](/docs/AUTH_TEST_IN_PROCESS.md) | Ongoing authentication testing |
+
+### Documentation Structure
+| Topic | Document | Description |
+|-------|----------|-------------|
+| Wiki Reference | [wiki/README.md](/wiki/README.md) | Stable, curated documentation |
+| Working Docs | [in-progress-docs/README.md](/in-progress-docs/README.md) | Active and historical documentation |
 
 ## 🛠️ KEY IMPLEMENTATION RULES
 

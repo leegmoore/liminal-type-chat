@@ -28,7 +28,18 @@ Navigating the project documentation:
     - [`SECURITY_IMPLEMENTATION.md`](./docs/SECURITY_IMPLEMENTATION.md): Practical guide for implementing security features.
     - [`ERROR_CODES.md`](./docs/ERROR_CODES.md): Reference for standardized error codes.
     - [`ROADMAP.md`](./docs/ROADMAP.md): Future development plans and milestones.
-- **`.cascade/`:** Contains files primarily for AI agent context, high-level project planning (`project-plan.xml`), and development history logs (dev journals).
+- **[`wiki/`](./wiki/):** Contains stable, curated reference documentation:
+    - [`architecture/`](./wiki/architecture/): System design, component interactions, and patterns.
+    - [`guides/`](./wiki/guides/): Developer guides for common tasks and workflows.
+    - [`security/`](./wiki/security/): Security model, implementation details, and best practices.
+    - [`api/`](./wiki/api/): API documentation and usage examples.
+    - [`data-models/`](./wiki/data-models/): Database schemas and data relationships.
+- **[`in-progress-docs/`](./in-progress-docs/):** Contains working documentation in active development:
+    - [`dev-journal/`](./in-progress-docs/dev-journal/): Development journals and historical logs.
+    - [`evaluations/`](./in-progress-docs/evaluations/): Product and feature evaluations.
+    - [`planning/`](./in-progress-docs/planning/): Working plans and design documents.
+    - [`archive/`](./in-progress-docs/archive/): Outdated content pending review.
+- **`.cascade/`:** Contains files primarily for AI agent context and high-level project planning (`project-plan.xml`).
 
 ## Project Status
 
