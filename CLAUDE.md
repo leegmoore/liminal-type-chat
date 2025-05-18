@@ -29,6 +29,24 @@ COMMIT EARLY AND OFTEN. After completing ANY logical unit of work (implementing 
 
 ALWAYS stage and commit ALL relevant changes. Before any commit, run `git status` and add ALL modified and untracked files that are related to the current task. NEVER commit selectively unless explicitly instructed otherwise.
 
+### Definition of Done Requirements
+
+ALWAYS include a comprehensive DEFINITION OF DONE in ALL planning documents. This definition MUST include at minimum:
+
+1. ALL tests must pass (server AND client)
+2. ALL code coverage thresholds must be met (server AND client)
+3. ALL linting checks must pass (server AND client)
+4. Code must build successfully (server AND client)
+5. Applications must start without errors (server AND client)
+6. Required manual testing must be performed and pass
+
+ADDITIONALLY, each definition of done MUST specify:
+- If fixing one issue breaks another, both must be fixed
+- After ANY code changes, ALL verification steps must be repeated
+- The phase/milestone is NOT complete if ANY check fails for ANY reason
+
+NEVER consider work complete until ALL of these criteria have been verified and met simultaneously.
+
 ### Commit Messages
 
 Commit messages should:
