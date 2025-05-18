@@ -286,6 +286,25 @@ export class GitHubOAuthProvider implements IOAuthProvider {
 5. Implement security headers via Helmet (moved from Phase 5 based on security analysis)
 6. Add comprehensive testing covering security, performance, and edge cases
 
+**DEFINITION OF DONE**:
+- Phase 3 is NOT considered complete until ALL of the following criteria are met:
+  - ALL tests are passing (server and client)
+  - ALL code coverage thresholds are met (server and client)
+  - ALL linting checks pass (server and client)
+  - Code builds successfully (server and client)
+  - Server and client both start without errors
+  - Manual testing confirms the authentication bridge works correctly
+
+**Important Notes**:
+- If fixing one issue (e.g., tests) breaks another (e.g., linting), then both must be fixed before the phase is considered done
+- After any code changes, the entire verification process must be repeated:
+  1. Run ALL tests
+  2. Check ALL code coverage thresholds
+  3. Run ALL linting checks
+  4. Build the code
+  5. Start the application and verify functionality
+- The phase is NOT complete if ANY of these checks fail for ANY reason
+
 **Technical Details**:
 
 #### 1. Enhanced PKCE Storage Implementation
@@ -866,6 +885,27 @@ router.post('/exchange-token', async (req: Request, res: Response, next: NextFun
 5. Add dev-mode specific routes for testing authentication flows
 6. Test the development experience end-to-end
 
+**DEFINITION OF DONE**:
+- Phase 4 is NOT considered complete until ALL of the following criteria are met:
+  - ALL tests are passing (server and client)
+  - ALL code coverage thresholds are met (server and client)
+  - ALL linting checks pass (server and client)
+  - Code builds successfully (server and client)
+  - Server and client both start without errors
+  - Manual testing confirms the development experience works correctly
+  - Setup script runs successfully and generates valid configurations
+
+**Important Notes**:
+- If fixing one issue (e.g., tests) breaks another (e.g., linting), then both must be fixed before the phase is considered done
+- After any code changes, the entire verification process must be repeated:
+  1. Run ALL tests
+  2. Check ALL code coverage thresholds
+  3. Run ALL linting checks
+  4. Build the code
+  5. Start the application and verify functionality
+- The phase is NOT complete if ANY of these checks fail for ANY reason
+- Just because CI passes doesn't mean the phase is done - manual verification is also required
+
 **Technical Details**:
 
 ```typescript
@@ -955,6 +995,27 @@ router.get('/auth/dev/login', (req: Request, res: Response) => {
 4. Implement JWT token blacklisting for logout
 5. Add CSRF protection for sensitive operations
 6. Create comprehensive security tests and documentation
+
+**DEFINITION OF DONE**:
+- Phase 5 is NOT considered complete until ALL of the following criteria are met:
+  - ALL tests are passing (server and client)
+  - ALL code coverage thresholds are met (server and client)
+  - ALL linting checks pass (server and client)
+  - Code builds successfully (server and client)
+  - Server and client both start without errors
+  - Manual security testing confirms all features function correctly
+  - Security headers and protections are verified in all environments
+
+**Important Notes**:
+- If fixing one issue (e.g., tests) breaks another (e.g., linting), then both must be fixed before the phase is considered done
+- After any code changes, the entire verification process must be repeated:
+  1. Run ALL tests
+  2. Check ALL code coverage thresholds
+  3. Run ALL linting checks
+  4. Build the code
+  5. Start the application and verify functionality
+- The phase is NOT complete if ANY of these checks fail for ANY reason
+- Security features must be tested in all target environments, not just locally
 
 **Technical Details**:
 
@@ -1075,8 +1136,21 @@ This milestone will be considered successful when:
 3. Edge-domain authentication boundary is clearly established
 4. Development experience remains smooth and efficient
 5. Security hardening features are properly implemented
-6. All automated tests pass and meet code coverage requirements
-7. Documentation is complete and accurate
+6. ALL automated tests pass (server and client)
+7. ALL code coverage thresholds are met (server and client)
+8. ALL linting checks pass (server and client)
+9. Code builds successfully and applications start without errors
+10. Documentation is complete and accurate
+11. Manual testing confirms all features work correctly
+
+**IMPORTANT**: For each phase and for the entire milestone, verification must be comprehensive:
+- If any test fails, the milestone is not complete
+- If any coverage threshold is not met, the milestone is not complete
+- If any linting check fails, the milestone is not complete
+- If the code doesn't build or applications don't start, the milestone is not complete
+- If manual testing reveals any issues, the milestone is not complete
+
+All success criteria must be met simultaneously - fixing one issue must not create another.
 
 ## Risk Assessment
 
