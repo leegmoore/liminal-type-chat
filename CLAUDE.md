@@ -2,6 +2,22 @@
 
 This document contains essential operational information for development. Keep it practical and actionable.
 
+## ! Commands (Project-specific shortcuts)
+
+When you see these ! commands, execute the corresponding npm script:
+
+- **!test** → `npm run test:coverage` (run all unit tests WITH coverage report)
+- **!lint** → `npm run lint` (check code style and TypeScript)
+- **!check** → Orchestrate parallel fixes until all checks pass:
+  1. Run `npm run test:coverage && npm run lint` to identify issues
+  2. Deploy up to 2-3 Task agents in parallel to fix different problems
+  3. Continuously verify progress with tests and lint and bring code coverage to project standards
+  4. Redeploy agents as needed until all tests pass, all lint pasts and code coverage is at project standards
+  5. Run `npm run test:coverage && npm run lint` to verify final state
+
+
+**Why use ! commands**: They signal project-specific operations that should use npm scripts, not generic commands.
+
 ## Quick Links
 
 ### Core Documentation

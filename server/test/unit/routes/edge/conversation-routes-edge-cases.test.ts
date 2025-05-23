@@ -10,6 +10,8 @@ import { createConversationRoutes } from '../../../../src/routes/edge/conversati
 import { errorHandler } from '../../../../src/middleware/error-handler';
 import { ValidationError, AppError } from '../../../../src/utils/errors';
 import { ResourceErrorCode } from '../../../../src/utils/error-codes';
+import { IJwtService } from '../../../../src/providers/auth/jwt/IJwtService';
+import { IUserRepository } from '../../../../src/providers/db/users/IUserRepository';
 
 // Mock the domain client factory
 jest.mock('../../../../src/clients/domain/context-thread-client-factory', () => ({
@@ -23,12 +25,29 @@ jest.mock('../../../../src/clients/domain/context-thread-client-factory', () => 
   }),
 }));
 
+// Mock authentication middleware to bypass auth in tests
+jest.mock('../../../../src/middleware/auth-middleware', () => ({
+  createAuthMiddleware: jest.fn().mockReturnValue((req: any, res: any, next: any) => {
+    req.user = {
+      userId: 'test-user-id',
+      email: 'test@example.com',
+      name: 'Test User',
+      scopes: ['read:conversations', 'write:conversations'],
+      tier: 'edge',
+      tokenId: 'test-token-id'
+    };
+    next();
+  })
+}));
+
 // Mock the database-related modules to prevent actual DB initialization
 jest.mock('../../../../src/providers/db/sqlite-provider');
 jest.mock('../../../../src/providers/db/ContextThreadRepository');
 
 describe('Edge API Conversation Routes - Edge Cases', () => {
   let app: Express;
+  let mockJwtService: jest.Mocked<IJwtService>;
+  let mockUserRepository: jest.Mocked<IUserRepository>;
   let mockContextThreadClient: {
     createContextThread: jest.Mock;
     getContextThread: jest.Mock; 
@@ -42,6 +61,27 @@ describe('Edge API Conversation Routes - Edge Cases', () => {
     // Reset mocks before each test
     jest.clearAllMocks();
     
+    // Create mock JWT service
+    mockJwtService = {
+      generateToken: jest.fn(),
+      verifyToken: jest.fn(),
+      decodeToken: jest.fn(),
+      refreshToken: jest.fn()
+    } as unknown as jest.Mocked<IJwtService>;
+    
+    // Create mock user repository
+    mockUserRepository = {
+      createUser: jest.fn(),
+      getUserById: jest.fn(),
+      getUserByEmail: jest.fn(),
+      updateUser: jest.fn(),
+      deleteUser: jest.fn(),
+      getUserByProvider: jest.fn(),
+      updateApiKey: jest.fn(),
+      getApiKey: jest.fn(),
+      deleteApiKey: jest.fn()
+    } as unknown as jest.Mocked<IUserRepository>;
+    
     // Create a test Express app
     app = express();
     
@@ -53,7 +93,7 @@ describe('Edge API Conversation Routes - Edge Cases', () => {
     
     // Configure the test app
     app.use(express.json());
-    app.use('/api/v1/conversations', createConversationRoutes());
+    app.use('/api/v1/conversations', createConversationRoutes(mockJwtService, mockUserRepository));
     app.use(errorHandler);
   });
 

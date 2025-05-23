@@ -5,6 +5,8 @@ import request from 'supertest';
 import express, { NextFunction, Request, Response } from 'express';
 import { createConversationRoutes } from '../conversation';
 import * as _ctcFactory from '../../../clients/domain/context-thread-client-factory';
+import { IJwtService } from '../../../providers/auth/jwt/IJwtService';
+import { IUserRepository } from '../../../providers/db/users/IUserRepository';
 
 // Mock the context thread client
 const mockContextThreadClient = {
@@ -21,18 +23,57 @@ jest.mock('../../../clients/domain/context-thread-client-factory', () => ({
   getContextThreadClient: jest.fn(() => mockContextThreadClient)
 }));
 
+// Mock authentication middleware to bypass auth in tests
+jest.mock('../../../middleware/auth-middleware', () => ({
+  createAuthMiddleware: jest.fn().mockReturnValue((req: Request, res: Response, next: NextFunction) => {
+    // Add a mock user to the request
+    req.user = {
+      userId: 'test-user-id',
+      email: 'test@example.com',
+      name: 'Test User',
+      scopes: ['read:conversations', 'write:conversations'],
+      tier: 'edge',
+      tokenId: 'test-token-id'
+    };
+    next();
+  })
+}));
+
 describe('Conversation Routes', () => {
   let app: express.Application;
+  let mockJwtService: jest.Mocked<IJwtService>;
+  let mockUserRepository: jest.Mocked<IUserRepository>;
   
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Create mock JWT service
+    mockJwtService = {
+      generateToken: jest.fn(),
+      verifyToken: jest.fn(),
+      decodeToken: jest.fn(),
+      refreshToken: jest.fn()
+    } as unknown as jest.Mocked<IJwtService>;
+    
+    // Create mock user repository
+    mockUserRepository = {
+      createUser: jest.fn(),
+      getUserById: jest.fn(),
+      getUserByEmail: jest.fn(),
+      updateUser: jest.fn(),
+      deleteUser: jest.fn(),
+      getUserByProvider: jest.fn(),
+      updateApiKey: jest.fn(),
+      getApiKey: jest.fn(),
+      deleteApiKey: jest.fn()
+    } as unknown as jest.Mocked<IUserRepository>;
     
     // Setup app with conversation routes
     app = express();
     app.use(express.json());
     
-    // Add routes to app
-    app.use('/api/v1/conversations', createConversationRoutes());
+    // Add routes to app with required parameters
+    app.use('/api/v1/conversations', createConversationRoutes(mockJwtService, mockUserRepository));
     
     // Add error handler
     app.use((err: Error & { statusCode?: number; toJSON?: () => Record<string, unknown> }, 

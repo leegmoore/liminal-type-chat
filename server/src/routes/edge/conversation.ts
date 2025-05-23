@@ -1,7 +1,7 @@
 console.log('conversation.ts: MODULE EXECUTION STARTED'); // Log at the very top
 
 // eslint-disable-next-line max-len
-import express, { Response, NextFunction } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { ErrorObject } from 'ajv';
@@ -15,7 +15,7 @@ import * as ctcFactory from '../../clients/domain/context-thread-client-factory'
 // Import auth dependencies
 import { IJwtService } from '../../providers/auth/jwt/IJwtService';
 import { IUserRepository } from '../../providers/db/users/IUserRepository';
-import { createAuthMiddleware, AuthenticatedRequest } from '../../middleware/auth-middleware';
+import { createAuthMiddleware } from '../../middleware/auth-middleware';
 import {
   domainContextThreadToConversationResponse,
   domainContextThreadToConversationSummary,
@@ -102,7 +102,7 @@ export const createConversationRoutes = (
   }));
 
   // GET /api/v1/conversations - Get all conversations
-  router.get('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
       const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
@@ -157,7 +157,7 @@ export const createConversationRoutes = (
   });
 
   // POST /api/v1/conversations - Create a new conversation
-  router.post('/', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
       // Log request body in development
       if (process.env.NODE_ENV !== 'production') {
@@ -210,7 +210,7 @@ export const createConversationRoutes = (
   });
 
   // GET /api/v1/conversations/:conversationId - Get a conversation by ID
-  router.get('/:conversationId', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  router.get('/:conversationId', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { conversationId } = req.params;
       
@@ -250,7 +250,7 @@ export const createConversationRoutes = (
 
   // PUT /api/v1/conversations/:conversationId - Update conversation properties (title, metadata)
   router.put('/:conversationId', 
-    async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async (req: Request, res: Response, next: NextFunction) => {
       try {
         const { conversationId } = req.params;
         
@@ -309,7 +309,7 @@ export const createConversationRoutes = (
   );
 
   // DELETE /api/v1/conversations/:conversationId - Delete a conversation
-  router.delete('/:conversationId', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  router.delete('/:conversationId', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { conversationId } = req.params;
       
@@ -325,7 +325,7 @@ export const createConversationRoutes = (
   // Add a message to a conversation
   router.post(
     '/:conversationId/messages', 
-    async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async (req: Request, res: Response, next: NextFunction) => {
       try {
         const { conversationId } = req.params;
       
