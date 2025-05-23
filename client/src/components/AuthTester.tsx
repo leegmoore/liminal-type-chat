@@ -146,8 +146,25 @@ const AuthTester: React.FC = () => {
       }
       
       const data = await response.json();
-      setToken(data.token);
-      setTokenInfo(data.user);
+      console.log('Token exchange response:', JSON.stringify(data, null, 2));
+      
+      // Handle case where token might be an empty object
+      let tokenValue = '';
+      if (typeof data.token === 'string' && data.token) {
+        tokenValue = data.token;
+      } else if (data.token && typeof data.token === 'object') {
+        console.error('Received token as object from server:', data.token);
+        throw new Error(`Server returned token as object: ${JSON.stringify(data.token)}`);
+      } else if (!data.token) {
+        console.error('No token in response');
+        throw new Error('Server did not return a token');
+      } else {
+        console.error('Invalid token type:', typeof data.token, data.token);
+        throw new Error(`Server returned invalid token type: ${typeof data.token}`);
+      }
+      
+      setToken(tokenValue);
+      setTokenInfo(data.user || {});
       setSuccess('Successfully obtained token!');
       
       // Clear code and state
@@ -285,9 +302,9 @@ const AuthTester: React.FC = () => {
                 <strong>State:</strong> {authState}
               </Text>
               <Text>
-                <strong>PKCE Enabled:</strong> {
+                <strong>PKCE Enabled:</strong> {String(
                   localStorage.getItem('auth_pkce_enabled') || 'unknown'
-                }
+                )}
               </Text>
             </VStack>
             
@@ -312,7 +329,7 @@ const AuthTester: React.FC = () => {
               <Box width="100%">
                 <Text fontWeight="bold" mb={2}>JWT Token:</Text>
                 <Code p={2} width="100%" overflowX="auto" whiteSpace="nowrap">
-                  {token}
+                  {token || ''}
                 </Code>
               </Box>
               
@@ -321,18 +338,26 @@ const AuthTester: React.FC = () => {
               <Box width="100%">
                 <Text fontWeight="bold" mb={2}>Token Payload:</Text>
                 <Code display="block" p={2} width="100%" overflowX="auto" whiteSpace="pre">
-                  {JSON.stringify(parseJwt(token), null, 2)}
+                  {token ? JSON.stringify(parseJwt(token), null, 2) : ''}
                 </Code>
               </Box>
               
               <Divider />
               
-              <Box width="100%">
-                <Text fontWeight="bold" mb={2}>User Info:</Text>
-                <Code display="block" p={2} width="100%" overflowX="auto" whiteSpace="pre">
-                  {JSON.stringify(tokenInfo, null, 2)}
-                </Code>
-              </Box>
+              {tokenInfo && Object.keys(tokenInfo).length > 0 && (
+                <Box width="100%">
+                  <Text fontWeight="bold" mb={2}>User Info:</Text>
+                  <Code display="block" p={2} width="100%" overflowX="auto" whiteSpace="pre">
+                    {JSON.stringify(tokenInfo, (key, value) => {
+                      // Filter out any empty objects to prevent React rendering errors
+                      if (value && typeof value === 'object' && Object.keys(value).length === 0) {
+                        return undefined;
+                      }
+                      return value;
+                    }, 2)}
+                  </Code>
+                </Box>
+              )}
             </VStack>
           </CardBody>
         </Card>

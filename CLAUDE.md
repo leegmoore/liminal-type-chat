@@ -1,87 +1,194 @@
-# CRITICAL INSTRUCTIONS FOR CLAUDE
+# CLAUDE.md - Operational Handbook
 
-This document contains the most important instructions that Claude MUST follow for this project. These instructions override any default behaviors.
+This document contains essential operational information for development. Keep it practical and actionable.
 
-## ⚠️ GIT WORKFLOW - FOLLOW EXACTLY
+## Quick Links
 
-### When committing changes:
+### Core Documentation
+- **Product Vision**: [PRD.md](./PRD.md) - "Welcome to the Threshold"
+- **Technical Architecture**: [TECHNICAL_ARCHITECTURE.md](./TECHNICAL_ARCHITECTURE.md) - System design and rationale
+- **Development Standards**: [wiki/engineering/standards/development-standards.md](./wiki/engineering/standards/development-standards.md)
 
+### Project Information
+- **Milestones**: [project-planning/](./project-planning/) - Current: Milestone 10 (Streaming)
+- **Dev Journals**: [dev-journal/](./dev-journal/) - Historical development records
+- **In-Progress Work**: [in-progress-docs/](./in-progress-docs/) - Active documentation
+
+## Key Commands
+
+### Development
 ```bash
-# ALWAYS run these exact commands in this order:
-git add .              # Stage ALL changes without exception
-git status             # Verify what will be committed
-git commit -m "type: message"    # Use descriptive message with type prefix
-git push               # Push changes to remote
+# Start both client and server
+npm run dev
+
+# Server only (port 8765)
+cd server && npm run dev
+
+# Client only (port 5173)  
+cd client && npm start
+
+# Run all tests (MUST pass before committing)
+cd server && npm test
+cd client && npm test
+
+# Check coverage
+cd server && npm run test:coverage
+cd client && npm run test:coverage
+
+# Linting (MUST pass)
+cd server && npm run lint
+cd client && npm run lint
+
+# Server management
+cd server && npm run stop       # Stop server on port 8765
+cd server && npm run restart    # Stop and restart server
+cd server && npm run dev:log    # Start server with logging to server.log
+cd server && npm run log        # Tail server.log
+cd server && npm run log:clear  # Clear server.log
 ```
 
-**CRITICAL**: NEVER selectively choose files to commit unless EXPLICITLY instructed to do so.
+### Git Workflow
+```bash
+# ALWAYS use these commands in order
+git add .                    # Stage ALL changes
+git status                   # Verify changes
+git commit -m "type: message"  # type: feat|fix|docs|test|refactor|chore
+git push                     # Push to remote
 
-**ALWAYS USE `git add .`** - Do not overthink this or try to be selective.
+# Creating PRs
+gh pr create --title "type: description" --body "..."
+```
 
-### Commit Message Format:
-- Start with type: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`
-- Use present tense: "Add feature" not "Added feature"
-- Be specific about what changed
+## Project Structure
 
-## 🔍 DEFINITION OF DONE
+```
+liminal-type-chat/
+├── client/              # React UI (port 5173)
+│   └── src/
+│       ├── components/  # UI components
+│       ├── pages/       # Page components
+│       └── services/    # API clients
+├── server/              # Node.js backend (port 8765)
+│   └── src/
+│       ├── routes/
+│       │   ├── edge/    # /api/v1/* endpoints
+│       │   └── domain/  # /domain/* endpoints
+│       ├── services/    # Domain logic
+│       └── providers/   # External integrations
+└── project-planning/    # Milestones and plans
+```
 
-Work is **NOT COMPLETE** until ALL of these are met:
+## Critical Development Patterns
 
-1. ✓ ALL tests pass (server AND client)
-2. ✓ ALL linting checks pass (server AND client)
-3. ✓ Code builds successfully (server AND client)
-4. ✓ Applications start without errors (server AND client)
-5. ✓ Manual testing is performed and passes (when specified)
+### Adding New Features
+1. **Domain First**: Create service method with tests (90% coverage required)
+2. **Edge Route**: Add endpoint with schema transformation
+3. **OpenAPI**: Update specification
+4. **Frontend**: Add types and integrate
 
-If fixing one issue breaks another, BOTH must be fixed before considering work complete.
+### API Patterns
+- **Edge Routes**: `/api/v1/conversations` (client-facing)
+- **Domain Routes**: `/domain/context-threads` (internal)
+- **Streaming**: SSE from Edge tier
+- **MCP Tools**: Execute at Edge, audit in Domain
 
-## 🧪 TESTING REQUIREMENTS
+### Testing Requirements
+- **Domain Services**: 90% coverage
+- **Edge Routes**: 75% coverage  
+- **Always test**: Both direct and HTTP domain client modes
+- **Run before commit**: ALL tests must pass
 
-### Automated Tests
-- Run server tests: `cd server && npm test`
-- Run client tests: `cd client && npm test`
-- Fix ALL failing tests before committing
-- **CRITICAL**: ALL code coverage thresholds MUST be met (current thresholds: 90% statements, 80% branches, 90% functions)
-- If coverage is below thresholds, add tests to reach required coverage
+## Common Gotchas
 
-### Linting
-- Run server linting: `cd server && npm run lint`
-- Run client linting: `cd client && npm run lint`
-- Fix ALL linting issues before committing
+1. **Schema Differences**:
+   - Domain: `camelCase`, timestamps, null allowed
+   - API: `kebab-case` routes, ISO dates, no nulls
 
-### Manual Testing
-- **CRITICAL**: When performing manual testing, guide the user step-by-step through each test
-- Wait for user confirmation at each step before proceeding
-- Document test results thoroughly
-- **NEVER** consider manual testing complete until user has verified and approved
+2. **Architecture Boundaries**:
+   - Tools/MCP → Edge tier only
+   - Business logic → Domain tier only
+   - No provider-specific code in Domain
 
-## 🚀 PROJECT CONFIGURATION
+3. **Streaming**:
+   - Use SSE, not WebSockets
+   - Domain returns AsyncIterables
+   - Edge handles multiplexing
 
-- Server runs on port **8765**
-- Client runs on port **5173**
+## Working Memory - @claude-scratchpad/
 
-## 💻 IMPLEMENTATION PRIORITIES
+The `@claude-scratchpad/` directory serves as external working memory for ANY multi-step work. Use it liberally to maintain context and track progress across messages.
 
-1. **Thoroughness over speed**: Implement ALL aspects of a feature, not just the happy path
-2. **Test coverage**: Ensure all code has appropriate tests
-3. **Security**: Follow security best practices, especially for authentication
-4. **Documentation**: Document complex logic and APIs
+### Always Use For
+- **Todo Lists**: Any multi-step task (even simple ones)
+- **Progress Tracking**: Mark what's done, in progress, or blocked
+- **Working Notes**: Design decisions, quick calculations, temporary code
+- **Investigations**: Complex debugging, hypotheses, test results
+- **Current Context**: What you're working on right now
+- **Questions/Reminders**: Things to ask about or circle back to
 
-## 📝 COMMON ERRORS TO AVOID
+### Directory Structure
+```
+@claude-scratchpad/
+├── current/              # Active work (start here!)
+│   ├── todo.md          # Current task list
+│   ├── notes.md         # Working notes
+│   └── investigation.md # Active debugging
+├── sessions/            # Archived completed work
+│   └── 2025-05-23-auth-investigation/
+└── reference/           # Valuable persistent findings
+    └── gotchas.md       # Reusable discoveries
+```
 
-- **NEVER** assume I've already added files with selective git adds
-- **NEVER** consider work complete until ALL definition of done criteria are met
-- **NEVER** skip manual testing steps or rush through them
-- **NEVER** implement only partial solutions to complex problems
-- **ALWAYS** document test procedures thoroughly for repeatability
+### Session Lifecycle
 
-## 🔄 ADDITIONAL LESSONS FROM PAST MISTAKES
+**Start of Session**:
+1. Check `current/` directory for existing work
+2. Either continue relevant work OR archive to `sessions/`
+3. Start fresh in `current/` for new work
 
-- When asked to document manual testing, create a clear step-by-step guide that the user can follow
-- When resuming an incomplete task, read any in-progress documentation first (like AUTH_TEST_IN_PROCESS.md)
-- Do not create documentation of manual testing as a substitute for actually performing the testing with the user
-- When the user points out a mistake, fix it immediately and avoid defending the mistake
-- Focus on fewer simultaneous tasks to ensure thoroughness rather than partial progress on many fronts
+**During Work**:
+- Always update todo.md with task progress
+- Mark items: ✓ DONE, 🔄 IN PROGRESS, ❌ ABANDONED
+- Save any "aha!" moments to notes.md
+
+**Task Completion**:
+- Archive completed work to `sessions/YYYY-MM-DD-description/`
+- Move valuable findings to `reference/`
+- Clear `current/` for next task
+
+### Benefits
+- Never lose track of multi-step tasks
+- Maintain context across conversation breaks
+- Build up valuable reference material
+- Avoid repeating work or investigations
+
+**Remember**: It's better to over-use the scratchpad than to lose important context. When in doubt, write it down!
+
+## API Testing
+
+```bash
+npm run api -- /endpoint                     # GET request
+npm run api -- /endpoint '{"json"}'         # POST with data
+npm run api -- /endpoint -H "Auth: X"        # With headers
+npm run api -- /endpoint?q=test&limit=10    # With query params
+```
+
+Always tests against localhost:8765. No curl approval needed. See `scripts/test-api.js` for details.
+
+## Current Project State
+
+### Active Development
+- **Current Focus**: Streaming architecture refinement
+- **Next Up**: OpenAI provider implementation
+- **Platform Goal**: AI Roundtable conversations with @mentions
+
+### Known Issues
+- [Track any blocking issues here]
+
+### Recent Decisions
+- Edge tier retained for orchestration and MCP
+- Streaming via SSE with Edge multiplexing
+- Platform architecture for future extensions (Liminal-flow)
 
 ## 📚 REFERENCE GUIDES
 
@@ -133,24 +240,3 @@ When you need specific information about project components, refer to these docu
 | Working Docs | [In-Progress Docs README](/in-progress-docs/README.md) | Active and historical documentation |
 | Documentation Standards | [Documentation Classification](/docs/DOCUMENTATION_CLASSIFICATION.md) | Rules for organizing documentation |
 | Migration Plan | [Documentation Migration](/docs/DOCUMENTATION_MIGRATION_PLAN.md) | Plan for migrating docs to new structure |
-
-## 🛠️ KEY IMPLEMENTATION RULES
-
-### Tiered Architecture
-- **Always respect the three-tier architecture**:
-  - Domain tier (core business logic)
-  - Edge tier (client-facing API)
-  - UI tier (React frontend)
-- Use the domain client adapter pattern for cross-tier communication
-
-### Security Implementation
-- **Always encrypt API keys** using the EncryptionService
-- **Never log sensitive data** like tokens or keys
-- Follow JWT-based authentication with proper validation
-- Respect the authentication boundaries between Edge and Domain tiers
-
-### Environment-Specific Behavior
-- Check environment configuration before development work
-- Security features behave differently by environment
-- The EnvironmentService determines appropriate security levels
-- Default to highest security when environment is uncertain

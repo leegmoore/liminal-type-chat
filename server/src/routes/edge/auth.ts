@@ -185,7 +185,7 @@ export function createAuthRoutes(
       );
       
       // Generate JWT token
-      const token = jwtService.generateToken({
+      const token = await jwtService.generateToken({
         userId: user.id,
         email: user.email,
         name: user.displayName,
@@ -199,8 +199,9 @@ export function createAuthRoutes(
           id: user.id,
           email: user.email,
           displayName: user.displayName,
-          // Safely access provider info
-          profileImageUrl: provider === 'github' ? user.authProviders.github?.identity : null
+          // Note: Profile image URL is not stored in the User model yet
+          // For now, return null to avoid React rendering errors
+          profileImageUrl: null
         },
         token
       });

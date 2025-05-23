@@ -11,12 +11,17 @@
     "start:prod": "npm run build && npm run start",
     "stop": "lsof -i :8765 -t | xargs kill || echo 'No server running on port 8765'",
     "restart": "npm run stop && npm run dev",
+    "dev:log": "npm run stop && npm run dev > server.log 2>&1 & echo 'Server starting (logging to server.log)...'",
+    "log": "tail -f server.log",
+    "log:clear": "rm -f server.log && echo 'server.log cleared'",
     "test": "tsc --noEmit && jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
-    "setup": "node scripts/dev-setup.js"
+    "setup": "node scripts/dev-setup.js",
+    "api": "node scripts/test-api.js",
+    "api:help": "echo 'Usage: npm run api -- /endpoint | /endpoint \"{\\\"json\\\"}\" | /endpoint -H \"Auth: X\" | /endpoint?q=test&limit=10'"
   },
   "keywords": [
     "chat",
