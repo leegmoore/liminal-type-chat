@@ -193,6 +193,14 @@ export function createAuthRoutes(
         tier: 'edge'
       });
       
+      // Set token as HttpOnly cookie for secure authentication
+      res.cookie('authToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        sameSite: 'lax', // CSRF protection
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+      
       // Return user and token
       res.json({
         user: {
@@ -251,6 +259,14 @@ export function createAuthRoutes(
         tier: decodedToken.tier
       });
       
+      // Set new token as HttpOnly cookie
+      res.cookie('authToken', newToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+      
       // Return new token
       res.json({
         token: newToken
@@ -260,6 +276,20 @@ export function createAuthRoutes(
     }
   });
 
+  /**
+   * Logout - Clear auth cookie
+   * POST /auth/logout
+   */
+  router.post('/logout', (_req: Request, res: Response) => {
+    // Clear the auth cookie
+    res.clearCookie('authToken');
+    
+    res.json({ 
+      success: true, 
+      message: 'Logged out successfully' 
+    });
+  });
+  
   /**
    * Cleanup expired PKCE sessions (maintenance endpoint)
    * POST /auth/maintenance/cleanup-sessions

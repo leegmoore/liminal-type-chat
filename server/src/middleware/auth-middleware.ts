@@ -52,10 +52,23 @@ export function createAuthMiddleware(
   const { required = true, requiredScopes = [], requiredTier } = options;
   
   return async (req: Request, _res: Response, next: NextFunction) => {
+    // Try to get token from Authorization header first
     const authHeader = req.header('Authorization');
     
+    // If no Authorization header, check for token in cookie
+    let token: string | undefined;
+    if (authHeader) {
+      const parts = authHeader.split(' ');
+      if (parts.length === 2 && parts[0] === 'Bearer') {
+        token = parts[1];
+      }
+    } else if (req.cookies && req.cookies.authToken) {
+      // Fallback to cookie-based authentication
+      token = req.cookies.authToken;
+    }
+    
     // If auth is not required and no token provided, proceed without authentication
-    if (!required && !authHeader) {
+    if (!required && !token) {
       return next();
     }
     
@@ -101,25 +114,13 @@ export function createAuthMiddleware(
       return next();
     }
     
-    // Check if Authorization header is present
-    if (!authHeader) {
+    // Check if token is present (from header or cookie)
+    if (!token) {
       return next(new UnauthorizedError(
         'Authentication required', 
-        'No authorization header provided'
+        'No authentication token provided'
       ));
     }
-    
-    // Check if the format is correct (Bearer token)
-    const parts = authHeader.split(' ');
-    if (parts.length !== 2 || parts[0] !== 'Bearer') {
-      return next(new UnauthorizedError(
-        'Invalid authorization format',
-        'Authorization header must be in the format: Bearer [token]',
-        AuthErrorCode.INVALID_CREDENTIALS
-      ));
-    }
-    
-    const token = parts[1];
     
     try {
       // Verify the token

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { storeAuthToken } from '../services/authService';
 import {
   Box,
   Button,
@@ -165,6 +166,10 @@ const AuthTester: React.FC = () => {
       
       setToken(tokenValue);
       setTokenInfo(data.user || {});
+      
+      // Store token in localStorage and configure axios
+      storeAuthToken(tokenValue);
+      
       setSuccess('Successfully obtained token!');
       
       // Clear code and state

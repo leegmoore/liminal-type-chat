@@ -391,6 +391,9 @@ const ChatPage: React.FC = () => {
         urlParams.append('placeholderId', assistantId); // Use consistent message ID
         urlParams.append('_t', Date.now().toString()); // Cache-busting timestamp
         
+        // EventSource will automatically send cookies for authentication
+        // No need to add token as query parameter
+        
         const eventSourceUrl = `${baseUrl}/api/v1/chat/completions/stream?${urlParams.toString()}`;
         
         // Store a single consistent reference to the message we're updating

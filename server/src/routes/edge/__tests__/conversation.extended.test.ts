@@ -2,6 +2,7 @@
  * Extended coverage tests for conversation.ts
  * These tests focus on specific branches to further improve test coverage
  */
+/// <reference types="../../../types/express" />
 import request from 'supertest';
 import express, { NextFunction, Request, Response } from 'express';
 import { createConversationRoutes } from '../conversation';
@@ -248,7 +249,7 @@ describe('Conversation Routes - Extended Coverage Tests', () => {
       // Reset app setup
       app = express();
       app.use(express.json());
-      app.use('/api/v1/conversations', createConversationRoutes());
+      app.use('/api/v1/conversations', createConversationRoutes(mockJwtService, mockUserRepository));
       app.use((err: Error & { statusCode?: number; toJSON?: () => Record<string, unknown> }, 
         _req: Request, res: Response, _next: NextFunction) => {
         const statusCode = err.statusCode || 500;

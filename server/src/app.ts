@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -37,7 +38,11 @@ const app = express();
 
 // Middleware
 app.use(morgan('dev')); // Request logging
-app.use(cors({ origin: '*' })); // CORS headers, explicitly allow all origins for dev
+app.use(cors({ 
+  origin: '*', // CORS headers, explicitly allow all origins for dev
+  credentials: true // Allow cookies to be sent cross-origin
+})); 
+app.use(cookieParser()); // Parse cookies
 app.use(express.json()); // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
 

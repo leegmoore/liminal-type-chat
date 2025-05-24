@@ -14,6 +14,7 @@ declare global {
         name: string;
         scopes: string[];
         tier: string;
+        tokenId?: string;
       };
     }
 
