@@ -91,17 +91,17 @@ Navigating the project documentation:
   - Followed the domain client adapter pattern consistently
   - Applied TDD testing throughout
 
-- ✅ **Milestone 0008**: LLM Integration, Authentication & Basic Chat
-  - Implemented secure authentication with GitHub OAuth
-  - Created LLM service integration with API key management
+- ✅ **Milestone 0008**: LLM Integration & Basic Chat
+  - Created LLM service integration with bring-your-own-key (BYOK) support
   - Built chat functionality with streaming responses
   - Integrated with Anthropic Claude API
+  - API keys are managed locally by users (not stored server-side)
 
-- ✅ **Milestone 0009**: Security Hardening
-  - Implemented OAuth authentication using GitHub
-  - Added proper security headers and CORS configuration
-  - Created secure API key storage with encryption
-  - Established JWT-based session management
+- ✅ **Milestone 0009**: Security Hardening (Evolution)
+  - Originally implemented OAuth authentication using GitHub with JWT tokens
+  - After extensive testing, determined the complexity was excessive for a local-first BYOK application
+  - Phase 1 of simplification completed: removed all authentication components
+  - Future: Planning simple cookie-based auth for basic user identification (when needed)
 
 ### Phase 3: Enhancements & Refinements
 
@@ -187,10 +187,12 @@ The application follows a tiered architecture within each package:
 
 Liminal Type Chat is designed as a local-first application, meaning your data primarily stays on your machine. However, please be aware of the following:
 
+- **Authentication Status**: Currently no authentication is implemented. The application was originally built with OAuth/JWT authentication, but after evaluation, this was removed as excessive for a local-first BYOK application. A simpler cookie-based authentication system is planned for future implementation when user identification becomes necessary.
 - When using external LLM providers, your prompts and data will be sent to their APIs
 - If deploying the Edge tier to a cloud environment, ensure proper security measures are in place
 - The application stores conversations in a local SQLite database by default
 - Always keep your API keys secure and never share them
+- API keys are entered directly by users and not persisted server-side
 
 For more details, see our [Security Policy](.github/SECURITY.md) and [Security Architecture](wiki/security/architecture.md).
 

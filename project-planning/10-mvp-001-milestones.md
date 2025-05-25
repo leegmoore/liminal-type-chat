@@ -185,3 +185,118 @@
     *   API endpoints perform correct CRUD operations on threads and messages via the domain layer.
     *   >90% integration test coverage for Edge API routes.
     *   All integration tests passing.
+
+---
+
+# MVP 3 and Beyond - Re-prioritized After Auth Removal
+
+**Note**: Following the successful removal of complex OAuth/PKCE authentication in favor of simplified cookie-based auth, the project milestones were re-prioritized to focus on delivering AI-centric features first. This strategic shift allows us to build the platform's core value proposition - multi-model AI interactions - before adding enterprise authentication features.
+
+## Milestone 0008: LLM Integration (Completed)
+
+- **Status**: Completed
+- **Objective**: Integrate Anthropic's Claude as the first LLM provider, establishing patterns for future multi-provider support
+- **Key Deliverables**:
+  - LLM service interface definition (`ILlmService`)
+  - Anthropic service implementation with streaming support
+  - API key management system
+  - Integration with chat endpoints
+  - Comprehensive test coverage including mock implementations
+
+## Milestone 0009: Security Hardening (Completed with Changes)
+
+- **Status**: Completed
+- **Objective**: Implement security best practices throughout the application
+- **Key Changes**: Originally included OAuth/PKCE implementation, but was refocused on:
+  - Cookie-based authentication system
+  - Security headers and CSP policies
+  - Input validation and sanitization
+  - Rate limiting and DDoS protection
+  - Secure session management
+- **Result**: Simplified security model that maintains protection while reducing complexity
+
+## Milestone 0010: Streaming Hardening (Current)
+
+- **Status**: In Progress
+- **Objective**: Improve streaming capabilities, optimize performance, handle edge cases, and ensure reliable delivery of AI responses
+- **Key Deliverables**:
+  - Streaming performance optimization and memory management
+  - Robust error handling and recovery mechanisms
+  - Connection management with timeouts and keepalive
+  - Client-side streaming improvements with visual feedback
+  - Comprehensive testing and monitoring for streaming health
+
+## Milestone 0011: OpenAI Provider Implementation
+
+- **Status**: Not Started
+- **Objective**: Implement OpenAI provider to enable multi-model support in the Liminal platform
+- **Key Deliverables**:
+  - OpenAI service implementation following `ILlmService` interface
+  - Support for GPT-4, GPT-4 Turbo, and GPT-3.5 Turbo models
+  - Streaming response handling compatible with existing infrastructure
+  - Rate limit handling and error management
+  - Model selection UI in chat interface
+  - API key validation and management integration
+
+## Milestone 0012: Multi-Provider Support
+
+- **Status**: Not Started
+- **Objective**: Add support for multiple LLM providers beyond Anthropic and OpenAI, enabling a flexible platform for diverse AI models
+- **Key Deliverables**:
+  - Google Gemini provider implementation
+  - Unified provider interface refinements
+  - Provider selection UI with model comparison features
+  - Provider-specific configuration and feature management
+  - Consider Vercel AI SDK for rapid integration
+  - Support for at least 3 LLM providers total
+
+## Milestone 0013: AI Roundtable MVP
+
+- **Status**: Not Started
+- **Objective**: Implement the platform's signature feature - multi-AI conversations with distinct personalities and expertise
+- **Key Deliverables**:
+  - Named AI panelist system with personas
+  - @mention system for directing questions
+  - Multi-stream orchestration for concurrent responses
+  - Fair scheduling to prevent conversation monopolization
+  - Shared context management with attribution
+  - Multi-column UI for roundtable conversations
+  - Pre-built panel templates (Technical Review, Creative Brainstorming, etc.)
+
+## Milestone 0014: Chat Interface Refinement
+
+- **Status**: Not Started
+- **Objective**: Comprehensive chat interface improvements to create a polished, professional chat experience
+- **Key Deliverables**:
+  - Enhanced message rendering with full markdown, code highlighting, and LaTeX
+  - Advanced code block features with syntax highlighting and diffs
+  - Message interaction features (edit, copy, quote, search)
+  - Conversation management with search, filtering, and export
+  - UI/UX polish with animations and keyboard shortcuts
+  - Responsive design with PWA capabilities
+  - Full accessibility compliance (WCAG 2.1 AA)
+  - Performance optimizations including virtual scrolling
+
+## Milestone 0015: MCP Integration
+
+- **Status**: Not Started
+- **Objective**: Integrate Model Control Protocol (MCP) capabilities for tool-based AI interactions
+- **Key Deliverables**:
+  - MCP server implementation compatible with Anthropic's protocol
+  - Dynamic tool registration and discovery system
+  - Secure sandboxed tool execution framework
+  - Security boundaries with permission system and rate limiting
+  - LLM provider integration for tool calls
+  - Audit logging for all tool invocations
+
+## Milestone 0016: OpenAPI Full Implementation
+
+- **Status**: Not Started
+- **Objective**: Complete comprehensive OpenAPI 3.0 implementation for all API endpoints with full validation and SDK generation
+- **Key Deliverables**:
+  - Complete OpenAPI specifications for all endpoints
+  - Request/response validation middleware
+  - Auto-generated TypeScript types from specs
+  - API versioning strategy implementation
+  - Client SDK generation and distribution
+  - Professional API documentation portal with interactive features

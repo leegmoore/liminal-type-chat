@@ -4,6 +4,60 @@
 
 This document outlines planned enhancements and improvements to Liminal Type Chat based on architectural reviews and feedback. It serves as both a roadmap for contributors and a tracking mechanism for future development.
 
+## Current Development Focus
+
+### Streaming Architecture Hardening (Milestone 0010) - IN PROGRESS
+- [ ] Implement SSE streaming for Edge API tier
+- [ ] Add streaming support to domain services
+- [ ] Create streaming client adapters
+- [ ] Implement error handling and retry logic for streams
+- [ ] Add comprehensive streaming tests
+- [ ] Update OpenAPI specifications for streaming endpoints
+
+### OpenAI Provider Implementation (Milestone 0011) - NEXT
+- [ ] Create OpenAIService implementing ILlmService interface
+- [ ] Add OpenAI-specific streaming support
+- [ ] Implement model selection and configuration
+- [ ] Add comprehensive tests for OpenAI integration
+- [ ] Update LlmServiceFactory to support OpenAI
+
+### Multi-Provider Support (Milestone 0012)
+- [ ] Refine LlmServiceFactory for dynamic provider selection
+- [ ] Implement provider-specific configuration management
+- [ ] Add provider switching capabilities in UI
+- [ ] Create unified error handling across providers
+- [ ] Add provider status and health monitoring
+
+### AI Roundtable MVP (Milestone 0013)
+- [ ] Design multi-participant conversation architecture
+- [ ] Implement @mention system for AI participants
+- [ ] Create conversation orchestration service
+- [ ] Add turn management and context switching
+- [ ] Build UI for multi-participant conversations
+- [ ] Implement conversation history with participant attribution
+
+### Chat Interface Refinement (Milestone 0014)
+- [ ] Design and implement enhanced chat UI components
+- [ ] Create conversation management interface
+- [ ] Implement thread creation and listing
+- [ ] Add streaming message display with progress indicators
+- [ ] Improve mobile responsiveness
+- [ ] Add keyboard shortcuts and accessibility features
+
+### MCP Integration (Milestone 0015)
+- [ ] Integrate Model Context Protocol for tool use
+- [ ] Implement MCP tool discovery and registration
+- [ ] Add tool execution at Edge tier
+- [ ] Create audit trail for tool usage in Domain tier
+- [ ] Build UI for tool management and visibility
+
+### OpenAPI Full Implementation (Milestone 0016)
+- [ ] Complete OpenAPI specifications for all endpoints
+- [ ] Implement request/response validation middleware
+- [ ] Add API versioning support
+- [ ] Create comprehensive API documentation
+- [ ] Set up automated API testing from specifications
+
 ## Security Enhancements
 
 ### Short-term (Next 1-2 Milestones)
@@ -39,50 +93,7 @@ This document outlines planned enhancements and improvements to Liminal Type Cha
 - [ ] Add connection pooling for database if needed
 - [ ] Evaluate eventual consistency patterns for distributed deployments
 
-## Feature Roadmap
-
-### MVP 2: Core Chat Functionality & LLM Integration
-
-**Objective:** Implement the core chat interface, conversation persistence, and basic integration with a single LLM provider using user-provided keys.
-
-**Key Features/Tasks:**
-
--   **API Development (Server):**
-    -   [ ] Define and implement API endpoints for:
-        -   [ ] Creating/Listing/Deleting Conversations
-        -   [ ] Adding/Retrieving Messages within a conversation
-        -   [ ] Sending prompts to the LLM service
-    -   [ ] Implement data validation for API inputs.
--   **Database Integration (Server):**
-    -   [ ] Define database schema for `conversations` and `messages` tables.
-    -   [ ] Implement repository/service logic for CRUD operations on conversations and messages.
--   **LLM Integration (Server):**
-    -   [ ] Design `LlmService` interface.
-    -   [ ] Implement initial `OpenAiService` (or similar first provider) integrating with the LLM API.
-    -   [ ] Secure handling of user-provided API keys (initially via environment variables or configuration).
--   **Frontend Development (Client):**
-    -   [ ] Develop UI components for:
-        -   [ ] Conversation list/sidebar
-        -   [ ] Chat message display area
-        -   [ ] Message input box
-    -   [ ] Implement state management for conversations and messages.
-    -   [ ] Integrate frontend with the new chat API endpoints.
--   **Configuration:**
-    -   [ ] Implement loading of LLM API keys from configuration (`.env`).
--   **Documentation:**
-    -   [ ] **Database Schema:** Create detailed documentation for the chat database schema (`docs/DATABASE.md` or similar).
-    -   [ ] **Configuration Guide:** Document environment variables and configuration options (`docs/CONFIGURATION.md` or similar).
-    -   [ ] **OpenAPI Specification:** Generate or write OpenAPI (Swagger) specification for the v1 API (`docs/API.md` or `openapi.yaml`).
-    -   [ ] Update READMEs and relevant documents.
-
-**Definition of Done:**
-
--   [ ] Core chat functionality is testable and usable locally.
--   [ ] User can provide an API key via configuration to interact with one LLM.
--   [ ] Basic conversation history is persisted and displayed.
--   [ ] Key documentation (API Spec, DB Schema, Config Guide) is created.
-
-## MVP 3: Enhanced LLM Support & User Experience
+## Completed Milestones
 ### Core ContextThread Domain Layer (Milestone 0006) - COMPLETED
 - [x] Implement ContextThread and Message data models as TypeScript interfaces
 - [x] Create SQLite schema for storing threads with JSON-serialized messages
@@ -106,29 +117,49 @@ This document outlines planned enhancements and improvements to Liminal Type Cha
 - [x] Implement auth and API key management routes
 - [x] Apply TDD with comprehensive test coverage
 
-### Chat UI and Conversation Experience (Milestone 0009)
-- [ ] Design and implement chat UI components
-- [ ] Create conversation management interface
-- [ ] Implement thread creation and listing
-- [ ] Add streaming message display
+### Security Hardening (Milestone 0009) - COMPLETED
+- [x] Add helmet middleware for security headers
+- [x] Implement CORS with proper allow list
+- [x] Set up rate limiting
+- [x] Add comprehensive error handling
+- [x] Implement security best practices
 
-### Prompt Management (Future)
+## Next Phase - Distinguishing Features
+
+The following features represent the key differentiators for Liminal Type Chat, building on the foundation established in the current milestones:
+
+### AI Roundtable Conversations (See Milestone 0013)
+The flagship feature that sets Liminal apart - multi-participant AI conversations with distinct personalities and perspectives. This creates a new paradigm for AI interaction where users can orchestrate discussions between multiple AI entities.
+
+### Platform Architecture for Extensions
+Building on the Edge/Domain separation and provider abstraction, Liminal will support:
+- **Liminal-flow**: Visual orchestration of AI workflows
+- **Custom Tool Integration**: Beyond MCP, allow custom tool development
+- **Provider Marketplace**: Community-contributed LLM providers
+- **Conversation Templates**: Shareable roundtable configurations
+
+### Advanced Features (Post-MVP)
+
+#### Prompt Management
 - [ ] Design and implement prompt database schema
 - [ ] Add prompt templating capabilities
 - [ ] Create prompt management UI
 - [ ] Implement prompt search functionality
+- [ ] Version control for prompts
 
-### Advanced Orchestration (Future)
+#### Advanced Orchestration
 - [ ] Design pattern for chaining multiple LLM calls
 - [ ] Implement prompt routing capabilities
 - [ ] Add result transformation and post-processing
 - [ ] Create visual orchestration builder UI
+- [ ] Support for conditional logic in workflows
 
-### Multi-user Support (Future, If Needed)
-- [ ] Design user authentication system
+#### Multi-user Support (If Needed)
+- [ ] Extend authentication system for teams
 - [ ] Implement data scoping and permission model
 - [ ] Add team/sharing capabilities
 - [ ] Create administrative interface
+- [ ] Add collaboration features for shared conversations
 
 ## CI/CD Improvements
 
