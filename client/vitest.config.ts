@@ -13,9 +13,7 @@ export default defineConfig({
       exclude: [
         'node_modules/',
         'src/setupTests.ts',
-        'src/services/authService.ts',   // Complex auth logic that's hard to test fully
         'src/pages/ChatPage.tsx',        // Complex UI with streaming and state management
-        'src/components/AuthTester.tsx', // OAuth testing utility used in development
         'scripts/**',                    // Deployment scripts not part of app functionality
         '**/*.d.ts',                     // Type definition files
         '.eslintrc.js',                  // Configuration files

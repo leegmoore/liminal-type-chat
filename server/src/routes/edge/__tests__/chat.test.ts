@@ -1,18 +1,11 @@
 /**
  * Tests for chat routes
  */
-// Mock auth middleware to always authenticate
-jest.mock('../../../middleware/auth-middleware', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  createAuthMiddleware: () => (req: any, _res: any, next: any) => {
-    req.user = { userId: 'user-123', email: 'test@example.com' };
-    return next();
-  }
-}));
 import request from 'supertest';
 import express from 'express';
 import { createChatSubRouter } from '../chat';
-import { IJwtService } from '../../../providers/auth/jwt/IJwtService';
+// Phase 1: Auth removed
+// import { IJwtService } from '../../../providers/auth/jwt/IJwtService';
 import { IUserRepository } from '../../../providers/db/users/IUserRepository';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ChatService } from '../../../services/core/ChatService';
@@ -32,11 +25,7 @@ interface _RouteLayer {
 }
 
 // Mock dependencies
-const mockJwtService: jest.Mocked<IJwtService> = {
-  generateToken: jest.fn(),
-  verifyToken: jest.fn(),
-  decodeToken: jest.fn()
-};
+// Phase 1: Auth removed - no JWT service needed
 
 const mockUserRepository: jest.Mocked<IUserRepository> = {
   findUserById: jest.fn(),
@@ -90,16 +79,7 @@ describe('Chat Routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Mock successful token verification
-    mockJwtService.verifyToken.mockReturnValue({
-      userId: 'user-123',
-      email: 'test@example.com'
-    });
-    
-    mockJwtService.decodeToken.mockReturnValue({
-      userId: 'user-123',
-      email: 'test@example.com'
-    });
+    // Phase 1: Auth removed - mock JWT verification no longer needed
     
     // Setup express app
     app = express();
@@ -111,7 +91,8 @@ describe('Chat Routes', () => {
     };
     
     // Add routes to app
-    app.use('/chat', createChatSubRouter(mockJwtService, mockUserRepository));
+    // Phase 1: Auth removed - passing undefined for jwtService
+    app.use('/chat', createChatSubRouter(undefined, mockUserRepository));
     
     // Add error handler
     // Error handler middleware
@@ -148,7 +129,7 @@ describe('Chat Routes', () => {
       // Assert
       expect(response.status).toBe(200);
       expect(response.body.models).toEqual(models);
-      expect(mockChatService.getAvailableModels).toHaveBeenCalledWith('user-123', 'anthropic');
+      expect(mockChatService.getAvailableModels).toHaveBeenCalledWith('local-user', 'anthropic');
     });
     
     it('should return 401 when not authenticated', async () => {
@@ -234,7 +215,7 @@ describe('Chat Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual(completionResponse);
       expect(mockChatService.completeChatPrompt).toHaveBeenCalledWith(
-        'user-123',
+        'local-user', // Phase 1: Updated to match mock user
         expect.objectContaining(completionRequest)
       );
     });

@@ -2,47 +2,39 @@
  * Edge API routes for API key management
  * Handles storing, retrieving, and deleting API keys
  */
-import express, { Router, Response, NextFunction } from 'express';
-// Custom type for request handlers that use AuthenticatedRequest
-// Type for handlers using the AuthenticatedRequest interface
-type AuthRequestHandler = 
-  (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
+import express, { Router, Request, Response, NextFunction } from 'express';
 import { IUserRepository } from '../../providers/db/users/IUserRepository';
-import { AuthenticatedRequest, createAuthMiddleware } from '../../middleware/auth-middleware';
-import { IJwtService } from '../../providers/auth/jwt/IJwtService';
 import { ValidationError } from '../../utils/errors';
 import { LlmProvider } from '../../models/domain/users/User';
+
+// Type for handlers using Express Request
+type AuthRequestHandler = 
+  (req: Request, res: Response, next: NextFunction) => Promise<void>;
 
 /**
  * Create API key management routes
  * @param userRepository - User repository for API key operations
- * @param jwtService - JWT service for authentication
  * @returns Express router with API key routes
  */
 export function createApiKeyRoutes(
-  userRepository: IUserRepository,
-  jwtService: IJwtService
+  userRepository: IUserRepository
 ): Router {
   // Create router with correct typing
   const router = express.Router();
   
-  // Add authentication middleware
-  router.use(createAuthMiddleware(jwtService, userRepository));
+  // Mock user for local development
+  const mockUserId = 'local-user';
   
   /**
    * Store an API key
    * POST /api-keys/:provider
    */
   const postHandler: AuthRequestHandler = async function(
-    req: AuthenticatedRequest, 
+    req: Request, 
     res: Response, 
     next: NextFunction
   ) {
-    // Get user ID from req.user
-    if (!req.user || !req.user.userId) {
-      return next(new ValidationError('Authentication required', 'User ID not found in request'));
-    }
-    const userId = req.user.userId;
+    const userId = mockUserId;
     
     try {
       const { provider } = req.params;
@@ -87,15 +79,11 @@ export function createApiKeyRoutes(
    * GET /api-keys/:provider
    */
   const getHandler: AuthRequestHandler = async function(
-    req: AuthenticatedRequest, 
+    req: Request, 
     res: Response, 
     next: NextFunction
   ) {
-    // Get user ID from req.user
-    if (!req.user || !req.user.userId) {
-      return next(new ValidationError('Authentication required', 'User ID not found in request'));
-    }
-    const userId = req.user.userId;
+    const userId = mockUserId;
     
     try {
       const { provider } = req.params;
@@ -132,15 +120,11 @@ export function createApiKeyRoutes(
    * DELETE /api-keys/:provider
    */
   const deleteHandler: AuthRequestHandler = async function(
-    req: AuthenticatedRequest, 
+    req: Request, 
     res: Response, 
     next: NextFunction
   ) {
-    // Get user ID from req.user
-    if (!req.user || !req.user.userId) {
-      return next(new ValidationError('Authentication required', 'User ID not found in request'));
-    }
-    const userId = req.user.userId;
+    const userId = mockUserId;
     
     try {
       const { provider } = req.params;

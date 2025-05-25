@@ -7,17 +7,8 @@ import { Express } from 'express-serve-static-core';
 
 declare global {
   namespace Express {
-    interface Request {
-      user?: {
-        userId: string;
-        email: string;
-        name: string;
-        scopes: string[];
-        tier: string;
-        tokenId?: string;
-      };
-    }
-
+    // Phase 1: Auth removed - Request extension no longer needed
+    
     interface Response {
       flush?: () => void;
     }

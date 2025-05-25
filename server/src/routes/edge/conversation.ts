@@ -12,10 +12,6 @@ import { ResourceErrorCode } from '../../utils/error-codes'; // Import ResourceE
 import { MessageRole, MessageStatus } from '../../types/domain'; 
 // Import this way to avoid circular dependencies
 import * as ctcFactory from '../../clients/domain/context-thread-client-factory';
-// Import auth dependencies
-import { IJwtService } from '../../providers/auth/jwt/IJwtService';
-import { IUserRepository } from '../../providers/db/users/IUserRepository';
-import { createAuthMiddleware } from '../../middleware/auth-middleware';
 import {
   domainContextThreadToConversationResponse,
   domainContextThreadToConversationSummary,
@@ -74,14 +70,9 @@ console.log(
 
 /**
  * Creates route handlers for Edge API conversation operations
- * @param jwtService - JWT Service for authentication
- * @param userRepository - User Repository for authentication
  * @returns Express router with conversation routes
  */
-export const createConversationRoutes = (
-  jwtService: IJwtService,
-  userRepository: IUserRepository
-) => {
+export const createConversationRoutes = () => {
   console.log(
     'createConversationRoutes: contextThreadClient - Type:', typeof ctcFactory,
     '| Keys:', ctcFactory ? Object.keys(ctcFactory).join(', ') : 'null/undefined'
@@ -94,12 +85,6 @@ export const createConversationRoutes = (
     '| Keys:', clientInstance ? Object.keys(clientInstance).join(', ') : 'null/undefined'
   );
 
-  // Apply authentication middleware to all routes
-  router.use(createAuthMiddleware(jwtService, userRepository, {
-    required: true,
-    requiredScopes: [],
-    requiredTier: 'edge'
-  }));
 
   // GET /api/v1/conversations - Get all conversations
   router.get('/', async (req: Request, res: Response, next: NextFunction) => {

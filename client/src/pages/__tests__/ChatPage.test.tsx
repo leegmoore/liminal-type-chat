@@ -13,13 +13,6 @@ vi.mock('axios', () => ({
   }
 }));
 
-// Mock authService functions to prevent auth-related issues
-vi.mock('../../../services/authService', () => ({
-  getAuthToken: vi.fn().mockReturnValue('mock-token'),
-  loginAsGuest: vi.fn().mockResolvedValue({}),
-  initializeAuth: vi.fn().mockReturnValue(true)
-}));
-
 describe('ChatPage', () => {
   beforeEach(() => {
     // Clear all mocks before each test

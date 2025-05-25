@@ -3,13 +3,7 @@
  * Exports all middleware components
  */
 
-// Edge-tier authentication
-export * from './auth-middleware';
-export * from './auth-utils';
-
-// Domain-tier authentication
-export * from './domain-auth-middleware';
-export * from './domain-auth-utils';
+// Phase 1: Auth removed - auth exports deleted
 
 // Error handling
 export * from './error-handler';

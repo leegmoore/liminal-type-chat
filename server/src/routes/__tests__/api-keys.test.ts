@@ -4,16 +4,13 @@
 import request from 'supertest';
 import express from 'express';
 import { createApiKeyRoutes } from '../edge/api-keys';
-import { IJwtService } from '../../providers/auth/jwt/IJwtService';
+// Phase 1: Auth removed
+// import { IJwtService } from '../../providers/auth/jwt/IJwtService';
 import { IUserRepository } from '../../providers/db/users/IUserRepository';
 import { ApiKeyInfo } from '../../models/domain/users/User';
 
 // Mock dependencies
-const mockJwtService: jest.Mocked<IJwtService> = {
-  generateToken: jest.fn(),
-  verifyToken: jest.fn(),
-  decodeToken: jest.fn()
-};
+// Phase 1: Auth removed - no JWT service needed
 
 const mockUserRepository: jest.Mocked<IUserRepository> = {
   getUserById: jest.fn(),
@@ -32,9 +29,9 @@ describe('API Key Routes', () => {
   let app: express.Application;
   
   // Sample user data for authentication
-  const mockUserId = 'user-123';
-  const mockUserEmail = 'test@example.com';
-  const mockUserName = 'Test User';
+  const mockUserId = 'local-user';
+  const _mockUserEmail = 'test@example.com';
+  const _mockUserName = 'Test User';
   
   // Sample API key data
   const mockApiKey = 'sk-1234567890abcdef';
@@ -52,20 +49,11 @@ describe('API Key Routes', () => {
     app = express();
     app.use(express.json());
     
-    // Mock JWT verification for authenticated requests
-    mockJwtService.verifyToken.mockReturnValue({
-      userId: mockUserId,
-      email: mockUserEmail,
-      name: mockUserName,
-      scopes: ['read:profile', 'write:profile'],
-      tier: 'edge',
-      tokenId: 'token-id',
-      issuedAt: new Date(),
-      expiresAt: new Date(Date.now() + 900000) // 15 minutes in the future
-    });
+    // Phase 1: Auth removed - mock JWT verification no longer needed
     
     // Add routes to app
-    app.use('/api-keys', createApiKeyRoutes(mockUserRepository, mockJwtService));
+    // Phase 1: Auth removed - passing undefined for jwtService
+    app.use('/api-keys', createApiKeyRoutes(mockUserRepository, undefined));
     
     // Add error handler
     app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
@@ -81,7 +69,6 @@ describe('API Key Routes', () => {
       // Act
       const response = await request(app)
         .post('/api-keys/openai')
-        .set('Authorization', 'Bearer valid-token')
         .send({
           apiKey: mockApiKey,
           label: 'Development Key'
@@ -101,49 +88,28 @@ describe('API Key Routes', () => {
       );
     });
     
-    it('should return 401 when not authenticated', async () => {
+    it('should work without authentication', async () => {
       // Arrange
-      mockJwtService.verifyToken.mockImplementation(() => {
-        // Throw an UnauthorizedError to match the actual implementation
-        interface MockError extends Error {
-          statusCode: number;
-          code: number;
-          errorCode: string;
-          toJSON: () => { error: { code: number; message: string; errorCode: string } };
-        }
-        const error = new Error('Invalid token') as MockError;
-        error.statusCode = 401;
-        error.code = 4010;
-        error.errorCode = 'auth.unauthorized';
-        error.toJSON = () => ({ 
-          error: { 
-            code: 4010, 
-            message: 'Invalid token', 
-            errorCode: 'auth.unauthorized' 
-          } 
-        });
-        throw error;
-      });
+      mockUserRepository.storeApiKey.mockResolvedValue(true);
       
       // Act
       const response = await request(app)
         .post('/api-keys/openai')
-        .set('Authorization', 'Bearer invalid-token')
         .send({
           apiKey: mockApiKey,
           label: 'Development Key'
         });
       
       // Assert
-      expect(response.status).toBe(401);
-      expect(mockUserRepository.storeApiKey).not.toHaveBeenCalled();
+      // Auth removed - requests work without authentication
+      expect(response.status).toBe(201);
+      expect(mockUserRepository.storeApiKey).toHaveBeenCalled();
     });
     
     it('should return 400 when apiKey is missing', async () => {
       // Act
       const response = await request(app)
         .post('/api-keys/openai')
-        .set('Authorization', 'Bearer valid-token')
         .send({
           label: 'Development Key'
         });
@@ -158,7 +124,6 @@ describe('API Key Routes', () => {
       // Act
       const response = await request(app)
         .post('/api-keys/unsupported')
-        .set('Authorization', 'Bearer valid-token')
         .send({
           apiKey: mockApiKey,
           label: 'Development Key'
@@ -178,8 +143,7 @@ describe('API Key Routes', () => {
       
       // Act
       const response = await request(app)
-        .get('/api-keys/openai')
-        .set('Authorization', 'Bearer valid-token');
+        .get('/api-keys/openai');
       
       // Assert
       expect(response.status).toBe(200);
@@ -200,8 +164,7 @@ describe('API Key Routes', () => {
       
       // Act
       const response = await request(app)
-        .get('/api-keys/openai')
-        .set('Authorization', 'Bearer valid-token');
+        .get('/api-keys/openai');
       
       // Assert
       expect(response.status).toBe(200);
@@ -211,45 +174,25 @@ describe('API Key Routes', () => {
       expect(response.body).not.toHaveProperty('createdAt');
     });
     
-    it('should return 401 when not authenticated', async () => {
+    it('should work without authentication', async () => {
       // Arrange
-      mockJwtService.verifyToken.mockImplementation(() => {
-        // Throw an UnauthorizedError to match the actual implementation
-        interface MockError extends Error {
-          statusCode: number;
-          code: number;
-          errorCode: string;
-          toJSON: () => { error: { code: number; message: string; errorCode: string } };
-        }
-        const error = new Error('Invalid token') as MockError;
-        error.statusCode = 401;
-        error.code = 4010;
-        error.errorCode = 'auth.unauthorized';
-        error.toJSON = () => ({ 
-          error: { 
-            code: 4010, 
-            message: 'Invalid token', 
-            errorCode: 'auth.unauthorized' 
-          } 
-        });
-        throw error;
-      });
+      mockUserRepository.getApiKey.mockResolvedValue(null);
       
       // Act
       const response = await request(app)
-        .get('/api-keys/openai')
-        .set('Authorization', 'Bearer invalid-token');
+        .get('/api-keys/openai');
       
       // Assert
-      expect(response.status).toBe(401);
-      expect(mockUserRepository.getApiKey).not.toHaveBeenCalled();
+      // Auth removed - requests work without authentication
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('hasKey', false);
+      expect(mockUserRepository.getApiKey).toHaveBeenCalled();
     });
     
     it('should return 400 for unsupported provider', async () => {
       // Act
       const response = await request(app)
-        .get('/api-keys/unsupported')
-        .set('Authorization', 'Bearer valid-token');
+        .get('/api-keys/unsupported');
       
       // Assert
       expect(response.status).toBe(400);
@@ -265,8 +208,7 @@ describe('API Key Routes', () => {
       
       // Act
       const response = await request(app)
-        .delete('/api-keys/openai')
-        .set('Authorization', 'Bearer valid-token');
+        .delete('/api-keys/openai');
       
       // Assert
       expect(response.status).toBe(200);
@@ -286,53 +228,33 @@ describe('API Key Routes', () => {
       
       // Act
       const response = await request(app)
-        .delete('/api-keys/openai')
-        .set('Authorization', 'Bearer valid-token');
+        .delete('/api-keys/openai');
       
       // Assert
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('message', 'No API key found for this provider');
     });
     
-    it('should return 401 when not authenticated', async () => {
+    it('should work without authentication', async () => {
       // Arrange
-      mockJwtService.verifyToken.mockImplementation(() => {
-        // Throw an UnauthorizedError to match the actual implementation
-        interface MockError extends Error {
-          statusCode: number;
-          code: number;
-          errorCode: string;
-          toJSON: () => { error: { code: number; message: string; errorCode: string } };
-        }
-        const error = new Error('Invalid token') as MockError;
-        error.statusCode = 401;
-        error.code = 4010;
-        error.errorCode = 'auth.unauthorized';
-        error.toJSON = () => ({ 
-          error: { 
-            code: 4010, 
-            message: 'Invalid token', 
-            errorCode: 'auth.unauthorized' 
-          } 
-        });
-        throw error;
-      });
+      // Mock deleteApiKey to return false (no key found)
+      mockUserRepository.deleteApiKey.mockResolvedValue(false);
       
       // Act
       const response = await request(app)
-        .delete('/api-keys/openai')
-        .set('Authorization', 'Bearer invalid-token');
+        .delete('/api-keys/openai');
       
       // Assert
-      expect(response.status).toBe(401);
-      expect(mockUserRepository.deleteApiKey).not.toHaveBeenCalled();
+      // Auth removed - requests work without authentication
+      // Returns 404 because deleteApiKey returns false
+      expect(response.status).toBe(404);
+      expect(response.body).toHaveProperty('message', 'No API key found for this provider');
     });
     
     it('should return 400 for unsupported provider', async () => {
       // Act
       const response = await request(app)
-        .delete('/api-keys/unsupported')
-        .set('Authorization', 'Bearer valid-token');
+        .delete('/api-keys/unsupported');
       
       // Assert
       expect(response.status).toBe(400);

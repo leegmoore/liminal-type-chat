@@ -69,7 +69,6 @@ When adding new services:
 As development continues, we'll add these services:
 
 - **conversationService**: For managing chat conversations
-- **authService**: For authentication and authorization
 - **llmService**: For LLM provider integration
 - **settingsService**: For user preferences and API key management
 

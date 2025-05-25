@@ -9,7 +9,6 @@ import path from 'path';
 import { createDomainApiRoutes } from './routes/domain';
 import { createEdgeHealthRoutes } from './routes/edge/health';
 import { createConversationRoutes } from './routes/edge/conversation';
-import { createAuthRoutes } from './routes/edge/auth';
 import { createApiKeyRoutes } from './routes/edge/api-keys';
 import { createChatRoutes, createChatService } from './routes/edge/chat-routes';
 import { HealthService } from './services/core/health-service';
@@ -21,11 +20,6 @@ import { UserRepository } from './providers/db/users/UserRepository';
 import { EncryptionService } from './providers/security/encryption-service';
 import { SecureStorage } from './providers/security/secure-storage';
 import { LlmApiKeyManager } from './providers/llm/LlmApiKeyManager';
-import { JwtServiceFactory } from './providers/auth/jwt/JwtServiceFactory';
-import { IJwtService } from './providers/auth/jwt/IJwtService';
-import { JwtService } from './providers/auth/jwt/JwtService';
-import { GitHubOAuthProvider } from './providers/auth/github/GitHubOAuthProvider';
-import { AuthBridgeServiceFactory } from './providers/auth/bridge/AuthBridgeServiceFactory';
 import config from './config';
 import { createHealthServiceClient } from './clients/domain/health-service-client-factory';
 import { createSwaggerRouter } from './middlewares/swagger';
@@ -69,33 +63,9 @@ const encryptionService = new EncryptionService();
 const secureStorage = new SecureStorage();
 const userRepository = new UserRepository(dbProvider, encryptionService);
 
-// Initialize JWT service
-// Create a default service first, will be replaced with enhanced service if available
-let jwtService: IJwtService = new JwtService();
-
-// Try to initialize enhanced JWT service asynchronously
-(async () => {
-  try {
-    const enhancedService = await JwtServiceFactory.createJwtService(true); // Use enhanced service
-    jwtService = enhancedService;
-    console.log('JWT service initialized with enhanced security');
-  } catch (error) {
-    console.error('Failed to initialize enhanced JWT service, using legacy:', error);
-    // jwtService already set to JwtService
-  }
-})();
-
 // Create LLM services
 const llmApiKeyManager = new LlmApiKeyManager(secureStorage, userRepository);
 const chatService = createChatService(llmApiKeyManager, contextThreadService);
-
-// Create OAuth providers
-const oauthProviders = new Map();
-const githubOAuthProvider = new GitHubOAuthProvider(
-  process.env.GITHUB_CLIENT_ID || '',
-  process.env.GITHUB_CLIENT_SECRET || ''
-);
-oauthProviders.set('github', githubOAuthProvider);
 
 // Create client adapters
 const healthServiceClient = createHealthServiceClient(healthService);
@@ -105,32 +75,21 @@ app.locals.services = {
   healthService,
   contextThreadService,
   chatService,
-  llmApiKeyManager,
-  jwtService
+  llmApiKeyManager
 };
 
-// Initialize domain routes with auth bridge (will be set up async)
-// For now, mount without auth bridge - we'll fix this properly in a moment
-AuthBridgeServiceFactory.createAuthBridgeService().then(authBridgeService => {
-  // Mount domain routes with authentication
-  app.use('/api/v1/domain', createDomainApiRoutes(
-    authBridgeService,
-    contextThreadService,
-    healthService
-  ));
-  console.log('Domain routes mounted with authentication');
-}).catch(error => {
-  console.error('Failed to initialize domain routes with auth:', error);
-  // Fallback - mount without auth (for development only)
-  console.warn('WARNING: Mounting domain routes without authentication!');
-});
+// Initialize domain routes
+app.use('/api/v1/domain', createDomainApiRoutes(
+  contextThreadService,
+  healthService
+));
+console.log('Domain routes mounted');
 
 // Mount edge routes
 app.use(createEdgeHealthRoutes(healthServiceClient));
-app.use('/api/v1/conversations', createConversationRoutes(jwtService, userRepository));
-app.use('/api/v1/auth', createAuthRoutes(userRepository, jwtService, oauthProviders));
-app.use('/api/v1/api-keys', createApiKeyRoutes(userRepository, jwtService));
-app.use(createChatRoutes(jwtService, userRepository)); // Pass jwtService and userRepository here
+app.use('/api/v1/conversations', createConversationRoutes());
+app.use('/api/v1/api-keys', createApiKeyRoutes(userRepository));
+app.use(createChatRoutes());
 
 // Mount Swagger UI documentation routes
 app.use('/docs', createSwaggerRouter());

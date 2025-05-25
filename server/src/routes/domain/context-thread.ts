@@ -22,6 +22,32 @@ export function createContextThreadRoutes(service: ContextThreadService): Router
   const router = Router();
 
   /**
+   * GET /api/v1/domain/threads
+   * Get a list of all threads
+   */
+  router.get('/', (req: Request, res: Response) => {
+    try {
+      // Parse query parameters for pagination
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = parseInt(req.query.offset as string) || 0;
+      
+      // Get threads from service
+      const threads = service.getContextThreads(limit, offset);
+      
+      return res.status(200).json({
+        success: true,
+        data: threads
+      });
+    } catch (error) {
+      console.error('Error getting threads:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'An unexpected error occurred while retrieving threads'
+      });
+    }
+  });
+
+  /**
  * GET /api/v1/domain/threads/:id
  * Get a thread by ID
  */

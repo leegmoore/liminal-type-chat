@@ -3,21 +3,7 @@ import { ChatService, ChatCompletionRequest } from '../../services/core/ChatServ
 import { LlmServiceFactory } from '../../providers/llm/LlmServiceFactory';
 import { LlmProvider, LlmServiceError } from '../../providers/llm/ILlmService';
 import { NotFoundError } from '../../utils/errors';
-import { createAuthMiddleware } from '../../middleware/auth-middleware';
-import { IJwtService } from '../../providers/auth/jwt/IJwtService';
-import { IUserRepository } from '../../providers/db/users/IUserRepository';
 import { setupSseHeaders, sendSseData, sendSseError } from './stream-helper';
-
-// Define the extended Request type with user property
-export interface AuthenticatedRequest extends Request {
-  user?: {
-    userId: string;
-    email: string;
-    name: string;
-    scopes: string[];
-    tier: string;
-  };
-}
 
 // Define BadRequestError (keeping it local if only used here)
 class BadRequestError extends Error {
@@ -33,25 +19,18 @@ class BadRequestError extends Error {
   }
 }
 
-export function createChatSubRouter(
-  jwtService: IJwtService, 
-  userRepository: IUserRepository
-): Router {
+export function createChatSubRouter(): Router {
   const router = express.Router();
 
-  // Apply authentication middleware correctly
-  router.use(createAuthMiddleware(jwtService, userRepository, {
-    required: true,
-    requiredScopes: [],
-    requiredTier: 'edge'
-  }));
+  // Mock user for local development
+  const mockUser = { id: 'local-user', email: 'user@local', tier: 'free' };
 
   /**
    * Endpoint to list available LLM models for a provider
    * GET /models/:provider  (Note: path is relative to where this router is mounted)
    */
   router.get('/models/:provider', async (
-    req: AuthenticatedRequest, 
+    req: Request, 
     res: Response, 
     next: NextFunction
   ) => {
@@ -72,11 +51,7 @@ export function createChatSubRouter(
         return next(new Error('ChatService not available on app.locals.services'));
       }
 
-      // Get current user ID (this assumes authentication middleware sets req.user)
-      if (!req.user || !req.user.userId) {
-        return next(new Error('Authentication required: User ID not found.'));
-      }
-      const userId = req.user.userId;
+      const userId = mockUser.id;
 
       // Get available models
       const models = await chatService.getAvailableModels(userId, provider as LlmProvider);
@@ -92,7 +67,7 @@ export function createChatSubRouter(
    * POST /completions (Note: path is relative)
    */
   router.post('/completions', async (
-    req: AuthenticatedRequest, 
+    req: Request, 
     res: Response, 
     next: NextFunction
   ) => {
@@ -126,11 +101,7 @@ export function createChatSubRouter(
         return next(new Error('ChatService not available on app.locals.services'));
       }
 
-      // Get current user ID (this assumes authentication middleware sets req.user)
-      if (!req.user || !req.user.userId) {
-        return next(new Error('Authentication required: User ID not found.'));
-      }
-      const userId = req.user.userId;
+      const userId = mockUser.id;
 
       // Create request
       const completionRequest: ChatCompletionRequest = {
@@ -162,7 +133,7 @@ export function createChatSubRouter(
    * This endpoint is designed to work with EventSource/SSE on the client
    */
   router.get('/completions/stream', async (
-    req: AuthenticatedRequest, 
+    req: Request, 
     res: Response, 
     next: NextFunction
   ) => {
@@ -209,11 +180,7 @@ export function createChatSubRouter(
         return next(new Error('ChatService not available on app.locals.services'));
       }
 
-      // Get current user ID
-      if (!req.user || !req.user.userId) {
-        return next(new Error('Authentication required: User ID not found.'));
-      }
-      const userId = req.user.userId;
+      const userId = mockUser.id;
 
       // Create request
       const completionRequest: ChatCompletionRequest = {

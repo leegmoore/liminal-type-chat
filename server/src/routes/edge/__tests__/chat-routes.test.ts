@@ -4,17 +4,14 @@
 import express from 'express';
 import request from 'supertest';
 import { createChatRoutes, createChatService } from '../chat-routes';
-import { IJwtService } from '../../../providers/auth/jwt/IJwtService';
+// Phase 1: Auth removed
+// import { IJwtService } from '../../../providers/auth/jwt/IJwtService';
 import { IUserRepository } from '../../../providers/db/users/IUserRepository';
 import { LlmApiKeyManager } from '../../../providers/llm/LlmApiKeyManager';
 import { ContextThreadService } from '../../../services/core/ContextThreadService';
 
 // Mock dependencies
-const mockJwtService: jest.Mocked<IJwtService> = {
-  generateToken: jest.fn(),
-  verifyToken: jest.fn(),
-  decodeToken: jest.fn()
-};
+// Phase 1: Auth removed - no JWT service needed
 
 const mockUserRepository: jest.Mocked<IUserRepository> = {
   getUserById: jest.fn(),
@@ -71,7 +68,8 @@ describe('Chat Routes', () => {
     app.use(express.json());
     
     // Add routes to app
-    app.use(createChatRoutes(mockJwtService, mockUserRepository));
+    // Phase 1: Auth removed - passing undefined for jwtService
+    app.use(createChatRoutes(undefined, mockUserRepository));
   });
   
   describe('createChatRoutes', () => {

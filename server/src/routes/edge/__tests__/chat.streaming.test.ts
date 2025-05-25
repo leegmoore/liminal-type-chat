@@ -1,14 +1,6 @@
 /**
  * Tests for chat streaming routes
  */
-// Mock auth middleware to always authenticate
-jest.mock('../../../middleware/auth-middleware', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  createAuthMiddleware: () => (req: any, _res: any, next: any) => {
-    req.user = { userId: 'user-123', email: 'test@example.com' };
-    return next();
-  }
-}));
 
 /**
  * Tests for chat route streaming functionality
@@ -17,7 +9,8 @@ jest.mock('../../../middleware/auth-middleware', () => ({
 import express, { Response } from 'express';
 import request from 'supertest';
 import { createChatSubRouter } from '../chat';
-import { IJwtService } from '../../../providers/auth/jwt/IJwtService';
+// Phase 1: Auth removed
+// import { IJwtService } from '../../../providers/auth/jwt/IJwtService';
 import { IUserRepository } from '../../../providers/db/users/IUserRepository';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ChatService } from '../../../services/core/ChatService';
@@ -39,11 +32,7 @@ interface RouteLayer {
 }
 
 // Mock dependencies
-const mockJwtService: jest.Mocked<IJwtService> = {
-  generateToken: jest.fn(),
-  verifyToken: jest.fn(),
-  decodeToken: jest.fn()
-};
+// Phase 1: Auth removed - no JWT service needed
 
 const mockUserRepository: jest.Mocked<IUserRepository> = {
   getUserById: jest.fn(),
@@ -85,7 +74,7 @@ describe('Chat Streaming Routes', () => {
   let mockRes: Response;
   
   // Sample user data for authentication
-  const mockUserId = 'user-123';
+  const mockUserId = 'local-user';
   const mockUserEmail = 'test@example.com';
   const mockUserName = 'Test User';
   
@@ -107,17 +96,7 @@ describe('Chat Streaming Routes', () => {
     app = express();
     app.use(express.json());
     
-    // Mock JWT verification for authenticated requests
-    mockJwtService.verifyToken.mockReturnValue({
-      userId: mockUserId,
-      email: mockUserEmail,
-      name: mockUserName,
-      scopes: ['read:profile', 'write:profile'],
-      tier: 'edge',
-      tokenId: 'token-id',
-      issuedAt: new Date(),
-      expiresAt: new Date(Date.now() + 900000) // 15 minutes in the future
-    });
+    // Phase 1: Auth removed - mock JWT verification no longer needed
     
     // Set up chat service in app.locals
     app.locals.services = {
@@ -125,7 +104,8 @@ describe('Chat Streaming Routes', () => {
     };
     
     // Add routes to app
-    app.use('/chat', createChatSubRouter(mockJwtService, mockUserRepository));
+    // Phase 1: Auth removed - passing undefined for jwtService
+    app.use('/chat', createChatSubRouter(undefined, mockUserRepository));
     
     // Add error handler
     app.use((err: Error, _req: express.Request, res: Response, _next: express.NextFunction) => {
@@ -195,7 +175,7 @@ describe('Chat Streaming Routes', () => {
       });
       
       // Get the handler for testing
-      const router = createChatSubRouter(mockJwtService, mockUserRepository);
+      const router = createChatSubRouter(undefined, mockUserRepository);
       const handlers = (router as express.Router & { stack: RouteLayer[] }).stack.filter((layer: RouteLayer) => 
         layer.route && layer.route.path === '/completions/stream'
       );
@@ -235,7 +215,7 @@ describe('Chat Streaming Routes', () => {
       mockChatService.streamChatCompletion.mockRejectedValue(streamError);
       
       // Get the handler for testing
-      const router = createChatSubRouter(mockJwtService, mockUserRepository);
+      const router = createChatSubRouter(undefined, mockUserRepository);
       const handlers = (router as express.Router & { stack: RouteLayer[] }).stack.filter((layer: RouteLayer) => 
         layer.route && layer.route.path === '/completions/stream'
       );
@@ -275,7 +255,7 @@ describe('Chat Streaming Routes', () => {
       });
       
       // Get the handler for testing
-      const router = createChatSubRouter(mockJwtService, mockUserRepository);
+      const router = createChatSubRouter(undefined, mockUserRepository);
       const handlers = (router as express.Router & { stack: RouteLayer[] }).stack.filter((layer: RouteLayer) => 
         layer.route && layer.route.path === '/completions/stream'
       );
@@ -368,7 +348,7 @@ describe('Chat Streaming Routes', () => {
       mockReq.app.locals.services.chatService = null;
       
       // Get the handler for testing
-      const router = createChatSubRouter(mockJwtService, mockUserRepository);
+      const router = createChatSubRouter(undefined, mockUserRepository);
       const handlers = (router as express.Router & { stack: RouteLayer[] }).stack.filter((layer: RouteLayer) => 
         layer.route && layer.route.path === '/completions/stream'
       );
@@ -386,32 +366,56 @@ describe('Chat Streaming Routes', () => {
       }));
     });
   
-    it('should validate user is authenticated', async () => {
-      // Arrange - create a request with missing user
+    it('should work without authentication', async () => {
+      // Phase 1: Auth removed - this test verifies streaming works without auth
+      // Arrange - create a request without user
       const mockReq = createMockRequest({
         prompt: 'Hello, bot!',
         provider: 'anthropic',
         threadId: 'thread-123'
       });
-      mockReq.user = null;
+      mockReq.user = null; // No user required
+      
+      // Setup mock stream
+      mockChatService.streamChatCompletion.mockImplementation(async (_userId, _request, callback) => {
+        // Simulate chunks
+        callback({
+          threadId: 'thread-123',
+          messageId: 'msg-456',
+          content: 'Hello',
+          model: 'claude-3-7-sonnet-20250218',
+          provider: 'anthropic',
+          done: false
+        });
+        
+        callback({
+          threadId: 'thread-123',
+          messageId: 'msg-456',
+          content: ' world!',
+          model: 'claude-3-7-sonnet-20250218',
+          provider: 'anthropic',
+          finishReason: 'stop',
+          done: true
+        });
+      });
       
       // Get the handler for testing
-      const router = createChatSubRouter(mockJwtService, mockUserRepository);
+      const router = createChatSubRouter(undefined, mockUserRepository);
       const handlers = (router as express.Router & { stack: RouteLayer[] }).stack.filter((layer: RouteLayer) => 
         layer.route && layer.route.path === '/completions/stream'
       );
       const streamHandler = handlers[0].route.stack[0].handle;
       
-      // Mock next function to capture error
-      const mockNext = jest.fn();
-      
       // Act
-      await streamHandler(mockReq, mockRes, mockNext);
+      await streamHandler(mockReq, mockRes, jest.fn());
       
-      // Assert
-      expect(mockNext).toHaveBeenCalledWith(expect.objectContaining({
-        message: 'Authentication required: User ID not found.'
-      }));
+      // Assert - should work without error
+      expect(streamHelper.setupSseHeaders).toHaveBeenCalledWith(mockRes);
+      expect(mockChatService.streamChatCompletion).toHaveBeenCalledWith(
+        'local-user', // Uses mock user ID
+        expect.any(Object),
+        expect.any(Function)
+      );
     });
   });
 });

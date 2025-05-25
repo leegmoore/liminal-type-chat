@@ -8,7 +8,8 @@ import express, { NextFunction, Request, Response } from 'express';
 import { createConversationRoutes } from '../conversation';
 import { ValidationError } from '../../../utils/errors';
 import * as transformers from '../transformers/conversation-transformers';
-import { IJwtService } from '../../../providers/auth/jwt/IJwtService';
+// Phase 1: Auth removed
+// import { IJwtService } from '../../../providers/auth/jwt/IJwtService';
 import { IUserRepository } from '../../../providers/db/users/IUserRepository';
 
 // Mock the context thread client
@@ -26,20 +27,6 @@ jest.mock('../../../clients/domain/context-thread-client-factory', () => ({
   getContextThreadClient: jest.fn(() => mockContextThreadClient)
 }));
 
-// Mock authentication middleware to bypass auth in tests
-jest.mock('../../../middleware/auth-middleware', () => ({
-  createAuthMiddleware: jest.fn().mockReturnValue((req: Request, res: Response, next: NextFunction) => {
-    req.user = {
-      userId: 'test-user-id',
-      email: 'test@example.com',
-      name: 'Test User',
-      scopes: ['read:conversations', 'write:conversations'],
-      tier: 'edge',
-      tokenId: 'test-token-id'
-    };
-    next();
-  })
-}));
 
 // Mock the transformers
 jest.mock('../transformers/conversation-transformers', () => {
@@ -55,19 +42,11 @@ jest.mock('../transformers/conversation-transformers', () => {
 
 describe('Conversation Routes - Extended Coverage Tests', () => {
   let app: express.Application;
-  let mockJwtService: jest.Mocked<IJwtService>;
+  // Phase 1: Auth removed - mockJwtService no longer needed
   let mockUserRepository: jest.Mocked<IUserRepository>;
   
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    // Create mock JWT service
-    mockJwtService = {
-      generateToken: jest.fn(),
-      verifyToken: jest.fn(),
-      decodeToken: jest.fn(),
-      refreshToken: jest.fn()
-    } as unknown as jest.Mocked<IJwtService>;
     
     // Create mock user repository
     mockUserRepository = {
@@ -87,7 +66,8 @@ describe('Conversation Routes - Extended Coverage Tests', () => {
     app.use(express.json());
     
     // Add routes to app with required parameters
-    app.use('/api/v1/conversations', createConversationRoutes(mockJwtService, mockUserRepository));
+    // Phase 1: Auth removed - passing undefined for jwtService
+    app.use('/api/v1/conversations', createConversationRoutes(undefined, mockUserRepository));
     
     // Add error handler
     app.use((err: Error & { statusCode?: number; toJSON?: () => Record<string, unknown> }, 
@@ -249,7 +229,8 @@ describe('Conversation Routes - Extended Coverage Tests', () => {
       // Reset app setup
       app = express();
       app.use(express.json());
-      app.use('/api/v1/conversations', createConversationRoutes(mockJwtService, mockUserRepository));
+      // Phase 1: Auth removed - passing undefined for jwtService
+      app.use('/api/v1/conversations', createConversationRoutes(undefined, mockUserRepository));
       app.use((err: Error & { statusCode?: number; toJSON?: () => Record<string, unknown> }, 
         _req: Request, res: Response, _next: NextFunction) => {
         const statusCode = err.statusCode || 500;

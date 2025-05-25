@@ -50,6 +50,7 @@ export class ContextThreadService {
   public addMessage = this.addMessageToContextThread;
   public updateMessage = this.updateMessageInContextThread;
   public deleteThread = this.deleteContextThread;
+  public listContextThreads = this.getContextThreads;
 
   /**
    * Get a list of context threads with pagination.

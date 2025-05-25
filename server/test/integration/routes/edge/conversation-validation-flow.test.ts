@@ -7,23 +7,7 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { createConversationRoutes } from '../../../../src/routes/edge/conversation';
 import { errorHandler } from '../../../../src/middleware/error-handler';
-import { IJwtService } from '../../../../src/providers/auth/jwt/IJwtService';
-import { IUserRepository } from '../../../../src/providers/db/users/IUserRepository';
-
-// Mock authentication middleware to bypass auth in tests
-jest.mock('../../../../src/middleware/auth-middleware', () => ({
-  createAuthMiddleware: jest.fn().mockReturnValue((req: any, res: any, next: any) => {
-    req.user = {
-      userId: 'test-user-id',
-      email: 'test@example.com',
-      name: 'Test User',
-      scopes: ['read:conversations', 'write:conversations'],
-      tier: 'edge',
-      tokenId: 'test-token-id'
-    };
-    next();
-  })
-}));
+// Phase 1: Auth removed - no auth imports needed
 
 // Mock the domain client factory with validation-aware behavior
 jest.mock('../../../../src/clients/domain/context-thread-client-factory', () => {
@@ -122,8 +106,7 @@ jest.mock('../../../../src/providers/db/ContextThreadRepository');
 
 describe('Conversation API Validation Flow - Integration Tests', () => {
   let app: express.Express;
-  let mockJwtService: jest.Mocked<IJwtService>;
-  let mockUserRepository: jest.Mocked<IUserRepository>;
+  // Phase 1: Auth removed - no auth mocks needed
   let mockContextThreadClient: {
     createContextThread: jest.Mock;
     getContextThread: jest.Mock; 
@@ -137,26 +120,7 @@ describe('Conversation API Validation Flow - Integration Tests', () => {
     // Reset mocks
     jest.clearAllMocks();
     
-    // Create mock JWT service
-    mockJwtService = {
-      generateToken: jest.fn(),
-      verifyToken: jest.fn(),
-      decodeToken: jest.fn(),
-      refreshToken: jest.fn()
-    } as unknown as jest.Mocked<IJwtService>;
-    
-    // Create mock user repository
-    mockUserRepository = {
-      createUser: jest.fn(),
-      getUserById: jest.fn(),
-      getUserByEmail: jest.fn(),
-      updateUser: jest.fn(),
-      deleteUser: jest.fn(),
-      getUserByProvider: jest.fn(),
-      updateApiKey: jest.fn(),
-      getApiKey: jest.fn(),
-      deleteApiKey: jest.fn()
-    } as unknown as jest.Mocked<IUserRepository>;
+    // Phase 1: Auth removed - no auth service mocks needed
     
     // Create a test Express app
     app = express();
@@ -169,7 +133,7 @@ describe('Conversation API Validation Flow - Integration Tests', () => {
     
     // Configure the test app
     app.use(express.json());
-    app.use('/api/v1/conversations', createConversationRoutes(mockJwtService, mockUserRepository));
+    app.use('/api/v1/conversations', createConversationRoutes());
     app.use(errorHandler);
   });
   

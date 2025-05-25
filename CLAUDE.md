@@ -18,6 +18,10 @@ When you see these ! commands, execute the corresponding npm script:
 
 **Why use ! commands**: They signal project-specific operations that should use npm scripts, not generic commands.
 
+
+## ! Thinking tokens
+for all requests, you should think and reflect on tasks or questions being asked of you
+
 ## Quick Links
 
 ### Core Documentation

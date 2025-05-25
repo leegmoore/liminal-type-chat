@@ -29,7 +29,6 @@ import {
   CardBody
 } from '@chakra-ui/react';
 import { AddIcon, SettingsIcon } from '@chakra-ui/icons';
-import { getAuthToken, loginAsGuest, initializeAuth } from '../services/authService';
 
 // Types for LLM integration
 interface LlmModel {
@@ -106,48 +105,10 @@ const ChatPage: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Initialize authentication on load
-  useEffect(() => {
-    const initAuth = async () => {
-      // Check if we have a token
-      const hasToken = initializeAuth();
-      
-      // If not, login as guest for development/testing
-      if (!hasToken) {
-        try {
-          await loginAsGuest();
-          toast({
-            title: 'Logged in as guest',
-            description: 'Using guest mode for testing',
-            status: 'success',
-            duration: 3000,
-            isClosable: true,
-          });
-        } catch (error) {
-          console.error('Error logging in as guest:', error);
-          toast({
-            title: 'Login failed',
-            description: 'Failed to create guest session',
-            status: 'error',
-            duration: 3000,
-            isClosable: true,
-          });
-        }
-      }
-    };
-    
-    initAuth();
-  }, [toast]);
 
   // Load threads on initial render
   useEffect(() => {
     const fetchThreads = async () => {
-      // Ensure we have authentication before fetching
-      if (!getAuthToken()) {
-        console.warn('No authentication token available');
-        return;
-      }
-      
       try {
         const response = await axios.get('/api/v1/conversations');
         if (response.data && response.data.conversations) {

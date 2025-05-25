@@ -10,32 +10,23 @@ import { createContextThreadRoutes } from './context-thread';
 import { createHealthCheckRoutes } from './health';
 import { ContextThreadService } from '../../services/core/ContextThreadService';
 import { HealthService } from '../../services/core/health-service';
-import { createDomainAuthMiddleware } from '../../middleware/domain-auth-middleware';
-import { IAuthBridgeService } from '../../providers/auth/bridge/IAuthBridgeService';
 
 /**
- * Creates and configures all domain API routes with authentication
+ * Creates and configures all domain API routes
  * 
- * @param authBridgeService - Auth bridge service for domain authentication 
  * @param contextThreadService - Context thread service for thread operations
  * @param healthService - Health service for system diagnostics
  * @returns The configured domain API router
  */
 export function createDomainApiRoutes(
-  authBridgeService: IAuthBridgeService,
   contextThreadService: ContextThreadService,
   healthService: HealthService
 ): Router {
   const router = Router();
   
-  // Create the domain authentication middleware
-  const domainAuth = createDomainAuthMiddleware(authBridgeService, {
-    required: true
-  });
-
-  // Create and mount thread routes with domain authentication
+  // Phase 1: Auth removed - mount thread routes directly without authentication
   const threadRoutes = createContextThreadRoutes(contextThreadService);
-  router.use('/threads', domainAuth, threadRoutes);
+  router.use('/threads', threadRoutes);
   
   // Create and mount health check routes (no auth required for health checks)
   const healthRoutes = createHealthCheckRoutes(healthService);
